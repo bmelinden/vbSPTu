@@ -44,8 +44,8 @@ W=struct;   % model struct
 W.N=length(Ddt_init);
 W.dim=dat.dim;
 
-W.i0  = dat.i0;
-W.i1  = dat.i1+1;
+W.YZ.i0  = dat.i0;
+W.YZ.i1  = dat.i1+1;
 W.lnL=0;    % log likelihood
 W.tau=tau;
 W.R=R;
@@ -69,11 +69,11 @@ for d=1:W.dim
     W.YZ.muZ(ind1,d)=interp1(ind0,W.YZ.muZ(ind0,d),ind1,'linear','extrap');
     W.YZ.varZt(ind1,d)=interp1(ind0,W.YZ.varZt(ind0,d),ind1,'linear','extrap');
 end
-W.YZ.muZ(W.i1,:)=0;
+W.YZ.muZ(W.YZ.i1,:)=0;
 W.YZ.muY=W.YZ.muZ;
-W.YZ.muY(W.i1,:)=W.YZ.muZ(W.i1-1,:); % unobserved last positions
+W.YZ.muY(W.YZ.i1,:)=W.YZ.muZ(W.YZ.i1-1,:); % unobserved last positions
 W.YZ.varYt=W.YZ.varZt;
-W.YZ.varYt(W.i1,:)=W.YZ.varZt(W.i1-1,:); % unobserved last positions
+W.YZ.varYt(W.YZ.i1,:)=W.YZ.varZt(W.YZ.i1-1,:); % unobserved last positions
 
 % covariances: no correlations
 W.YZ.covYtYtp1=zeros(size(dat.v));
@@ -88,7 +88,7 @@ W.YZ.Fs_yz=0;
 % initialize hidden state field
 W.S=struct;
 W.S.pst=ones(size(dat.x,1),W.N)/W.N;
-W.S.pst(W.i1,:)=0;
+W.S.pst(W.YZ.i1,:)=0;
 W.S.wA=ones(W.N,W.N);
 
 

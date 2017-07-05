@@ -10,19 +10,19 @@ R=W.R;
 
 %% parameter update
 W.P.A=rowNormalize(W.S.wA);
-W.P.p0=rowNormalize(sum(W.S.pst(W.i0,:),1));
+W.P.p0=rowNormalize(sum(W.S.pst(W.YZ.i0,:),1));
 
 % check for unoccupied rows
 wAemptyRows=find((sum(W.S.wA,2)==0))';
 if(~isempty(wAemptyRows)) % a very non-invasive regularization, no new transitions
    W.P.A=rowNormalize(W.S.wA+10*eps*eye(W.N));
-   W.P.p0=rowNormalize(sum(W.S.pst(W.i0,:),1)+10*eps);
+   W.P.p0=rowNormalize(sum(W.S.pst(W.YZ.i0,:),1)+10*eps);
    %warning(['State(s) ' int2str(wAemptyRows) ' unoccupied, MLEparameterUpdate adding 10*eps pseudocounts to avoid NaNs'])
 end
 
 % index to all hidden states 
 indS=1:sum(dat.T+1);
-indS(W.i1)=0;
+indS(W.YZ.i1)=0;
 indS=indS(indS>0); 
 
 sumDim_dY2_dYZ2=sum(...

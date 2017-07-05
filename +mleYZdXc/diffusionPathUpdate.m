@@ -32,7 +32,7 @@ R=W.R;
 % substituted as follows: 
 datV=W.P.v*ones(size(dat.x));
 datV(~isfinite(dat.x(:,1)),:)=inf;
-datV(W.i1,:)=0;
+datV(W.YZ.i1,:)=0;
 
 %% hidden path: optimized and validated version
 
@@ -44,13 +44,13 @@ W.YZ.varZt   =zeros(size(dat.x));
 W.YZ.covYtYtp1=zeros(size(dat.x));
 W.YZ.covYtZt  =zeros(size(dat.x));
 W.YZ.covYtp1Zt=zeros(size(dat.x));
-W.YZ.mean_lnqyz=zeros(numel(W.i0),W.dim);
+W.YZ.mean_lnqyz=zeros(numel(W.YZ.i0),W.dim);
 W.YZ.mean_lnpxz=0;
 
 iAlpha=((W.S.pst*(1./W.P.lambda)')*ones(1,W.dim)); % 1/alpha_t
-iAlpha(W.i1,:)=0; % redundant usually
+iAlpha(W.YZ.i1,:)=0; % redundant usually
 iAzz0=1./(1./datV+iAlpha/beta); % diagonal elements of A_{zzm}^{1}
-iAzz0(W.i1,:)=0; % missing data points are zeroes here
+iAzz0(W.YZ.i1,:)=0; % missing data points are zeroes here
 
 am=iAlpha*(1+(1-tau)^2/beta)-iAlpha.^2*(1-tau)^2/beta^2.*iAzz0;
 bm=iAlpha*(1+tau^2/beta)-iAlpha.^2*tau^2/beta^2.*iAzz0;
@@ -59,7 +59,7 @@ iSyy0=am+bm([end 1:end-1],:);
 iSyy1=iAlpha*R/beta-iAlpha.^2*tau*(1-tau)/beta^2.*iAzz0;
 
 Vx=dat.x./datV;
-Vx(W.i1,:)=0;
+Vx(W.YZ.i1,:)=0;
 Vx(~isfinite(Vx))=0; % missing data 
 
 yRHS         =          (1-tau)/beta*iAlpha.*iAzz0.*Vx;
@@ -80,7 +80,7 @@ W.YZ.varZt    =iAzz0.*(1+(1-tau)/beta*iAlpha.*W.YZ.covYtZt+tau/beta*iAlpha.*W.YZ
 
 % <ln q(y,z)> :
 logDetAzz=-sum(log(iAzz0(iAzz0(:,1)>0,:))); % sum |Azzm|
-Tx=W.i1-W.i0; % number of points per trj
+Tx=W.YZ.i1-W.YZ.i0; % number of points per trj
 W.YZ.mean_lnqyz=-W.dim*sum((1+log(2*pi))*(2*Tx+1)/2)+0.5*sum((logDetAzz+logDetInvSyy));
 
 % <ln p(x|z)> :
