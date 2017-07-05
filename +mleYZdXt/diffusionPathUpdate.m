@@ -31,8 +31,8 @@ beta=tau*(1-tau)-R;
 % fields to compute
 W.YZ.muY=zeros(size(dat.x));
 W.YZ.muZ=zeros(size(dat.x));
-W.YZ.varYt   =zeros(size(dat.x));
-W.YZ.varZt   =zeros(size(dat.x));
+W.YZ.varY   =zeros(size(dat.x));
+W.YZ.varZ   =zeros(size(dat.x));
 W.YZ.covYtYtp1=zeros(size(dat.x));
 W.YZ.covYtZt  =zeros(size(dat.x));
 W.YZ.covYtp1Zt=zeros(size(dat.x));
@@ -60,15 +60,15 @@ yRHS(2:end,:)=yRHS(2:end,:)+tau/beta*iAlpha(1:end-1,:).*iAzz0(1:end-1,:).*Vx(1:e
 % compute <y> and Syy
 logDetInvSyy=zeros(1,W.dim);
 for m=1:W.dim % inversion and back-substitution, one dimension at a time
-    [W.YZ.muY(:,m),W.YZ.varYt(:,m),W.YZ.covYtYtp1(:,m),logDetInvSyy(m)]=...
+    [W.YZ.muY(:,m),W.YZ.varY(:,m),W.YZ.covYtYtp1(:,m),logDetInvSyy(m)]=...
         triSym_triInv_backsubLDU(iSyy0(:,m),iSyy1(:,m),yRHS(:,m));    
 end
 
 W.YZ.muZ=iAzz0.*(Vx+iAlpha/beta.*((1-tau)*W.YZ.muY+tau*W.YZ.muY([2:end end],:)));
 
-W.YZ.covYtZt  =iAlpha/beta.*iAzz0.*((1-tau)*W.YZ.varYt+tau*W.YZ.covYtYtp1);
-W.YZ.covYtp1Zt=iAlpha/beta.*iAzz0.*((1-tau)*W.YZ.covYtYtp1+tau*W.YZ.varYt([2:end 1],:));
-W.YZ.varZt    =iAzz0.*(1+(1-tau)/beta*iAlpha.*W.YZ.covYtZt+tau/beta*iAlpha.*W.YZ.covYtp1Zt);
+W.YZ.covYtZt  =iAlpha/beta.*iAzz0.*((1-tau)*W.YZ.varY+tau*W.YZ.covYtYtp1);
+W.YZ.covYtp1Zt=iAlpha/beta.*iAzz0.*((1-tau)*W.YZ.covYtYtp1+tau*W.YZ.varY([2:end 1],:));
+W.YZ.varZ    =iAzz0.*(1+(1-tau)/beta*iAlpha.*W.YZ.covYtZt+tau/beta*iAlpha.*W.YZ.covYtp1Zt);
 
 % <ln q(y,z)> :
 logDetAzz=-sum(log(iAzz0(iAzz0(:,1)>0,:))); % sum |Azzm|
@@ -77,7 +77,7 @@ W.YZ.mean_lnqyz=-W.dim*sum((1+log(2*pi))*(2*Tx+1)/2)+0.5*sum((logDetAzz+logDetIn
 
 % <ln p(x|z)> :
 ot=isfinite(dat.v(:,1))&(dat.v(:,1)>0);
-W.YZ.mean_lnpxz=-0.5*sum(sum(log(2*pi*dat.v(ot,:))+((dat.x(ot,:)-W.YZ.muZ(ot,:)).^2+W.YZ.varZt(ot,:))./dat.v(ot,:)));
+W.YZ.mean_lnpxz=-0.5*sum(sum(log(2*pi*dat.v(ot,:))+((dat.x(ot,:)-W.YZ.muZ(ot,:)).^2+W.YZ.varZ(ot,:))./dat.v(ot,:)));
 
 W.YZ.Fs_yz=W.YZ.mean_lnpxz-W.YZ.mean_lnqyz;
 

@@ -71,28 +71,28 @@ Tmax=sum(W.YZ.i1-W.YZ.i0+1);
 W.YZ.muY =zeros(Tmax,W.dim);
 W.YZ.muZ =zeros(Tmax,W.dim);
 % variances
-W.YZ.varYt=zeros(Tmax,W.dim);
-W.YZ.varZt=zeros(Tmax,W.dim);
+W.YZ.varY=zeros(Tmax,W.dim);
+W.YZ.varZ=zeros(Tmax,W.dim);
 % covarinces: all zero
 W.YZ.covYtp1Yt=zeros(Tmax,W.dim);
 W.YZ.covYtZt  =zeros(Tmax,W.dim);
 W.YZ.covYtp1Zt=zeros(Tmax,W.dim);
 
 W.YZ.muZ=dat.x;
-W.YZ.varZt=ones(size(dat.x))*v_init;
+W.YZ.varZ=ones(size(dat.x))*v_init;
 
 % fill out missing positions and uncertainties by linear interpolation
 ind0=find( isfinite(dat.x(:,1)));
 ind1=find(~isfinite(dat.x(:,1)));
 for d=1:W.dim
     W.YZ.muZ(ind1,d)=interp1(ind0,W.YZ.muZ(ind0,d),ind1,'linear','extrap');
-    %W.YZ.varZt(ind1,d)=interp1(ind0,W.YZ.varZt(ind0,d),ind1,'linear','extrap');
+    %W.YZ.varZ(ind1,d)=interp1(ind0,W.YZ.varZ(ind0,d),ind1,'linear','extrap');
 end
 W.YZ.muZ(W.YZ.i1,:)=0;
 W.YZ.muY=W.YZ.muZ;
 W.YZ.muY(W.YZ.i1,:)=W.YZ.muZ(W.YZ.i1-1,:); % unobserved last positions
-W.YZ.varYt=W.YZ.varZt;
-W.YZ.varYt(W.YZ.i1,:)=W.YZ.varZt(W.YZ.i1-1,:); % unobserved last positions
+W.YZ.varY=W.YZ.varZ;
+W.YZ.varY(W.YZ.i1,:)=W.YZ.varZ(W.YZ.i1-1,:); % unobserved last positions
 
 % covariances: no correlations
 W.YZ.covYtYtp1=zeros(size(dat.x));
