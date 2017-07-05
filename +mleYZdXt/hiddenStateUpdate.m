@@ -32,7 +32,7 @@ lnH=lnH-sum(...
         ,2)/2*(1./W.P.lambda);
 lnH(W.YZ.i1,:)=0;
 lnHmax=max(lnH,[],2);
-lnH=lnH-lnHmax*ones(1,W.N);
+lnH=lnH-lnHmax*ones(1,W.numStates);
 H=exp(lnH);
 H(W.YZ.i1,:)=0;
 %% forward-backward iteration

@@ -41,19 +41,19 @@ function W=init_P_dat(tau,R,Ddt_init,A_init,p0_init,dat)
 
 
 W=struct;   % model struct
-W.N=length(Ddt_init);
+W.numStates=length(Ddt_init);
 W.dim=dat.dim;
 
 W.lnL=0;    % log likelihood
 W.shutterMean=tau;
 W.blurCoeff=R;
-W.pOcc=zeros(1,W.N);
+W.pOcc=zeros(1,W.numStates);
 
 % parameter subfield
 W.P=struct; 
 W.P.lambda=2*Ddt_init;
 W.P.A=A_init;
-W.P.p0=reshape(p0_init,1,W.N);
+W.P.p0=reshape(p0_init,1,W.numStates);
 
 % hidden path subfield, with no Infs or NaNs
 W.YZ=struct;
@@ -87,9 +87,9 @@ W.YZ.Fs_yz=0;
 
 % initialize hidden state field
 W.S=struct;
-W.S.pst=ones(size(dat.x,1),W.N)/W.N;
+W.S.pst=ones(size(dat.x,1),W.numStates)/W.numStates;
 W.S.pst(W.YZ.i1,:)=0;
-W.S.wA=ones(W.N,W.N);
+W.S.wA=ones(W.numStates,W.numStates);
 
 
 

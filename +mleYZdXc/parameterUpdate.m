@@ -15,7 +15,7 @@ W.P.p0=rowNormalize(sum(W.S.pst(W.YZ.i0,:),1));
 % check for unoccupied rows
 wAemptyRows=find((sum(W.S.wA,2)==0))';
 if(~isempty(wAemptyRows)) % a very non-invasive regularization, no new transitions
-   W.P.A=rowNormalize(W.S.wA+10*eps*eye(W.N));
+   W.P.A=rowNormalize(W.S.wA+10*eps*eye(W.numStates));
    W.P.p0=rowNormalize(sum(W.S.pst(W.YZ.i0,:),1)+10*eps);
    %warning(['State(s) ' int2str(wAemptyRows) ' unoccupied, MLEparameterUpdate adding 10*eps pseudocounts to avoid NaNs'])
 end
@@ -35,8 +35,8 @@ sumDim_dY2_dYZ2=sum(...
     -2*(1-tau)/beta*W.YZ.covYtZt(indS,:)...
     -2*tau/beta*W.YZ.covYtp1Zt(indS,:)...
     ,2);
-c=zeros(1,W.N);
-for k=1:W.N
+c=zeros(1,W.numStates);
+for k=1:W.numStates
     c(k)=0.5*sum(W.S.pst(indS,k).*sumDim_dY2_dYZ2);
 end
 n=W.dim*sum(W.S.pst(indS,:),1); 
