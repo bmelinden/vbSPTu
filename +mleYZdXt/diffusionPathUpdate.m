@@ -22,10 +22,9 @@ function [W,WS]=diffusionPathUpdate(W,dat)
 
 %% start of actual code
 
-
-beta=W.tau*(1-W.tau)-W.R;
-tau=W.tau;
-R=W.R;
+tau=W.shutterMean;
+R=W.blurCoeff;
+beta=tau*(1-tau)-R;
 
 %% hidden path: optimized and validated version
 

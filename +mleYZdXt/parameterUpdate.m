@@ -4,9 +4,9 @@ function W=parameterUpdate(W,dat)
 
 %% start of actual code
 
-beta=W.tau*(1-W.tau)-W.R;
-tau=W.tau;
-R=W.R;
+tau=W.shutterMean;
+R=W.blurCoeff;
+beta=tau*(1-tau)-R;
 
 %% parameter update
 W.P.A=rowNormalize(W.S.wA);

@@ -43,11 +43,9 @@ W=struct;   % model struct
 W.N=length(Ddt_init);
 W.dim=dat.dim;
 
-W.YZ.i0  = dat.i0;
-W.YZ.i1  = dat.i1+1;
 W.lnL=0;    % log likelihood
-W.tau=tau;
-W.R=R;
+W.shutterMean=tau;
+W.blurCoeff=R;
 W.pOcc=zeros(1,W.N);
 
 % parameter subfield
@@ -59,6 +57,8 @@ W.P.v=v_init;
 
 % hidden path subfield, with no Infs or NaNs
 W.YZ=struct;
+W.YZ.i0  = dat.i0;
+W.YZ.i1  = dat.i1+1;
 W.YZ.muZ=dat.x;
 W.YZ.varZt=ones(size(dat.x))*v_init;
 

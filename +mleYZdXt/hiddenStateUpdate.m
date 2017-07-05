@@ -13,9 +13,9 @@ function [W,sMaxP,sVit,WS]=hiddenStateUpdate(W,dat)
 
 
 %% start of actual code
-beta=W.tau*(1-W.tau)-W.R;
-tau=W.tau;
-R=W.R;
+tau=W.shutterMean;
+R=W.blurCoeff;
+beta=tau*(1-tau)-R;
 %% assemble point-wise weights
 T=W.YZ.i1(end);
 lnH=-W.dim*ones(T,1)*log(W.P.lambda);
