@@ -1,5 +1,5 @@
-function W=init_P_dat(tau,R,D_init,dt,A_init,p0_init,dat)
-% W=mleYZdXc.init_P_dat(tau,R,D_init,dt,A_init,p0_init,dat)
+function W=init_P_dat(tau,R,D_init,dt,A_init,p0_init,v_init,dat)
+% W=mleYZdXc.init_P_dat(tau,R,D_init,dt,A_init,p0_init,v_init,dat)
 %
 % Initialize a diffusive HMM model with 
 % tau,R    : blur parameters
@@ -65,6 +65,19 @@ W.P.v=v_init;
 % hidden path subfield, with no Infs or NaNs
 W.YZ.i0  = dat.i0;
 W.YZ.i1  = dat.i1+1;
+Tmax=sum(W.YZ.i1-W.YZ.i0+1);
+% subfields in a specific order
+% mean values
+W.YZ.muY =zeros(Tmax,W.dim);
+W.YZ.muZ =zeros(Tmax,W.dim);
+% variances
+W.YZ.varYt=zeros(Tmax,W.dim);
+W.YZ.varZt=zeros(Tmax,W.dim);
+% covarinces: all zero
+W.YZ.covYtp1Yt=zeros(Tmax,W.dim);
+W.YZ.covYtZt  =zeros(Tmax,W.dim);
+W.YZ.covYtp1Zt=zeros(Tmax,W.dim);
+
 W.YZ.muZ=dat.x;
 W.YZ.varZt=ones(size(dat.x))*v_init;
 
