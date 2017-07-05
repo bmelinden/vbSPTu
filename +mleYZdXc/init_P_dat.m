@@ -1,9 +1,10 @@
-function W=init_P_dat(tau,R,Ddt_init,A_init,p0_init,v_init,dat)
-% W=mleYZdXc.init_P_dat(tau,R,Ddt_init,A_init,p0_init,v_init,dat)
+function W=init_P_dat(tau,R,D_init,dt,A_init,p0_init,dat)
+% W=mleYZdXc.init_P_dat(tau,R,D_init,dt,A_init,p0_init,dat)
 %
 % Initialize a diffusive HMM model with 
 % tau,R    : blur parameters
-% Ddt_init : diffusion constant*timestep
+% D_init   : diffusion constant
+% dt       : timestep
 % A_init   : transition matrix 
 % p0_init  : initial state probability
 % dat      : trajectory data, from EMhmm.preprocess
@@ -40,23 +41,28 @@ function W=init_P_dat(tau,R,Ddt_init,A_init,p0_init,v_init,dat)
 %% start of actual code
 
 W=struct;   % model struct
-W.numStates=length(Ddt_init);
+W.numStates=length(D_init);
 W.dim=dat.dim;
 
-W.lnL=0;    % log likelihood
+W.timestep=dt;
 W.shutterMean=tau;
 W.blurCoeff=R;
-W.pOcc=zeros(1,W.numStates);
+
+% variational distributions
+W.P=struct; 
+W.YZ=struct;
+W.S=struct;
+
+W.lnL=0;    % log likelihood
+
 
 % parameter subfield
-W.P=struct; 
-W.P.lambda=2*Ddt_init;
+W.P.lambda=2*D_init*dt;
 W.P.A=A_init;
 W.P.p0=reshape(p0_init,1,W.numStates);
 W.P.v=v_init;
 
 % hidden path subfield, with no Infs or NaNs
-W.YZ=struct;
 W.YZ.i0  = dat.i0;
 W.YZ.i1  = dat.i1+1;
 W.YZ.muZ=dat.x;
@@ -85,9 +91,7 @@ W.YZ.mean_lnqyz=0;
 W.YZ.mean_lnpxz=0;
 W.YZ.Fs_yz=0;
 
-% initialize hidden state field: a really guess, should probably be update
-% first
-W.S=struct;
+% initialize hidden state field
 W.S.pst=ones(size(dat.x,1),W.numStates)/W.numStates;
 W.S.pst(W.YZ.i1,:)=0;
 W.S.wA=ones(W.numStates,W.numStates);

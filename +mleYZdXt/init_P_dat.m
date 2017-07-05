@@ -1,9 +1,10 @@
-function W=init_P_dat(tau,R,Ddt_init,A_init,p0_init,dat)
-% W=EMhmm.init_P_dat(tau,R,Ddt_init,A_init,p0_init,dat)
+function W=init_P_dat(tau,R,D_init,dt,A_init,p0_init,dat)
+% W=mleYZdXt.init_P_dat(tau,R,D_init,dt,A_init,p0_init,dat)
 %
 % Initialize a diffusive HMM model with 
 % tau,R    : blur parameters
-% Ddt_init : diffusion constant*timestep
+% D_init   : diffusion constant
+% dt       : timestep
 % A_init   : transition matrix 
 % p0_init  : initial state probability
 % dat      : trajectory data, from EMhmm.preprocess
@@ -13,7 +14,7 @@ function W=init_P_dat(tau,R,Ddt_init,A_init,p0_init,dat)
 
 %% copyright notice
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% EMhmm.init_P_dat, initialize variational diffusive HMM
+% init_P_dat, initialize variational diffusive HMM
 % =========================================================================
 % 
 % Copyright (C) 2016 Martin Lindén
@@ -39,32 +40,36 @@ function W=init_P_dat(tau,R,Ddt_init,A_init,p0_init,dat)
 % with this program. If not, see <http://www.gnu.org/licenses/>.
 %% start of actual code
 
-
 W=struct;   % model struct
-W.numStates=length(Ddt_init);
+W.numStates=length(D_init);
 W.dim=dat.dim;
 
-W.lnL=0;    % log likelihood
+W.timestep=dt;
 W.shutterMean=tau;
 W.blurCoeff=R;
-W.pOcc=zeros(1,W.numStates);
+
+% variational distributions
+W.P=struct; 
+W.YZ=struct;
+W.S=struct;
+
+W.lnL=0;    % log likelihood
+
 
 % parameter subfield
-W.P=struct; 
-W.P.lambda=2*Ddt_init;
+W.P.lambda=2*D_init*dt;
 W.P.A=A_init;
 W.P.p0=reshape(p0_init,1,W.numStates);
 
 % hidden path subfield, with no Infs or NaNs
-W.YZ=struct;
 W.YZ.i0  = dat.i0;
 W.YZ.i1  = dat.i1+1;
 W.YZ.muZ=dat.x;
 W.YZ.varZt=dat.v;
 
 % fill out missing positions and uncertainties by linear interpolation
-ind0=find( isfinite(dat.v(:,1)));
-ind1=find(~isfinite(dat.v(:,1)));
+ind0=find( isfinite(dat.x(:,1)));
+ind1=find(~isfinite(dat.x(:,1)));
 for d=1:W.dim
     W.YZ.muZ(ind1,d)=interp1(ind0,W.YZ.muZ(ind0,d),ind1,'linear','extrap');
     W.YZ.varZt(ind1,d)=interp1(ind0,W.YZ.varZt(ind0,d),ind1,'linear','extrap');
@@ -76,9 +81,9 @@ W.YZ.varYt=W.YZ.varZt;
 W.YZ.varYt(W.YZ.i1,:)=W.YZ.varZt(W.YZ.i1-1,:); % unobserved last positions
 
 % covariances: no correlations
-W.YZ.covYtYtp1=zeros(size(dat.v));
-W.YZ.covYtZt  =zeros(size(dat.v));
-W.YZ.covYtp1Zt=zeros(size(dat.v));
+W.YZ.covYtYtp1=zeros(size(dat.x));
+W.YZ.covYtZt  =zeros(size(dat.x));
+W.YZ.covYtp1Zt=zeros(size(dat.x));
 
 % lower bound contributions
 W.YZ.mean_lnqyz=0;
@@ -86,7 +91,6 @@ W.YZ.mean_lnpxz=0;
 W.YZ.Fs_yz=0;
 
 % initialize hidden state field
-W.S=struct;
 W.S.pst=ones(size(dat.x,1),W.numStates)/W.numStates;
 W.S.pst(W.YZ.i1,:)=0;
 W.S.wA=ones(W.numStates,W.numStates);

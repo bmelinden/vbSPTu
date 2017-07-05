@@ -39,7 +39,6 @@ H(W.YZ.i1,:)=0;
 %[ln3,wA3,ps3]=HMM_multiForwardBackward_g1(W.P.A,H,dat.i1);
 [lnZ,W.S.wA,W.S.pst]=HMM_multiForwardBackward_startend(W.P.A,H,dat.i0,dat.i1);
 W.S.lnZ=lnZ+sum(lnHmax);
-W.pOcc=rowNormalize(sum(W.S.pst,1));
 
 %% likelihood lower bound after s
 W.lnL=W.S.lnZ+W.YZ.Fs_yz;
