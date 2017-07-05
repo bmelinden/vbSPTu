@@ -92,6 +92,11 @@ W.YZ.varZ=zeros(Tmax,dim);
 W.YZ.sigYYp1=zeros(Tmax,dim);
 W.YZ.sigYZ  =zeros(Tmax,dim);
 W.YZ.sigYp1Z=zeros(Tmax,dim);
+% lower bound terms
+W.YZ.mean_lnqyz=0;
+W.YZ.mean_lnpxz=0;
+W.YZ.Fs_yz=0;
+
 %% empty hidden state model
 W.S=struct;
 W.S.pst=zeros(Tmax,W.numStates);
