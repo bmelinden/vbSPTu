@@ -3,6 +3,9 @@ function uSPThmm_setup()
 
 dir0=fileparts(mfilename('fullpath'));% path to this file, even if called from other folder
 addpath(dir0)
+addpath(fullfile(dir0,'tools'))
 disp('Added local uSPThmm paths from')
 disp(dir0)
 disp('-----------------------')
+% set new random seed
+rng('shuffle')

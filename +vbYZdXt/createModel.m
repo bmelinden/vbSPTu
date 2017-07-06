@@ -1,4 +1,4 @@
-function W=createModel(opt,N,X)
+function W=createModel(opt,N,X,Di,Ai,p0i)
 % W=vbUSPTmodel(opt,N,X)
 % construct a vbYZdXt model struct based on prior parameters in
 % opt. opt can be either an options struct or the name of a
@@ -6,6 +6,13 @@ function W=createModel(opt,N,X)
 % opt   : runinput options struct or runinput file name
 % N     : number of states
 % X     : preprocessed data struct
+% Di,Ai,p0i: Optional initial guess for variational mean values of model
+%            parameters (strength according to data set size). If not
+%            given, the mean values are sampled from the prior
+%            distributions.
+%
+% Variational models for trajectories and hidden states are constructed
+% based on the input data (using mleYZdXt.init_P_dat).
 
 % save model options: try not to, to avoid redundant information
 % opt=vbspt.getOptions(opt);
@@ -23,7 +30,6 @@ W.dim=opt.dim;
 % class hierarchy of priors. Philisophy is that the vbXdXmodel
 % objects knows and handles its own priors, and that these
 % priors might be resused by other models as well.
-
 %% sampling properties
 W.timestep=opt.timestep;
 W.shutterMean=opt.shutterMean; % tau
@@ -69,9 +75,39 @@ else
     error(['vbUSPT prior.transitionMatrix.type : ' ...
         W.opt.prior.initialState.type ' not recognized.'])
 end
-%% parameter model = prior
+%% initial parameter model
 W.P=W.P0;
-%% empty trajectory model
+if(exist('Di','var') && numel(Di)==W.numStates)
+    lambda_mean=2*Di*W.timestep;
+else
+    lambda_mean=1./gamrnd(W.P0.n,1./W.P0.c);
+end
+if(exist('p0i','var') && numel(p0i)==W.numStates)
+    p0_mean=p0i;
+else
+    p0_mean=0.001+0.999*dirrnd(W.P0.wPi); % keep away from 0 and 1
+end
+if(exist('Ai','var') && prod(size(Ai)==W.numStates)==1)
+    a_mean=1-diag(Ai);
+    B_mean=rowNormalize(Ai-diag(diag(Ai)));
+else
+    % keep probabilities away from 0 and 1
+    a_mean=0.001+0.999*dirrnd(W.P0.wa);
+    B_mean=0.001+0.999*dirrnd(W.P0.wB);
+    Ai=diag(1-a_mean)+diag(a_mean)*B_mean;
+end
+% variational parameters
+Ttot=sum(X.T); % total strength
+W.P.n=W.P0.n+Ttot/W.numStates*ones(1,W.numStates);
+W.P.c=W.P0.c+(W.P0.n-1).*lambda_mean;
+W.P.wPi=W.P0.wPi+p0_mean*numel(X.T);
+W.P.wa=W.P0.wa+Ttot*a_mean;
+W.P.wB=W.P0.wB+Ttot/W.numStates*B_mean;
+%% trajectory and hidden state models
+U=mleYZdXt.init_P_dat(W.shutterMean,W.blurCoeff,lambda_mean/2/W.timestep,W.timestep,Ai,p0i,X);
+W.YZ=U.YZ;
+W.S=U.S;
+if(0) % empty initializations
 dim=W.dim;
 if(~isempty(X))
     W.YZ.i0=reshape(X.i0,length(X.i0),1);
@@ -102,4 +138,4 @@ W.S=struct;
 W.S.pst=zeros(Tmax,W.numStates);
 W.S.wA=zeros(W.numStates,W.numStates);
 W.S.lnZ=0;
-
+end
