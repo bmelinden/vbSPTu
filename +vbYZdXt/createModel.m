@@ -78,14 +78,14 @@ end
 %% initial parameter model
 W.P=W.P0;
 if(exist('Di','var') && numel(Di)==W.numStates)
-    lambda_mean=2*Di*W.timestep;
+    lambda_mean=reshape(2*Di*W.timestep,1,W.numStates);
 else
     lambda_mean=1./gamrnd(W.P0.n,1./W.P0.c);
 end
 if(exist('p0i','var') && numel(p0i)==W.numStates)
-    p0_mean=p0i;
+    p0_mean=reshape(p0i,1,W.numStates);
 else
-    p0_mean=0.001+0.999*dirrnd(W.P0.wPi); % keep away from 0 and 1
+    p0_mean=0.001+0.999*dirrnd(W.P0.wPi); % keep away from 0 and 1    
 end
 if(exist('Ai','var') && prod(size(Ai)==W.numStates)==1)
     a_mean=1-diag(Ai);
@@ -93,18 +93,19 @@ if(exist('Ai','var') && prod(size(Ai)==W.numStates)==1)
 else
     % keep probabilities away from 0 and 1
     a_mean=0.001+0.999*dirrnd(W.P0.wa);
+    a_mean=a_mean(:,1); % <a>
     B_mean=0.001+0.999*dirrnd(W.P0.wB);
     Ai=diag(1-a_mean)+diag(a_mean)*B_mean;
 end
 % variational parameters
 Ttot=sum(X.T); % total strength
 W.P.n=W.P0.n+Ttot/W.numStates*ones(1,W.numStates);
-W.P.c=W.P0.c+(W.P0.n-1).*lambda_mean;
+W.P.c=W.P0.c+(W.P.n-W.P0.n).*lambda_mean;
 W.P.wPi=W.P0.wPi+p0_mean*numel(X.T);
 W.P.wa=W.P0.wa+Ttot*a_mean;
 W.P.wB=W.P0.wB+Ttot/W.numStates*B_mean;
 %% trajectory and hidden state models
-U=mleYZdXt.init_P_dat(W.shutterMean,W.blurCoeff,lambda_mean/2/W.timestep,W.timestep,Ai,p0i,X);
+U=mleYZdXt.init_P_dat(W.shutterMean,W.blurCoeff,lambda_mean/2/W.timestep,W.timestep,Ai,p0_mean,X);
 W.YZ=U.YZ;
 W.S=U.S;
 if(0) % empty initializations
