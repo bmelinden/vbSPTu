@@ -73,7 +73,7 @@ W.YZ.muZ =zeros(Tmax,W.dim);
 W.YZ.varY=zeros(Tmax,W.dim);
 W.YZ.varZ=zeros(Tmax,W.dim);
 % covarinces: all zero
-W.YZ.covYtp1Yt=zeros(Tmax,W.dim);
+W.YZ.covYtYtp1=zeros(Tmax,W.dim);
 W.YZ.covYtZt  =zeros(Tmax,W.dim);
 W.YZ.covYtp1Zt=zeros(Tmax,W.dim);
 
