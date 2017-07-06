@@ -19,11 +19,15 @@ function [W,sMaxP,sVit,WS]=hiddenStateUpdate(W,dat)
 % update variatyional q(S)
 switch nargout
     case 1
-        [W.S,W.lnL]=spt.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
+        W.S=spt.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
     case 2
-        [W.S,W.lnL,sMaxP]=spt.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
+        [W.S,~,sMaxP]=spt.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
     case 3
-        [W.S,W.lnL,sMaxP,sVit]=spt.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
+        [W.S,~,sMaxP,sVit]=spt.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
     case 4
-        [W.S,W.lnL,sMaxP,sVit,WS]=spt.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
+        [W.S,~,sMaxP,sVit,WS]=spt.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
 end
+%% assemble the lower bound
+W.lnL=W.S.lnZ...
+    -sum(W.P.KL_a)-sum(W.P.KL_B)-sum(W.P.KL_pi)-sum(W.P.KL_lambda)...
+    +W.YZ.mean_lnpxz-W.YZ.mean_lnqyz;

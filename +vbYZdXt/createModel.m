@@ -20,7 +20,6 @@ function W=createModel(opt,N,X,Di,Ai,p0i)
 
 % number of states
 W.numStates=N;
-W.sAggregate=1:N; % default state aggregation (no aggregation)
 
 % dimension
 W.dim=opt.dim;
@@ -77,6 +76,7 @@ else
 end
 %% initial parameter model
 W.P=W.P0;
+W.P.aggregate=1:N; % default state aggregation (no aggregation)
 if(exist('Di','var') && numel(Di)==W.numStates)
     lambda_mean=reshape(2*Di*W.timestep,1,W.numStates);
 else
@@ -104,39 +104,15 @@ W.P.c=W.P0.c+(W.P.n-W.P0.n).*lambda_mean;
 W.P.wPi=W.P0.wPi+p0_mean*numel(X.T);
 W.P.wa=W.P0.wa+Ttot*a_mean;
 W.P.wB=W.P0.wB+Ttot/W.numStates*B_mean;
+% Kullback-Leibler divergence terms
+W.P.KL_a=zeros(W.numStates,1);
+W.P.KL_B=zeros(W.numStates,1);
+W.P.KL_pi=0;
+W.P.KL_lambda=zeros(1,W.numStates);
 %% trajectory and hidden state models
 U=mleYZdXt.init_P_dat(W.shutterMean,W.blurCoeff,lambda_mean/2/W.timestep,W.timestep,Ai,p0_mean,X);
 W.YZ=U.YZ;
-W.S=U.S;
-if(0) % empty initializations
-dim=W.dim;
-if(~isempty(X))
-    W.YZ.i0=reshape(X.i0,length(X.i0),1);
-    W.YZ.i1=reshape(X.i1,length(X.i1),1)+1;
-    Tmax=W.YZ.i1(end);
-else
-    W.YZ.i0=[];
-    W.YZ.i1=[];
-    Tmax=1;
-end
-% mean values
-W.YZ.muY =zeros(Tmax,dim);
-W.YZ.muZ =zeros(Tmax,dim);
-% variances
-W.YZ.varY=zeros(Tmax,dim);
-W.YZ.varZ=zeros(Tmax,dim);
-% covarinces: all zero
-W.YZ.sigYYp1=zeros(Tmax,dim);
-W.YZ.sigYZ  =zeros(Tmax,dim);
-W.YZ.sigYp1Z=zeros(Tmax,dim);
-% lower bound terms
 W.YZ.mean_lnqyz=0;
 W.YZ.mean_lnpxz=0;
 W.YZ.Fs_yz=0;
-
-%% empty hidden state model
-W.S=struct;
-W.S.pst=zeros(Tmax,W.numStates);
-W.S.wA=zeros(W.numStates,W.numStates);
-W.S.lnZ=0;
-end
+W.S=U.S;

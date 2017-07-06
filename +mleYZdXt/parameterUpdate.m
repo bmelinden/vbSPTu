@@ -1,4 +1,4 @@
-function W=parameterUpdate(W,dat)
+function W=parameterUpdate(W,~)
 % A parameter update iteration (MLE) on a diffusive YZdXt HMM, including
 % handling missing data 
 
@@ -21,7 +21,7 @@ if(~isempty(wAemptyRows)) % a very non-invasive regularization, no new transitio
 end
 
 % index to all hidden states 
-indS=1:sum(dat.T+1);
+indS=1:W.YZ.i1(end);
 indS(W.YZ.i1)=0;
 indS=indS(indS>0); 
 

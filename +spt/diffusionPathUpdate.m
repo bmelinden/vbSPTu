@@ -46,7 +46,7 @@ YZ.varZ   =zeros(size(dat.x));
 YZ.covYtYtp1=zeros(size(dat.x));
 YZ.covYtZt  =zeros(size(dat.x));
 YZ.covYtp1Zt=zeros(size(dat.x));
-YZ.mean_lnqyz=zeros(numel(YZ.i0),dim);
+YZ.mean_lnqyz=0;
 YZ.mean_lnpxz=0;
 
 iAlpha=((S.pst*(iLambda)')*ones(1,dim)); % 1/alpha_t
