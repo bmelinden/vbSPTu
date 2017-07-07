@@ -1,4 +1,4 @@
-function [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda)
+function [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda,iV)
 % [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda)
 % one round of diffusion path update in a diffusive HMM, with possibly
 % missing position data. This function assumes point-wise code extends the EMhmm diffusion path update
@@ -9,11 +9,12 @@ function [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda)
 % S     : W.S, variational hidden state distribution struct
 % tau   : W.shutterMean
 % R     : W.blurCoeff
-% iLambda : <1/lambda=W.P.n./W.P.c (VB), or 1./W.P.lambda (MLE)
+% iLambda : <1/lambda= W.P.n./W.P.c   (VB), or 1./W.P.lambda (MLE)
+% iV    :   <1./v>   = W.P.nv./W.P.cv (VB), or 1./W.P.v      (MLE)
 %
 % YZ   : updated variational trajectory distribution struct
 % funWS: optional output, workspace at end of the function
-%
+
 % v1: initial implementation, validated by comparing to EMhmm variational
 % distribution q(y) (reasonable agreement), and lnH (small
 % difference), viterbi path (good agreement). Not clear how good a match to
@@ -31,9 +32,21 @@ function [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda)
 % derived parameters
 beta=tau*(1-tau)-R;
 dim=size(dat.x,2);          % data dimensionality
+N=size(S.pst,2);
+if(exist('iV','var') && ~isempty(iV))
+    if(numel(iV)==1)
+        iV=iV*ones(1,N);
+    end
+    datV=(1./(S.pst*(iV')))*ones(1,dim);
+    datV(~isfinite(dat.x(:,1)),:)=inf;
+    datV(dat.i1+1,:)=0;
+elseif(isfield(dat,'v'))
+    datV=dat.v;
+else
+    error('no localization precision information!')
+end
 
 %% hidden path: optimized and validated version
-
 
 % fields to compute
 YZ=struct;
@@ -51,7 +64,7 @@ YZ.mean_lnpxz=0;
 
 iAlpha=((S.pst*(iLambda)')*ones(1,dim)); % 1/alpha_t
 iAlpha(YZ.i1,:)=0; % redundant usually
-iAzz0=1./(1./dat.v+iAlpha/beta); % diagonal elements of A_{zzm}^{1}
+iAzz0=1./(1./datV+iAlpha/beta); % diagonal elements of A_{zzm}^{1}
 iAzz0(YZ.i1,:)=0; % missing data points are zeroes here
 
 am=iAlpha*(1+(1-tau)^2/beta)-iAlpha.^2*(1-tau)^2/beta^2.*iAzz0;
@@ -60,7 +73,7 @@ iSyy0=am+bm([end 1:end-1],:);
 
 iSyy1=iAlpha*R/beta-iAlpha.^2*tau*(1-tau)/beta^2.*iAzz0;
 
-Vx=dat.x./dat.v;
+Vx=dat.x./datV;
 Vx(YZ.i1,:)=0;
 Vx(~isfinite(Vx))=0; % missing data 
 
@@ -86,8 +99,8 @@ Tx=YZ.i1-YZ.i0; % number of points per trj
 YZ.mean_lnqyz=-dim*sum((1+log(2*pi))*(2*Tx+1)/2)+0.5*sum((logDetAzz+logDetInvSyy));
 
 % <ln p(x|z)> :
-ot=isfinite(dat.v(:,1))&(dat.v(:,1)>0);
-YZ.mean_lnpxz=-0.5*sum(sum(log(2*pi*dat.v(ot,:))+((dat.x(ot,:)-YZ.muZ(ot,:)).^2+YZ.varZ(ot,:))./dat.v(ot,:)));
+ot=isfinite(datV(:,1))&(datV(:,1)>0);
+YZ.mean_lnpxz=-0.5*sum(sum(log(2*pi*datV(ot,:))+((dat.x(ot,:)-YZ.muZ(ot,:)).^2+YZ.varZ(ot,:))./datV(ot,:)));
 
 YZ.Fs_yz=YZ.mean_lnpxz-YZ.mean_lnqyz;
 

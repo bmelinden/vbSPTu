@@ -79,7 +79,7 @@ W.YZ.covYtZt  =zeros(Tmax,W.dim);
 W.YZ.covYtp1Zt=zeros(Tmax,W.dim);
 
 W.YZ.muZ=dat.x;
-W.YZ.varZ=ones(size(dat.x))*v_init;
+W.YZ.varZ=ones(size(dat.x))*mean(v_init);
 
 % fill out missing positions and uncertainties by linear interpolation
 ind0=find( isfinite(dat.x(:,1)));

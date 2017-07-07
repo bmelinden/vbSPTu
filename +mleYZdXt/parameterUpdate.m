@@ -20,7 +20,7 @@ if(~isempty(wAemptyRows)) % a very non-invasive regularization, no new transitio
    %warning(['State(s) ' int2str(wAemptyRows) ' unoccupied, MLEparameterUpdate adding 10*eps pseudocounts to avoid NaNs'])
 end
 
-% index to all hidden states 
+% index to all hidden states, including missing data 
 indS=1:W.YZ.i1(end);
 indS(W.YZ.i1)=0;
 indS=indS(indS>0); 

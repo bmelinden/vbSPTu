@@ -32,6 +32,7 @@ dYZ2=sum(...
         ,2);
 c=0.5*sum((dYZ2*ones(1,N)).*W.S.pst,1);
 n=dim*sum(W.S.pst,1);
+% VB parameter update
 W.P.n=W.P0.n+n;
 W.P.c=W.P0.c+c;
 %% update lower bound contributions
