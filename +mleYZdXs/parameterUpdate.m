@@ -55,6 +55,12 @@ end
 ot=isfinite(dat.x(:,1)); % index to all measured positions
 ot(W.YZ.i1)=false; % should be redundant
 
-nv=0.5*W.dim*sum(ot);
-cv=0.5*sum(sum((dat.x(ot,:)-W.YZ.muZ(ot,:)).^2+W.YZ.varZ(ot,:)));
-W.P.v=cv/nv;
+nv=0.5*W.dim*sum(W.S.pst(ot,:),1);
+cv=0.5*sum((sum((dat.x(ot,:)-W.YZ.muZ(ot,:)).^2+W.YZ.varZ(ot,:)...
+    ,2)*ones(1,W.numStates)).*W.S.pst(ot,:),1);
+    
+if(numel(W.P.v)>1)
+    W.P.v=cv./nv;
+else
+    W.P.v=sum(cv)/sum(nv);
+end

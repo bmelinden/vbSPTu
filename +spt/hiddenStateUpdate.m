@@ -1,4 +1,4 @@
-function [S,lnL,sMaxP,sVit,funWS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ)
+function [S,lnL,sMaxP,sVit,funWS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs)
 % [W,sMaxP,sVit,WS]=hiddenStateUpdate(W,dat)
 % one hidden state iteration for in adiffusive HMM, with possibly missing
 % position data  
@@ -8,11 +8,16 @@ function [S,lnL,sMaxP,sVit,funWS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambd
 % tau   : W.shutterMean
 % R     : W.blurCoeff
 % iLambda : <1/lambda=W.P.n./W.P.c (VB), or 1./W.P.lambda (MLE)
-% lnLambda: <ln(lambda)>=log(W.P.c)-psi(W.P.n) (VB) or ln(lambda) (MLE)
-% lnp0  : <ln(pi)>=psi(W.P.wPi)-psi(sum(W.P.wPi)) (VB) or ln(p0) (MLE)
+% lnLambda: <ln(lambda)>=ln(W.P.c)-psi(W.P.n) (VB) or ln(lambda) (MLE)
+% lnp0  : <ln(pi)>=psi(W.P.wPi)-psi(sum(W.P.wPi))   (VB) or ln(p0) (MLE)
 % lnQ   : lnQ(i,i) = <ln(1-a(i))>                   (VB)
 %         lnQ(i,j) = <ln(a(i))>  + <lnB(i,j)>, i~=j (VB)
 %         or ln(A) (MLE).
+% ------------------------------------------------------------------------
+% for models where localization errors are fit parameters
+% lnVs  : <ln v> =ln(cv)-psi(nv) (VB) or ln(v) (MLE)
+% iVs   : <1./v> = nv./cv        (VB) or 1./v  (MLE)
+% -------------------------------------------------------------------------
 %
 % sMAxP and sVit are only computed if asked for by output arguments.
 % WS : struct containing the whole workspace at the end of the function
@@ -29,6 +34,13 @@ beta=tau*(1-tau)-R;
 numStates=size(lnQ,1);
 dim=size(dat.x,2);% data dimensionality
 S=struct;
+% extra contribution to lnH only when there are state-dependent
+% localization uncertainties
+addVterms=false;
+if(exist('lnVs','var') && numel(lnVs)==numStates ...
+        && exist('iVs','var') && numel(iVs)==numStates)
+   addVterms=true;
+end
 %% assemble point-wise weights
 T=YZ.i1(end);
 lnH=-dim*ones(T,1)*lnLambda;
@@ -43,6 +55,13 @@ lnH=lnH-sum(...
         -2*(1-tau)/beta*YZ.covYtZt...
         -2*tau/beta*YZ.covYtp1Zt...
         ,2)/2*(iLambda);
+if(addVterms)
+    ot=isfinite(dat.x(:,1));
+    dxz2=sum((dat.x-YZ.muZ).^2 + YZ.varZ,2);
+    dxz2(~ot)=0;
+    ot(YZ.i1)=false;
+    lnH=lnH-0.5*ot*lnVs-0.5*dxz2*iVs;
+end
 lnH(YZ.i1,:)=0;
 lnHmax=max(lnH,[],2);
 lnH=lnH-lnHmax*ones(1,numStates);

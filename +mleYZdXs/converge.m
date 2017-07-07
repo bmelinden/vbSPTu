@@ -98,6 +98,7 @@ converged_lnL=0;
 converged_par=false;
 dParam=inf;
 dlnLrel=inf;
+parName={'lambda','A','p0','v',' '};
 for r=1:(Nwarmup+maxIter)
     if(sortModel)
         % sort in order of increasing diffusion constant
@@ -108,6 +109,9 @@ for r=1:(Nwarmup+maxIter)
             W.P.A=W.P.A(ind,ind);
             W.S.pst=W.S.pst(:,ind);
             W.S.wA=W.S.wA(ind,ind);
+            if(numel(W.P.v)==W.numStates)
+                W.P.v=W.P.v(ind);
+            end
         end
     end
 
@@ -124,7 +128,8 @@ for r=1:(Nwarmup+maxIter)
             dA=max(abs(W.P.A(:)-A0(:)));
             dp0=max(abs(W.P.p0-p00));
             dv=max(abs((W.P.v-v0)/W.P.v));
-            dParam=max([ dLam dA dp0 dv]);
+            %%%disp(num2str([sqrt(W.P.v) W.P.v-v0]))
+            [dParam,parInd]=max([ dLam dA dp0 dv]);
             if(r>(Nwarmup+2))
                 if(dParam<parTol && ~converged_par)
                     converged_par=true;
@@ -137,10 +142,12 @@ for r=1:(Nwarmup+maxIter)
         A0=W.P.A;
         p00=W.P.p0;
         v0=W.P.v;
+    else
+        parInd=5;
     end
     
     if(showConv_lnL)
-        disp(['it ' int2str(r) ', dlnL = ' num2str(dlnLrel,4) ', dPar = ' num2str(dParam,4) ])
+        disp(['it ' int2str(r) ', dlnL = ' num2str(dlnLrel,4) ', dPar = ' num2str(dParam,4) ' (' parName{parInd} ').'])
     end
     if(r>(Nwarmup+2) && abs(dlnLrel)<lnLrelTol && converged_lnL<4)
         converged_lnL=converged_lnL+1;
