@@ -148,6 +148,8 @@ for r=1:(Nwarmup+maxIter)
     end
     if(converged_lnL>=4 && converged_par)
         break
+    else
+        EMexit.stopcondition='maxIter';	  
     end
 end
 EMexit.time=toc(EMtimer);

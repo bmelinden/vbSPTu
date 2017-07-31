@@ -1,7 +1,7 @@
 function [W,sMaxP,sVit]=converge(W,dat,varargin)
 % [W,sMaxP,sVit]=converge(W,dat)
-% Run VB EM iterations on the diffusive HMM W and data dat, until
-% convergence, using a YZdXt HMM model.
+% Run MLE EM iterations on the diffusive HMM W and data dat, until
+% convergence, using a YZdXc HMM model (constnat localization error).
 %
 % Output:
 % W     : converged HMM model
@@ -11,8 +11,8 @@ function [W,sMaxP,sVit]=converge(W,dat,varargin)
 % output arguments.
 %
 % Input :
-% W     : EM6 HMM model struct, e.g., created by vbYZdXt.init_P_dat
-% dat   : EM6 data struct, e.g., from vbYZdXt.preprocess
+% W     : EM6 HMM model struct, e.g., created by mleYZdXt.init_P_dat
+% dat   : EM6 data struct, e.g., from mleYZdXt.preprocess
 % optional arguments in the form 'name', value
 % Nwarmup   : number of initial iterations where model parameters are kept
 %             constant in order to 'burn in' the states and hidden path.
@@ -101,23 +101,30 @@ dlnLrel=inf;
 for r=1:(Nwarmup+maxIter)
     if(sortModel)
         % sort in order of increasing diffusion constant
-        W=vbYZdXt.sortModel(W);
+        [~,ind]=sort(W.P.lambda);
+        if(prod(ind==sort(ind))==0) % the resort the model
+            W.P.lambda=W.P.lambda(ind);
+            W.P.p0=W.P.p0(ind);
+            W.P.A=W.P.A(ind,ind);
+            W.S.pst=W.S.pst(:,ind);
+            W.S.wA=W.S.wA(ind,ind);
+        end
     end
 
     % iterate
-    W=vbYZdXt.hiddenStateUpdate(W,dat);
+    W=mleYZdXc.hiddenStateUpdate(W,dat);
     dlnLrel=(W.lnL-lnL0)/abs(W.lnL);
     lnL0=W.lnL;
-    W=vbYZdXt.diffusionPathUpdate(W,dat);
+    W=mleYZdXc.diffusionPathUpdate(W,dat);
     
     if(r>Nwarmup)
-        W=vbYZdXt.parameterUpdate(W,dat);
-        if(exist('P0','var'))
-            P1=vbYZdXt.parameterEstimate(W);
-            dLam=max(abs(P1.lambda(:)-P0.lambda(:))./P1.lambda(:));
-            dA=max(abs(P1.A(:)-P0.A(:)));
-            dp0=max(abs(P1.p0(:)-P0.p0(:)));
-            dParam=max([ dLam dA dp0]);
+        W=mleYZdXc.parameterUpdate(W,dat);
+        if(exist('lam0','var'))
+            dLam=max(abs(W.P.lambda-lam0)./W.P.lambda);
+            dA=max(abs(W.P.A(:)-A0(:)));
+            dp0=max(abs(W.P.p0-p00));
+            dv=max(abs((W.P.v-v0)/W.P.v));
+            dParam=max([ dLam dA dp0 dv]);
             if(r>(Nwarmup+2))
                 if(dParam<parTol && ~converged_par)
                     converged_par=true;
@@ -126,7 +133,10 @@ for r=1:(Nwarmup+maxIter)
             end
         end
         % parameter convergence
-        P0=vbYZdXt.parameterEstimate(W);
+        lam0=W.P.lambda;
+        A0=W.P.A;
+        p00=W.P.p0;
+        v0=W.P.v;
     end
     
     if(showConv_lnL)
@@ -155,8 +165,8 @@ end
 
 %% path estimates
 if(nargout>=2) % compute sequence of most likely states
-    [W,sMaxP]=vbYZdXt.hiddenStateUpdate(W,dat);
+    [W,sMaxP]=mleYZdXc.hiddenStateUpdate(W,dat);
 end
 if(nargout>=3) % compute Viterbi path, with a small offset to avoid infinities
-    [W,sMaxP,sVit]=vbYZdXt.hiddenStateUpdate(W,dat);
+    [W,sMaxP,sVit]=mleYZdXc.hiddenStateUpdate(W,dat);
 end
