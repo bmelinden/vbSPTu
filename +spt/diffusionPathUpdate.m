@@ -1,7 +1,9 @@
 function [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda,iV)
   % [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda,iV)
 % one round of diffusion path update in a diffusive HMM, with possibly
-% missing position data. This function handles either point-wise localization errors (variances dat.V), or uniform or state-dependent errors (if iV is given).
+% missing position data. This function handles either point-wise
+% localization errors (variances dat.V), or uniform or state-dependent
+% errors (if iV and logV are given).
 %
 % dat   : preprocessed data field.
 % S     : W.S, variational hidden state distribution struct
@@ -11,6 +13,7 @@ function [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda,iV)
 % iV    :   <1./v>   = W.P.nv./W.P.cv (VB), or 1./W.P.v      (MLE)
 %
 % YZ   : updated variational trajectory distribution struct
+% Note: the 
 % funWS: optional output, workspace at end of the function
 
 % v1: initial implementation, validated by comparing to EMhmm variational
@@ -25,6 +28,8 @@ function [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda,iV)
 % muY
 % v5: a single function combining both matrix inversion and
 % back-substitution, and a mex-implementation of it
+% v6 : omitting the mean_lnpxz term for the case of state-dependent
+% localization errors.
 
 %% start of actual code
 % derived parameters
@@ -35,6 +40,7 @@ if(exist('iV','var') && ~isempty(iV))
     if(numel(iV)==1)
         iV=iV*ones(1,N);
     end
+    % compute efffective time-dependent localization errors
     datV=(1./(S.pst*(iV')))*ones(1,dim);
     datV(~isfinite(dat.x(:,1)),:)=inf;
     datV(dat.i1+1,:)=0;
@@ -96,11 +102,15 @@ logDetAzz=-sum(log(iAzz0(iAzz0(:,1)>0,:))); % sum |Azzm|
 Tx=YZ.i1-YZ.i0; % number of points per trj
 YZ.mean_lnqyz=-dim*sum((1+log(2*pi))*(2*Tx+1)/2)+0.5*sum((logDetAzz+logDetInvSyy));
 
-% <ln p(x|z)> :
-ot=isfinite(datV(:,1))&(datV(:,1)>0);
-YZ.mean_lnpxz=-0.5*sum(sum(log(2*pi*datV(ot,:))+((dat.x(ot,:)-YZ.muZ(ot,:)).^2+YZ.varZ(ot,:))./datV(ot,:)));
-
-YZ.Fs_yz=YZ.mean_lnpxz-YZ.mean_lnqyz;
+% <ln p(x|z)> : only contributes when the localization error is not a model parameter
+if(exist('iV','var') && ~isempty(iV))
+    YZ.mean_lnpxz=0;
+    YZ.Fs_yz=-YZ.mean_lnqyz;
+else
+    ot=isfinite(datV(:,1))&(datV(:,1)>0);
+    YZ.mean_lnpxz=-0.5*sum(sum(log(2*pi*datV(ot,:))+((dat.x(ot,:)-YZ.muZ(ot,:)).^2+YZ.varZ(ot,:))./datV(ot,:)));
+    YZ.Fs_yz=YZ.mean_lnpxz-YZ.mean_lnqyz;
+end
 
 if(nargout>=2)
    fname=['foo_' int2str(ceil(1e9*rand)) '.mat'];

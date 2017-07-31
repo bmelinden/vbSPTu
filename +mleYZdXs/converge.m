@@ -119,6 +119,7 @@ for r=1:(Nwarmup+maxIter)
     W=mleYZdXs.hiddenStateUpdate(W,dat);
     dlnLrel=(W.lnL-lnL0)/abs(W.lnL);
     lnL0=W.lnL;
+    
     W=mleYZdXs.diffusionPathUpdate(W,dat);
     
     if(r>Nwarmup)

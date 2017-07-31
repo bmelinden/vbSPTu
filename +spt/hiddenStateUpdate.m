@@ -60,7 +60,7 @@ if(addVterms)
     dxz2=sum((dat.x-YZ.muZ).^2 + YZ.varZ,2);
     dxz2(~ot)=0;
     ot(YZ.i1)=false;
-    lnH=lnH-0.5*ot*lnVs-0.5*dxz2*iVs;
+    lnH=lnH-0.5*ot*dim*lnVs-0.5*dxz2*iVs;
 end
 lnH(YZ.i1,:)=0;
 lnHmax=max(lnH,[],2);
