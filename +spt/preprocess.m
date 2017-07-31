@@ -1,5 +1,5 @@
 function dat=preprocess(X,varX,dim,misc)
-% [dat,X,varX]=EMhmm.preprocess(X,varX,dim,misc)
+% [dat,X,varX]=spt.preprocess(X,varX,dim,misc)
 %
 % Input (*optional)
 % Assemble single particle diffusion data for diffusive HMM analysis.

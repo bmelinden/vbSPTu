@@ -1,9 +1,7 @@
 function [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda,iV)
-% [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda)
+  % [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda,iV)
 % one round of diffusion path update in a diffusive HMM, with possibly
-% missing position data. This function assumes point-wise code extends the EMhmm diffusion path update
-% to the variational formulation using q(Y,Z) for later incorporation into
-% the vbUSPT package
+% missing position data. This function handles either point-wise localization errors (variances dat.V), or uniform or state-dependent errors (if iV is given).
 %
 % dat   : preprocessed data field.
 % S     : W.S, variational hidden state distribution struct

@@ -7,7 +7,7 @@ function W=init_P_dat(tau,R,D_init,dt,A_init,p0_init,dat)
 % dt       : timestep
 % A_init   : transition matrix 
 % p0_init  : initial state probability
-% dat      : trajectory data, from EMhmm.preprocess
+% dat      : trajectory data, from spt.preprocess
 %
 % Number of hidden states given by the length of Ddt_init.
 % ML 2016-07-04

@@ -1,5 +1,5 @@
-function [x,v,s,y,z]=diffusiveHMM_blur_detach(p0,A,pE,Ddt,tE,locErrG,dim,T,numTrj,pM)
-% [x,v,s,y,ym]=spt.diffusiveHMM_blur_detach(p0,A,pE,Ddt,tE,locErrG,dim,T,numTrj,pM)
+function [x,v,s,y,z]=diffusiveHMM_blur_detach(p0,A,pE,Ddt,tE,RMSmean,RMSstd,dim,T,numTrj,pM)
+% [x,v,s,y,ym]=spt.diffusiveHMM_blur_detach(p0,A,pE,Ddt,tE,RMSmean,RMSstd,dim,T,numTrj,pM)
 %
 % Simulate diffusive HMM data. 
 % x(t,:)  : measured positions
@@ -24,19 +24,24 @@ function [x,v,s,y,z]=diffusiveHMM_blur_detach(p0,A,pE,Ddt,tE,locErrG,dim,T,numTr
 % tE : exposure time, in units of the sample time dt. This code simulates
 %      uniform illumination, and so R=tE/6, tau=tE/2 is implied. tE=0 means
 %      no blur, only localization errors.
-% locErrG=[Em Estd] : parameterization of static localization error
-%      distribution. Here, each localization error in each component are
-%      independent Gaussians with zero mean and iid standard devitions St
-%      which are gamma-distributed with mean Em and standard deviation
-%      Estd, both >0.
+% RMSmean, RMSstd : parameterization of static localization errors.
+%      Static localization errors in each coordinate component are
+%      independent Gaussians with zero mean and standard devitions St. St
+%      are gamma-distributed, with mean RMSmean and standard deviation
+%      RMsstd. RMSmean and RMSstd can be scalars or N-vectors (gives
+%      state-dependent RMS errors). RMSstd=[] or RMSstd(j)=0 leads to
+%      uniform (possibly state-dependent) errors.
 % dim: spatial dimension of the output data (default 2)
 % T  : maximum trajectory length(s). Only the first numTrj entries are
 %      used, and if numTrj>length(T), then the entries are cycled. Default: 100. 
 % numTrj : number of trajectories to simulate. Default: 1.
-% pM : fraction of missing positions (x(t)=NaN, v(t)=Inf). Default : 0.
-%
+% pM : state-dependent fraction of missing positions (x(t)=NaN, v(t)=Inf),
+%      same for all states if a scalar is given. Default : 0.
+
 % ML 2015-11-30, bmelinden@gmail.com
 % ML 2015-12-09 :  missing data points
+% ML 2017-07-31 :  state-dependent missing data point probability pM and
+%                  localization errors 
 
 %% copyright notice
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -91,18 +96,38 @@ end
 tau=tE/2;
 R=tE/6;
 
-if(length(locErrG)~=2)
-    error('locErrG should be specified as [Em Estd].')
-end
-ErrShape=(locErrG(1)/locErrG(2))^2; % gamma shape parameter
-ErrScale=locErrG(2)^2/locErrG(1);   % gamma scale parameter
-
 if(~exist('dim','var') || isempty(dim)); dim=2; end
 if(~exist('T','var') || isempty(T)); T=100; end
 if(~exist('numTrj','var') || isempty(numTrj)); numTrj=1; end
 if(~exist('pM','var') || isempty(pM)); pM=0; end
+if(numel(pM)==1);pM=pM*ones(N,1);end
+pM=reshape(pM,N,1);
 
 Ddt=reshape(Ddt,length(Ddt),1);
+
+% localization errors
+if(numel(RMSmean)==N)
+        % nothing to do
+    elseif(isempty(RMSmean)) % no localization errors
+        RMSmean=zeros(N,1);
+    elseif(numel(RMSmean)==1)
+        RMSmean=RMSmean*ones(N,1);
+    else
+        error('RMSmean must be empty, scalar, or N-vector..')
+end
+if(numel(RMSstd)==N)
+        % nothing to do
+    elseif(isempty(RMSstd)) % no localization errors
+        RMSstd=zeros(N,1);
+    elseif(numel(RMSstd)==1)
+        RMSstd=RMSstd*ones(N,1);
+    else
+        error('RMSstd must be empty, scalar, or N-vector..')
+end
+RMSmean=reshape(RMSmean,N,1);
+RMSstd =reshape(RMSstd ,N,1);
+ErrShape=(RMSmean./RMSstd).^2; % gamma shape parameter
+ErrScale=RMSstd.^2./RMSmean;   % gamma scale parameter
 
 %% initialization
 x=cell(1,numTrj);
@@ -140,8 +165,11 @@ for m=1:numTrj
     end
     Y=[zeros(1,dim); cumsum(dY,1)];
     
-    % iid localization errors
-    dX=gamrnd(ErrShape,ErrScale,size(Y,1)-1,dim);
+    % localization errors
+    dX=gamrnd(ErrShape(S)*ones(1,dim),ErrScale(S)*ones(1,dim),Ttrj,dim);
+    % handle special case RMSstd = 0 (=> dX=nan)
+    uniformErr=isnan(dX(:,1));
+    dX(uniformErr,:)=RMSmean(S(uniformErr)*ones(1,dim));
     
     % add motional blur     
     Z=Y(1:Ttrj,:)*(1-tau)+Y(2:end,:)*tau;
@@ -155,10 +183,9 @@ for m=1:numTrj
         X(:,k)=Z(:,k)+randn(Ttrj,1).*dX(:,k);
     end
     
-    M=rand(size(X))<pM;
     % insert missing positions
-    if(pM>0)
-        M=rand(size(X,1),1)<=pM;
+    if(max(pM)>0)
+        M=rand(size(X,1),1)<=pM(S);
         X(M,:) =NaN;
         dX(M,:)=Inf;
     end

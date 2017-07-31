@@ -76,7 +76,7 @@ est.lambda=W.P.lambda;
 est.p0= W.P.p0;
 est.pOcc=rowNormalize(sum(W.S.pst,1));
 est.A = W.P.A;
-[est.pSS,allOK] =EMhmm.steadyStateFromA(est.A);
+[est.pSS,allOK] =spt.steadyStateFromA(est.A);
 est.dwellSteps= 1./(1-diag(est.A)'); % mean dwell times [steps]
 est.dwellTime = dt./(1-diag(est.A)'); % mean dwell times [time units]
 
@@ -98,7 +98,7 @@ if(slowFastAggregate)
     iFast=find(est.D>Dthr);
     est2.isSlow=est.D<=Dthr;
     if(isempty(iSlow) || isempty(iFast) )
-        warning('EMhmm.parameterEstimate 2-state coarsegraining: D threshold outside D interval')        
+        warning('spt.parameterEstimate 2-state coarsegraining: D threshold outside D interval')        
         est2.D=nan(1,2);
         est2.p0=nan(1,2);
         est2.pOcc=nan(1,2);
@@ -118,7 +118,7 @@ if(slowFastAggregate)
         wA(2,1)=sum(sum(W.S.wA(iFast,iSlow)));
         wA(2,2)=sum(sum(W.S.wA(iFast,iFast)));
         est2.A=rowNormalize(wA);
-        [est2.pSS,allOK]=EMhmm.steadyStateFromA(est2.A);
+        [est2.pSS,allOK]=spt.steadyStateFromA(est2.A);
         est2.dwellSteps= 1./(1-diag(est2.A)'); % mean dwell times [steps]
         est2.dwellTime = dt./(1-diag(est2.A)'); % mean dwell times [time units]
         est2.arrRate=sum(wA.*(1-eye(2)),1)/Tstates;
