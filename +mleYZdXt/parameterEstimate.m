@@ -1,5 +1,5 @@
 function [est,est2]=parameterEstimate(W,varargin)
-% [est,est2]=parameterEstimate(W,dt,...)
+% [est,est2]=parameterEstimate(W,...)
 % Estimate some model properties and parameters.
 %
 % minimal operation:
@@ -18,11 +18,18 @@ function [est,est2]=parameterEstimate(W,varargin)
 % est2  : same as est, but for the 2-state coarse-grained model described
 %         below.
 %
-% optional input: parameterEstimate(W,dt,'2state',Dthr) produces additional
-%               parameter estimates est2 for a coarse-grained model with a
-%               slow (D<=Dthr) and a fast (D>Dthr) state, by simply adding
-%               up the summary statistics into two groups. If either of the
-%               two groups are empty, all parameter estimates are NaN.
+% optional input: 
+%       parameterEstimate(W,dt,'2state',Dthr,...) produces additional parameter
+%       estimates est2 for a coarse-grained model with a slow (D<=Dthr) and
+%       a fast (D>Dthr) state, by simply adding up the summary statistics
+%       into two groups. If either of the two groups are empty, all
+%       parameter estimates are NaN.
+%
+%       parameterEstimate(W,dt,'stateRMS',v,...) computes the average RMS
+%       error for every state, by combining the localization variance v
+%       with the estimated state occupancy. The result is written to the
+%       field RMSerr.
+%       
 %
 % ML 2017-01-27
 
@@ -59,12 +66,17 @@ W.numStates;
 
 k=0;
 slowFastAggregate=false;
+rmsEstimate=false;
 while(k<nargin-2)
     k=k+1;
-    if(strcmp(varargin{k},'2state'))
+    if(strcmpi(varargin{k},'2state'))
        k=k+1;
        Dthr=varargin{k};
        slowFastAggregate=true;
+    elseif(strcmpi(varargin{k},'stateRMS'))
+        k=k+1;
+        datV=varargin{k};
+        rmsEstimate=true;
     else
         error(['Argument ' varargin{k} ' not recognized.'])
     end
@@ -91,6 +103,14 @@ if(~allOK)
    disp(num2str(W.P.A))
 end
 
+if(rmsEstimate)
+   est.RMSerr=zeros(1,W.numStates);
+   ind=isfinite(datV(:,1));
+   for k=1:W.numStates
+      est.RMSerr(k)= sqrt(sum(mean(datV(ind,:),2).*W.S.pst(ind,k))/sum(W.S.pst(ind,k)));
+   end   
+end
+
 % print and plot MLE results with thresholds
 est2=struct;
 if(slowFastAggregate)
@@ -102,6 +122,9 @@ if(slowFastAggregate)
         est2.D=nan(1,2);
         est2.p0=nan(1,2);
         est2.pOcc=nan(1,2);
+        if(rmsEstimate)
+            est2.RMSerr=nan(1,2);
+        end
         est2.A=nan(2,2);
         est2.pSS=nan(1,2);
         est2.dwellSteps=nan(1,2);
@@ -112,6 +135,9 @@ if(slowFastAggregate)
         est2.D=[est.D(iSlow)*rowNormalize(est.pOcc(iSlow))'  est.D(iFast)*rowNormalize(est.pOcc(iFast))'];
         est2.p0=[sum(est.p0(iSlow))  sum(est.p0(iFast))  ];
         est2.pOcc=[sum(est.pOcc(iSlow))  sum(est.pOcc(iFast))  ];
+        if(rmsEstimate)
+            est2.RMSerr=sqrt([est.RMSerr(iSlow).^2*rowNormalize(est.pOcc(iSlow))'  est.RMSerr(iFast).^2*rowNormalize(est.pOcc(iFast))']);
+        end
         wA=zeros(2,2);
         wA(1,1)=sum(sum(W.S.wA(iSlow,iSlow)));
         wA(1,2)=sum(sum(W.S.wA(iSlow,iFast)));
