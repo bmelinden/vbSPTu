@@ -1,5 +1,5 @@
 function [x,v,s,y,z]=diffusiveHMM_blur_detach(p0,A,pE,Ddt,tE,RMSmean,RMSstd,dim,T,numTrj,pM)
-% [x,v,s,y,ym]=spt.diffusiveHMM_blur_detach(p0,A,pE,Ddt,tE,RMSmean,RMSstd,dim,T,numTrj,pM)
+% [x,v,s,y,z]=spt.diffusiveHMM_blur_detach(p0,A,pE,Ddt,tE,RMSmean,RMSstd,dim,T,numTrj,pM)
 %
 % Simulate diffusive HMM data. 
 % x(t,:)  : measured positions
