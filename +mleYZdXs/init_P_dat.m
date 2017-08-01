@@ -60,6 +60,9 @@ W.lnL=0;    % log likelihood
 W.P.lambda=2*D_init*dt;
 W.P.A=A_init;
 W.P.p0=reshape(p0_init,1,W.numStates);
+if(numel(v_init)==1)
+    v_init=v_init*ones(1,W.numStates);
+end
 W.P.v=v_init;
 
 % hidden path subfield, with no Infs or NaNs
