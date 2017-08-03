@@ -99,6 +99,8 @@ converged_par=false;
 dParam=inf;
 dlnLrel=inf;
 for r=1:(Nwarmup+maxIter)
+    %%% debug
+    W1=W;W2=W1;W3=W2; % save some old steps
     if(sortModel)
         % sort in order of increasing diffusion constant
         W=vbYZdXt.sortModel(W);
@@ -128,6 +130,16 @@ for r=1:(Nwarmup+maxIter)
         % parameter convergence
         P0=vbYZdXt.parameterEstimate(W);
     end
+    
+    % check for nan/inf and save if necessary
+    if( ~isfinite(W.YZ.mean_lnqyz) || ~isfinite(W.YZ.mean_lnpxz) || ~isfinite(W.YZ.Fs_yz) || ...
+            ~isfinite(W.S.lnZ) || ~isfinite(sum(W.S.wA(:))) || ...
+            ~isfinite(sum(W.P.KL_a(:))) ||~isfinite(sum(W.P.KL_B(:))))
+        errFile=['vbYZdXt_naninf_err' int2str(ceil(1e9*rand)) '.mat'];
+        save(errFile)
+        error(['NaN/Inf in model fields! Saving workspace to ' errFile])
+    end
+    
     
     if(showConv_lnL)
         disp(['it ' int2str(r) ', dlnL = ' num2str(dlnLrel,4) ', dPar = ' num2str(dParam,4) ])

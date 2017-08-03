@@ -135,6 +135,12 @@ for r=1:(Nwarmup+maxIter)
         lam0=W.P.lambda;
         A0=W.P.A;
         p00=W.P.p0;
+        
+        if(~isfinite(W.lnL))
+           warning('NaN/Inf log likelihood in mleYZdxT.converge')
+           EMexit.stopcondition='lnLnotFinite';
+           break
+        end        
     end
     
     if(showConv_lnL)

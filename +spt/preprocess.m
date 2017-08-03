@@ -1,5 +1,5 @@
-function dat=preprocess(X,varX,dim,misc)
-% [dat,X,varX]=spt.preprocess(X,varX,dim,misc)
+function dat=preprocess(X,varX,dim,misc,warn)
+% [dat,X,varX]=spt.preprocess(X,varX,dim,misc,warn)
 %
 % Input (*optional)
 % Assemble single particle diffusion data for diffusive HMM analysis.
@@ -13,6 +13,8 @@ function dat=preprocess(X,varX,dim,misc)
 % *misc     : cell vector of some other field one would like to keep track
 %             of. The row elements of each cell element are organized in
 %             the same way as the positions, for easy comparison.
+% *warn     : if true, display some output when trajectory data is
+%             truncated. (default true).
 %
 % output: a struct dat, with fields
 % dim       : data dimensionality (number of columns in X, varX)
@@ -83,6 +85,9 @@ if(exist('misc','var')&&~isempty(misc))
 else
     hasMisc=false;
 end
+if(~exist('warn','var')||isempty(warn))
+    warn=true;
+end
 %% assemble output structure
 dat=struct;
 dat.dim=dim;
@@ -129,8 +134,8 @@ for k=1:length(X)
         varX{k}=v;
     end
 end
-if(hadToPrune) % then warn that pruning took place
-    prunedTrjs=union(prunedTrjs(1),prunedTrjs);
+if(warn && hadToPrune) % then warn that pruning took place
+    prunedTrjs=union(prunedTrjs(1),prunedTrjs);    
     disp(['spt.preprocess : shortened trajectories' sprintf(' %d',prunedTrjs) ', to remove missing data in the end or beginning.'])
 end
 
@@ -141,7 +146,9 @@ for k=1:length(X)
 end
 % discard trajectories with only 1 position
 if(~isempty(find(T<2,1)))
-   disp('spt.preprocess :  removing traces with no steps.')
+    if(warn)
+        disp('spt.preprocess :  removing traces with no steps.')
+    end
    X=X(T>1);
    if(hasVarX)
        varX=varX(T>1);

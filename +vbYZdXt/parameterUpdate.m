@@ -50,6 +50,10 @@ if(N>1) % a is only defined if N>1
         -(W.P.wa(:,2)-W.P0.wa(:,2)).*psi(W.P.wa(:,2)));
 end
 if(~isfinite(sum(KL_a)))
+    %%% debug
+    W.P0.wa
+    W.P.wa
+    W.S.wA
     error('vbYZdXt: KL_a not finite')
 end
 W.P.KL_a=KL_a;
@@ -68,6 +72,10 @@ if(N>1) % B is only defined for N>1
     end
 end
 if(~isfinite(sum(KL_B)))
+    %%% debug
+    W.P0.wB
+    W.P.wB
+    W.S.wA    
     error('vbYZdXt: KL_B not finite')
 end
 W.P.KL_B=KL_B;

@@ -1,5 +1,5 @@
 function W=createModel(opt,N,X,Di,Ai,p0i)
-% W=vbUSPTmodel(opt,N,X)
+% W=vbUSPTmodel(opt,N,X,Di,Ai,p0i)
 % construct a vbYZdXt model struct based on prior parameters in
 % opt. opt can be either an options struct or the name of a
 % runinput file.
@@ -15,7 +15,7 @@ function W=createModel(opt,N,X,Di,Ai,p0i)
 % based on the input data (using mleYZdXt.init_P_dat).
 
 % save model options: try not to, to avoid redundant information
-% opt=vbspt.getOptions(opt);
+% opt=spt.getOptions(opt);
 % W.opt=opt;
 
 % number of states
@@ -36,15 +36,15 @@ W.blurCoeff=opt.blurCoeff;     % R
 %% diffusion constant prior
 switch opt.prior.diffusionCoeff.type
     case 'mean_strength'
-        [W.P0.n,W.P0.c]=vbspt.prior_inverse_gamma_mean_strength(N,...
+        [W.P0.n,W.P0.c]=spt.prior_inverse_gamma_mean_strength(N,...
             2*opt.prior.diffusionCoeff.D*W.timestep,...
             opt.prior.diffusionCoeff.strength);
     case 'mode_strength'
-        [W.P0.n,W.P0.c]=vbspt.prior_inverse_gamma_mode_strength(N,...
+        [W.P0.n,W.P0.c]=spt.prior_inverse_gamma_mode_strength(N,...
             2*opt.prior.diffusionCoeff.D*W.timestep,...
             opt.prior.diffusionCoeff.strength);
     case 'inv_mean_strength'
-        [W.P0.n,W.P0.c]=vbspt.prior_inverse_gamma_invmean_strength(N,...
+        [W.P0.n,W.P0.c]=spt.prior_inverse_gamma_invmean_strength(N,...
             2*opt.prior.diffusionCoeff.D*W.timestep,...
             opt.prior.diffusionCoeff.strength);
     otherwise
@@ -63,7 +63,7 @@ switch opt.prior.initialState.type
 end
 %% transition prior
 if(strcmp(opt.prior.transitionMatrix.type,'dwell_Bflat'))
-    [W.P0.wa,W.P0.wB]=vbspt.prior_transition_dwell_Bflat(N,...
+    [W.P0.wa,W.P0.wB]=spt.prior_transition_dwell_Bflat(N,...
         opt.prior.transitionMatrix.dwellMean/W.timestep,...
         opt.prior.transitionMatrix.dwellStd/W.timestep);
 elseif(strcmp(opt.prior.transitionMatrix.type,'natmet13'))
@@ -88,14 +88,14 @@ else
     p0_mean=0.001+0.999*dirrnd(W.P0.wPi); % keep away from 0 and 1    
 end
 if(exist('Ai','var') && prod(size(Ai)==W.numStates)==1)
-    a_mean=1-diag(Ai);
+    a_mean=[1-diag(Ai) diag(Ai)];
     B_mean=rowNormalize(Ai-diag(diag(Ai)));
 else
     % keep probabilities away from 0 and 1
     a_mean=0.001+0.999*dirrnd(W.P0.wa);
-    a_mean=a_mean(:,1); % <a>
+    %a_mean=a_mean(:,1); % <a>
     B_mean=0.001+0.999*dirrnd(W.P0.wB);
-    Ai=diag(1-a_mean)+diag(a_mean)*B_mean;
+    Ai=diag(a_mean(:,2))+diag(a_mean(:,1))*B_mean;
 end
 % variational parameters
 Ttot=sum(X.T); % total strength

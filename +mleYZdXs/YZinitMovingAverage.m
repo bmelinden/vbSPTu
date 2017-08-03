@@ -14,7 +14,11 @@ for n=1:numel(X.i0)
    ix=1:min(wWidth,Tn);
    iyz=1:1+min(wWidth,Tn);
    % small data set with NaN left in place
-   x0=rmfield(X,'misc');   
+   if(isfield(X,'misc'))
+       x0=rmfield(X,'misc');
+   else
+       x0=X;
+   end
    x0.x=X.x(ind(iyz),:);
    x0.i0=1;
    x0.i1=ix(end);
