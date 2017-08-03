@@ -98,9 +98,10 @@ converged_lnL=0;
 converged_par=false;
 dParam=inf;
 dlnLrel=inf;
+W2=struct;W1=struct;
 for r=1:(Nwarmup+maxIter)
     %%% debug
-    W1=W;W2=W1;W3=W2; % save some old steps
+    W3=W2;W2=W1;W1=W; % save some old steps
     if(sortModel)
         % sort in order of increasing diffusion constant
         W=vbYZdXt.sortModel(W);
@@ -133,6 +134,7 @@ for r=1:(Nwarmup+maxIter)
     
     % check for nan/inf and save if necessary
     if( ~isfinite(W.YZ.mean_lnqyz) || ~isfinite(W.YZ.mean_lnpxz) || ~isfinite(W.YZ.Fs_yz) || ...
+         ~isempty(find(~isfinite(W.YZ.muZ),1)) ||    ~isempty(find(~isfinite(W.YZ.muY),1)) ||    ....
             ~isfinite(W.S.lnZ) || ~isfinite(sum(W.S.wA(:))) || ...
             ~isfinite(sum(W.P.KL_a(:))) ||~isfinite(sum(W.P.KL_B(:))))
         errFile=['vbYZdXt_naninf_err' int2str(ceil(1e9*rand)) '.mat'];
