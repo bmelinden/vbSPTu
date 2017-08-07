@@ -23,7 +23,7 @@ function [W,sMaxP,sVit]=converge(W,dat,varargin)
 % parTol    : convergence criteria for parameters lambda (relative), A, p0
 %             (absolute). Default 1e-3;
 % Dsort     : sort model in order of increasing diffusion constants.
-%             Default=false.
+%             Default=true.
 % display   : Level of output. 0: no output. 1 (default): print convergence
 %             message. 2: print convergence every iteration.
 %
@@ -43,7 +43,7 @@ Nwarmup=5;
 maxIter=5000;
 showConv_lnL=false;
 showExit=true;
-sortModel=false;
+sortModel=true;
 
 % parameter interpretations
 nv=1;
