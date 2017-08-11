@@ -1,4 +1,5 @@
 function trj=dat2trj(i0,i1,x)
+% trj=dat2trj(i0,i1,x)
 % revert a prprocessed field to cell vector of individual trajectories. In
 % a sense, this is the inverse of what spt.proprocess does to the x,v, and
 % misc input, excpet that missing points at the beginning and end of each

@@ -1,5 +1,5 @@
 function [W,sMaxP,sVit]=converge(W,dat,varargin)
-% [W,sMaxP,sVit]=converge(W,dat)
+% [W,sMaxP,sVit]=converge(W,dat,...)
 % Run MLE EM iterations on the diffusive HMM W and data dat, until
 % convergence, using a YZdXt HMM model.
 %
@@ -16,7 +16,8 @@ function [W,sMaxP,sVit]=converge(W,dat,varargin)
 % optional arguments in the form 'name', value
 % Nwarmup   : number of initial iterations where model parameters are kept
 %             constant in order to 'burn in' the states and hidden path.
-%             Default 5.
+%             These iterations are always performed, and not tested for
+%             convergence. Default 5. 
 % maxIter   : maximum number of iterations (past Nwarmup). Default 5000.
 % lnLrelTol : relative convergence criteria for (lnL(n)-lnL(n-1))/|lnL(n)|.
 %             Default 1e-8;
@@ -26,6 +27,8 @@ function [W,sMaxP,sVit]=converge(W,dat,varargin)
 %             Default=true.
 % display   : Level of output. 0: no output. 1 (default): print convergence
 %             message. 2: print convergence every iteration.
+% Pupdate   : if true (default), include parameter updates in the
+%             iterations, if false, keep parameters constant.
 %
 % 2016-06-28 : researched convergence problems, and found one that was due
 % to one state becoming completely unoccopied, which in turn induces NaNs
@@ -44,6 +47,7 @@ maxIter=5000;
 showConv_lnL=false;
 showExit=true;
 sortModel=true;
+Pupdate=true;
 
 % parameter interpretations
 nv=1;
@@ -80,7 +84,8 @@ while(nv <= length(varargin))
           otherwise
               error(['Did not understand display ' int2str(n)])
       end
-              
+   elseif(strcmp(pname,'Pupdate'))
+       Pupdate=pval;
    else
        error(['Unrecognized option ' pname ])
    end   
@@ -116,9 +121,11 @@ for r=1:(Nwarmup+maxIter)
     dlnLrel=(W.lnL-lnL0)/abs(W.lnL);
     lnL0=W.lnL;
     W=mleYZdXt.diffusionPathUpdate(W,dat);
-    
+        
     if(r>Nwarmup)
-        W=mleYZdXt.parameterUpdate(W,dat);
+        if(Pupdate)
+            W=mleYZdXt.parameterUpdate(W,dat);
+        end
         if(exist('lam0','var'))
             dLam=max(abs(W.P.lambda-lam0)./W.P.lambda);
             dA=max(abs(W.P.A(:)-A0(:)));
@@ -131,6 +138,7 @@ for r=1:(Nwarmup+maxIter)
                 end
             end
         end
+        
         % parameter convergence
         lam0=W.P.lambda;
         A0=W.P.A;

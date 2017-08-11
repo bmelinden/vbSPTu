@@ -6,7 +6,7 @@ function [Wbest,lnL,initMethod,convTime,initTime]=modelSearchFixedSize(X,dt,tau,
 wAinit=tDwell*eye(N0)+(ones(N0,N0)-eye(N0)); % <dwell> ~ tDwell steps,
 
 Nwu=10;
-nDisp=1;
+nDisp=0;
 
 % small variance data
 X0=X;

@@ -18,14 +18,14 @@ function [est,est2]=parameterEstimate(W,varargin)
 % est2  : same as est, but for the 2-state coarse-grained model described
 %         below.
 %
-% optional input: 
-%       parameterEstimate(W,dt,'2state',Dthr,...) produces additional parameter
+% optional input (options can be combined): 
+%       parameterEstimate(W,'2state',Dthr,...) produces additional parameter
 %       estimates est2 for a coarse-grained model with a slow (D<=Dthr) and
 %       a fast (D>Dthr) state, by simply adding up the summary statistics
 %       into two groups. If either of the two groups are empty, all
 %       parameter estimates are NaN.
 %
-%       parameterEstimate(W,dt,'stateRMS',v,...) computes the average RMS
+%       parameterEstimate(W,'stateRMS',v,...) computes the average RMS
 %       error for every state, by combining the localization variance v
 %       with the estimated state occupancy. The result is written to the
 %       field RMSerr.
