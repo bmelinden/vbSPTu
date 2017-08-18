@@ -47,6 +47,10 @@ W.dim=dat.dim;
 W.timestep=dt;
 W.shutterMean=tau;
 W.blurCoeff=R;
+if( tau>0 && tau<1 && R>0 && R<=0.25 && tau*(1-tau)-R>0)
+else
+    error('Unphysical blur coefficients. Need 0<tau<1, 0<R<=0.25.')
+end
 
 % variational distributions
 W.P=struct; 

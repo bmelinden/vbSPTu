@@ -33,6 +33,12 @@ W.dim=opt.dim;
 W.timestep=opt.timestep;
 W.shutterMean=opt.shutterMean; % tau
 W.blurCoeff=opt.blurCoeff;     % R
+if( W.shutterMean>0 && W.shutterMean<1 && W.blurCoeff>0 && W.blurCoeff<=0.25 && W.shutterMean*(1-W.shutterMean)-R>0)
+else
+    error('Unphysical blur coefficients. Need 0<tau<1, 0<R<=0.25.')
+end
+
+
 %% diffusion constant prior
 switch opt.prior.diffusionCoeff.type
     case 'mean_strength'
