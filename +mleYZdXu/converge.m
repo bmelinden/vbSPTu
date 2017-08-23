@@ -1,7 +1,7 @@
 function [W,sMaxP,sVit]=converge(W,dat,varargin)
 % [W,sMaxP,sVit]=converge(W,dat)
 % Run MLE EM iterations on the diffusive HMM W and data dat, until
-% convergence, using a YZdXc HMM model (constnat localization error).
+% convergence, using a YZdXu HMM model (constnat localization error).
 %
 % Output:
 % W     : converged HMM model
@@ -112,13 +112,13 @@ for r=1:(Nwarmup+maxIter)
     end
 
     % iterate
-    W=mleYZdXc.hiddenStateUpdate(W,dat);
+    W=mleYZdXu.hiddenStateUpdate(W,dat);
     dlnLrel=(W.lnL-lnL0)/abs(W.lnL);
     lnL0=W.lnL;
-    W=mleYZdXc.diffusionPathUpdate(W,dat);
+    W=mleYZdXu.diffusionPathUpdate(W,dat);
     
     if(r>Nwarmup)
-        W=mleYZdXc.parameterUpdate(W,dat);
+        W=mleYZdXu.parameterUpdate(W,dat);
         if(exist('lam0','var'))
             dLam=max(abs(W.P.lambda-lam0)./W.P.lambda);
             dA=max(abs(W.P.A(:)-A0(:)));
@@ -165,8 +165,8 @@ end
 
 %% path estimates
 if(nargout>=2) % compute sequence of most likely states
-    [W,sMaxP]=mleYZdXc.hiddenStateUpdate(W,dat);
+    [W,sMaxP]=mleYZdXu.hiddenStateUpdate(W,dat);
 end
 if(nargout>=3) % compute Viterbi path, with a small offset to avoid infinities
-    [W,sMaxP,sVit]=mleYZdXc.hiddenStateUpdate(W,dat);
+    [W,sMaxP,sVit]=mleYZdXu.hiddenStateUpdate(W,dat);
 end

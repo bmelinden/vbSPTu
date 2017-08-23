@@ -43,9 +43,9 @@ function [D,RMS,W]=estimateDiffusionConst(x,dt,R,tau,Dinit,RMSinit)
 % preprocess
 dim=size(x,2);
 X=spt.preprocess({x},[],dim,[],true);
-W=mleYZdXc.init_P_dat(tau,R,Dinit,dt,1,1,RMSinit^2,X);
-W=mleYZdXc.converge(W,X,'display',0,'Nwarmup',1);
-P=mleYZdXc.parameterEstimate(W,X);
+W=mleYZdXu.init_P_dat(tau,R,Dinit,dt,1,1,RMSinit^2,X);
+W=mleYZdXu.converge(W,X,'display',0,'Nwarmup',1);
+P=mleYZdXu.parameterEstimate(W,X);
 D=P.D;
 RMS=P.RMSerr;
 
