@@ -1,12 +1,12 @@
-function W=createModel(opt,N,X,Di,Ai,p0i)
-% W=vbUSPTmodel(opt,N,X,Di,Ai,p0i)
+function W=createModel(opt,X,N,D_init,A_init,p0_init)
+% W=createModel(opt,X,N,D_init,A_init,p0_init)
 % construct a vbYZdXt model struct based on prior parameters in
 % opt. opt can be either an options struct or the name of a
 % runinput file.
 % opt   : runinput options struct or runinput file name
 % N     : number of states
 % X     : preprocessed data struct
-% Di,Ai,p0i: Optional initial guess for variational mean values of model
+% D_init,A_init,p0_init: Optional initial guess for variational mean values of model
 %            parameters (strength according to data set size). If not
 %            given, the mean values are sampled from the prior
 %            distributions.
@@ -33,7 +33,8 @@ W.dim=opt.dim;
 W.timestep=opt.timestep;
 W.shutterMean=opt.shutterMean; % tau
 W.blurCoeff=opt.blurCoeff;     % R
-if( W.shutterMean>0 && W.shutterMean<1 && W.blurCoeff>0 && W.blurCoeff<=0.25 && W.shutterMean*(1-W.shutterMean)-R>0)
+beta=W.shutterMean*(1-W.shutterMean)-W.blurCoeff; % beta = tau(1-tau)-R
+if( W.shutterMean>0 && W.shutterMean<1 && W.blurCoeff>0 && W.blurCoeff<=0.25 && beta>0)
 else
     error('Unphysical blur coefficients. Need 0<tau<1, 0<R<=0.25.')
 end
@@ -83,25 +84,25 @@ end
 %% initial parameter model
 W.P=W.P0;
 W.P.aggregate=1:N; % default state aggregation (no aggregation)
-if(exist('Di','var') && numel(Di)==W.numStates)
-    lambda_mean=reshape(2*Di*W.timestep,1,W.numStates);
+if(exist('D_init','var') && numel(D_init)==W.numStates)
+    lambda_mean=reshape(2*D_init*W.timestep,1,W.numStates);
 else
     lambda_mean=1./gamrnd(W.P0.n,1./W.P0.c);
 end
-if(exist('p0i','var') && numel(p0i)==W.numStates)
-    p0_mean=reshape(p0i,1,W.numStates);
+if(exist('p0_init','var') && numel(p0_init)==W.numStates)
+    p0_mean=reshape(p0_init,1,W.numStates);
 else
     p0_mean=0.001+0.999*dirrnd(W.P0.wPi); % keep away from 0 and 1    
 end
-if(exist('Ai','var') && prod(size(Ai)==W.numStates)==1)
-    a_mean=[1-diag(Ai) diag(Ai)];
-    B_mean=rowNormalize(Ai-diag(diag(Ai)));
+if(exist('A_init','var') && prod(size(A_init)==W.numStates)==1)
+    a_mean=[1-diag(A_init) diag(A_init)];
+    B_mean=rowNormalize(A_init-diag(diag(A_init)));
 else
     % keep probabilities away from 0 and 1
     a_mean=0.001+0.999*dirrnd(W.P0.wa);
     %a_mean=a_mean(:,1); % <a>
     B_mean=0.001+0.999*dirrnd(W.P0.wB);
-    Ai=diag(a_mean(:,2))+diag(a_mean(:,1))*B_mean;
+    A_init=diag(a_mean(:,2))+diag(a_mean(:,1))*B_mean;
 end
 % variational parameters
 Ttot=sum(X.T); % total strength
@@ -116,7 +117,7 @@ W.P.KL_B=zeros(W.numStates,1);
 W.P.KL_pi=0;
 W.P.KL_lambda=zeros(1,W.numStates);
 %% trajectory and hidden state models
-U=mleYZdXt.init_P_dat(W.shutterMean,W.blurCoeff,lambda_mean/2/W.timestep,W.timestep,Ai,p0_mean,X);
+U=mleYZdXt.init_P_dat(W.shutterMean,W.blurCoeff,lambda_mean/2/W.timestep,W.timestep,A_init,p0_mean,X);
 W.YZ=U.YZ;
 W.YZ.mean_lnqyz=0;
 W.YZ.mean_lnpxz=0;

@@ -108,7 +108,6 @@ parfor r=1:Nrestarts
         W{r}=V;
     end
     WCtime{r}{m}=toc;
-
     %% YZnbeInit: start w YZdata but with low error and blur, reser params
     m=m+1;tic;
     initMethod{r}{m}='Snbe';
@@ -123,8 +122,6 @@ parfor r=1:Nrestarts
         W{r}=V;
     end
     WCtime{r}{m}=toc;
-
-
 end
 lnL=[WlnL{1}{:}];
 convTime=[WCtime{1}{:}];
@@ -133,7 +130,7 @@ Wbest=W{1};
 for r=2:Nrestarts
     lnL(r,:)=[WlnL{r}{:}];
     convTime(r,:)=[WCtime{r}{:}];
-    if(Wbest.lnL>W{r}.lnL)
+    if(Wbest.lnL<W{r}.lnL)
         Wbest=W{r};
     end
 end
