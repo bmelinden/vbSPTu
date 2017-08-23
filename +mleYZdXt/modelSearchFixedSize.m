@@ -12,6 +12,7 @@ nDisp=0;
 X0=X;
 X0.v=1e-6*X0.v;
 
+% precompute moving average q(Y,Z) distributions
 YZmv=cell(size(YZww));
 initTime={};
 parfor k=1:numel(YZww)
@@ -21,10 +22,9 @@ parfor k=1:numel(YZww)
 end
 initTime=[initTime{:}];
 if(nDisp>0)
-   disp(['YZfilters [ ' int2str(YZww) ' ] computed in [' num2str(initTime,3) ' ] s.]']); 
+   disp(['YZfilters [ ' int2str(YZww) ' ] computed in [ ' num2str(initTime,3) ' ] s.]']); 
 end
 initTime=[initTime zeros(1,5)];
-
 
 % independent restarts
 W=cell(1,Nrestarts);
