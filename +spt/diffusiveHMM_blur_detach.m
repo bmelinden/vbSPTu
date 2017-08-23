@@ -169,7 +169,7 @@ for m=1:numTrj
     dX=gamrnd(ErrShape(S)*ones(1,dim),ErrScale(S)*ones(1,dim),Ttrj,dim);
     % handle special case RMSstd = 0 (=> dX=nan)
     uniformErr=isnan(dX(:,1));
-    dX(uniformErr,:)=RMSmean(S(uniformErr)*ones(1,dim));
+    dX(uniformErr,:)=RMSmean(S(uniformErr,:)*ones(1,dim));
     
     % add motional blur     
     Z=Y(1:Ttrj,:)*(1-tau)+Y(2:end,:)*tau;

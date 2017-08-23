@@ -1,5 +1,5 @@
-function dat=preprocess(X,varX,dim,misc,warn)
-% [dat,X,varX]=spt.preprocess(X,varX,dim,misc,warn)
+function dat=preprocess(X,varX,dim,misc,warn,Tmin)
+% [dat,X,varX]=spt.preprocess(X,varX,dim,misc,warn,Tmin)
 %
 % Input (*optional)
 % Assemble single particle diffusion data for diffusive HMM analysis.
@@ -15,6 +15,7 @@ function dat=preprocess(X,varX,dim,misc,warn)
 %             the same way as the positions, for easy comparison.
 % *warn     : if true, display some output when trajectory data is
 %             truncated. (default true).
+% *Tmin     : minimum trajectory length (x) to include. Default 1 (all).
 %
 % output: a struct dat, with fields
 % dim       : data dimensionality (number of columns in X, varX)
@@ -88,6 +89,10 @@ end
 if(~exist('warn','var')||isempty(warn))
     warn=true;
 end
+if(~exist('Tmin','var')||isempty(Tmin)|| Tmin<1)
+    Tmin=1;
+end
+
 %% assemble output structure
 dat=struct;
 dat.dim=dim;
@@ -144,19 +149,19 @@ T=zeros(size(X));
 for k=1:length(X)
     T(k)=size(X{k},1);
 end
-% discard trajectories with only 1 position
-if(~isempty(find(T<2,1)))
+% discard trajectories with <Tmin positions
+if(~isempty(find(T<Tmin,1)))
     if(warn)
         disp('spt.preprocess :  removing traces with no steps.')
     end
-   X=X(T>1);
+   X=X(T>=Tmin);
    if(hasVarX)
-       varX=varX(T>1);
+       varX=varX(T>=Tmin);
    end
    if(hasMisc)
-       misc=misc(T>1);
+       misc=misc(T>=Tmin);
    end
-   T=T(T>1);   
+   T=T(T>=Tmin);   
 end
 % data stacking: pack a zero-row between every trajectory to match sizes of
 % data x(t) and diffusive path y(t).
