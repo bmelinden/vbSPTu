@@ -27,9 +27,23 @@ mle/vb : maximum likelihood estimate or variational Bayes.
 ---
 to do:
 
-- B-prior with tunable strength for different sparsity 
+- handle multipåle misc fields gracefully: perhaps so that dat.misc
+  has fields dat.misc.s, dat.misc.y ...
+- rearrange options struct with multiple levels, e.g.,
+  opt.input, opt.output, opt.prior, opt.VBanalysis, opt.convergence, opt.init
 
+- change Tmin (used now) two trjLmin (as in vbSPT)?
+
+- the meaning of opt.dim: number of dimensions -> specifying which
+  columns to use in x,v?
+
+- B-prior with tunable strength for different sparsity 
+- specifying priors explicitly (same for all states)
 - diffusionPathUpdate or hiddenStateUpdate first in .converge?
+
+- make more uniform models: all model parameters specified by their
+  pseudocount parameters in W.P, W.P0, so that VB-, MLE-, and
+  MAP- iterations can be applied to all models.
 
 - replace mleXXX.diffusionPathUpdate with calls to spt.diffusionPathUpdate
 
@@ -38,4 +52,5 @@ W.YZ.i0,i0 W.lnL too?
 
 - consistent parameter dimensions: row index = state in P.lambda
 
-- cinsistently use W.P.aggregate 
+- consistently use W.P.aggregate-type fields for diffusion constant
+  and deatch rates

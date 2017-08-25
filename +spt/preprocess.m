@@ -1,8 +1,15 @@
-function dat=preprocess(X,varX,dim,misc,warn,Tmin)
-% [dat,X,varX]=spt.preprocess(X,varX,dim,misc,warn,Tmin)
+function [dat,X,varX,misc]=preprocess(X,varX,dim,misc,warn,Tmin)
+% [dat,X,varX,misc]=spt.preprocess(X,varX,dim,misc,warn,Tmin)
+% [dat,X,varX,misc]=spt.preprocess(opt)
+% [dat,X,varX,misc]=spt.preprocess(runinputfile)
 %
-% Input (*optional)
 % Assemble single particle diffusion data for diffusive HMM analysis.
+% Input (*optional):
+% opt       : a uSPT options struct
+% runinputfile : path to a uSPT runinput file 
+% With input of this kind, warn=true (see below), while varX,dim,misc,Tmin
+% are ignored. 
+% --
 % X         : cell vector of position trajectories, or single trajectory.
 % *varX     : cell vector of position uncertainties (posterior variances),
 %             or a vector of such variances. If empty, no variance field is
@@ -63,13 +70,18 @@ function dat=preprocess(X,varX,dim,misc,warn,Tmin)
 % You should have received a copy of the GNU General Public License along
 % with this program. If not, see <http://www.gnu.org/licenses/>.
 %% parse input
-% if an existing file, generate options structure
-if(~iscell(X))
+% first, handle the 1-input cases
+if(isstruct(X) || ischar(X))
+    opt=X;
+    [X,varX,misc,dim,Tmin]=spt.readData(opt);
+end
+
+if(isreal(X))
     X={X};
 end
 if(exist('varX','var')&&~isempty(varX))
     hasVarX=true;
-    if(~iscell(varX))
+    if(isreal(varX))
         varX={varX};
     end
 else
@@ -78,21 +90,40 @@ end
 if(~exist('dim','var')||isempty(dim))
     dim=size(X{1},2);
 end
-if(exist('misc','var')&&~isempty(misc))
-    hasMisc=true;
-    if(~iscell(misc))
-        misc={misc};
-    end
-else
-    hasMisc=false;
-end
+
 if(~exist('warn','var')||isempty(warn))
     warn=true;
 end
 if(~exist('Tmin','var')||isempty(Tmin)|| Tmin<1)
-    Tmin=1;
+    Tmin=2;
 end
 
+% deal with various ways of specifing misc. variables
+if(~exist('misc','var') || isempty(misc))
+    hasMisc=false; % simple case, go on with empty misc variable
+elseif(iscell(misc))
+    % base case, just go on
+    hasMisc=true;
+elseif(isreal(misc))
+    misc={misc}; % interpret as a single misc vector, converted to cell and go on
+    hasMisc=true;
+elseif(isstruct(misc))
+    % then each of the fields in the misc struct needs to be rearranged
+    % separately by recursive calls to spt.preprocess 
+    miscField=fieldnames(misc);
+    Omisc=struct;
+    for m=1:numel(miscField)
+        try
+            Odat=spt.preprocess(X,varX,dim,misc.(miscField{m}),false,Tmin);
+            Omisc.(miscField{m})=Odat.misc;
+        catch me
+           error(['Could not preprocess misc field '  miscField{m} ])
+        end
+    end
+    [dat,X,varX]=spt.preprocess(X,varX,dim,[],warn,Tmin);
+    dat.misc=Omisc;
+    return
+end
 %% assemble output structure
 dat=struct;
 dat.dim=dim;
@@ -188,12 +219,19 @@ for k=1:length(X)
     dat.i0(k)=ind;
     dat.i1(k)=ind+Tx-1;
     ind=ind+Tx;
-    dat.x(dat.i0(k):dat.i1(k),1:dim)=x; 
+    ii=dat.i0(k):dat.i1(k); % rows to transfer 
+    dat.x(ii,1:dim)=x; 
     if(hasVarX)
-        dat.v(dat.i0(k):dat.i1(k),1:dim)=v;
+        dat.v(ii,1:dim)=v;
     end
     if(hasMisc)
-       dat.misc( dat.i0(k):dat.i1(k),1:miscColumns)=misc{k};
+       if(size(misc{k},1)==numel(ii))
+           dat.misc(ii,1:miscColumns)=misc{k};
+       elseif(size(misc{k},1)==numel(ii)+1) % misc field for T+1 included
+           dat.misc(dat.i0(k):dat.i1(k)+1,1:miscColumns)=misc{k};
+       else
+          error(['misc cell size not consistent with trj cell size'])
+       end
     end
     ind=ind+1;
 end
