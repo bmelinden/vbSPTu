@@ -1,13 +1,14 @@
 function [Wbest,lnL,initMethod,convTime,initTime,YZmv]=modelSearchFixedSize(opt,X,N0,YZww,Nrestarts,YZ0,nDisp)
 % [Wbest,lnL,initMethod,convTime,initTime,YZmv]=...
-%               modelSearchFixedSize(opt,X,N0,tDwell,Drange,YZww,Nrestarts,YZ0,nDisp)
+%      vbYZdXt.modelSearchFixedSize(opt,X,N0,tDwell,Drange,YZww,Nrestarts,YZ0,nDisp)
 %
 % opt   : options struct, 
 % X     : data struct from spt.preprocess
 % N0    : model size to search for
 % YZww  : list of smoothing radii for q(Y,Z) moving average diffusion
 %         filter. Default [] (no YZ filtering used in the search).
-% Nrestarts : number of independent restarts. Default 1.
+% Nrestarts : number of independent restarts. Nrestarts=0 only computes
+%             moving average q(Y,Z) models. Default 1.
 % YZ0   : precomputed q(Y,Z) distribution(s), either as a single YZ
 %         subfield, or as a cell vector of YZ subfields. Default {} (no
 %         pre-computed YZ distributions used).
@@ -72,6 +73,7 @@ W=cell(1,Nrestarts);
 WlnL=cell(1,Nrestarts);
 WCtime=cell(1,Nrestarts);
 initMethod={};
+if(Nrestarts>0)
 parfor r=1:Nrestarts
 %%%for r=1:Nrestarts
     tDwell=(opt.init_tD(1)+diff(opt.init_tD)*rand(1,N0)); % [s]
@@ -196,6 +198,11 @@ for r=2:Nrestarts
     end
 end
 Wbest=vbYZdXt.sortModel(Wbest);
+else
+    Wbest=struct;
+    lnL=[];
+    convTime=[];
+end
 % to do: save correlation btw method and lnL
 
 
