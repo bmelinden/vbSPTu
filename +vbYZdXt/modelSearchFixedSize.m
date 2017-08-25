@@ -1,40 +1,71 @@
-function [Wbest,lnL,initMethod,convTime,initTime]=modelSearchFixedSize(opt,X,N0,YZww,Nrestarts)
-% [Wbest,lnL,initMethod,convTime,initTime]=...
-%               modelSearchFixedSize(opt,X,N0,tDwell,Drange,YZww,Nrestarts)
+function [Wbest,lnL,initMethod,convTime,initTime,YZmv]=modelSearchFixedSize(opt,X,N0,YZww,Nrestarts,YZ0,nDisp)
+% [Wbest,lnL,initMethod,convTime,initTime,YZmv]=...
+%               modelSearchFixedSize(opt,X,N0,tDwell,Drange,YZww,Nrestarts,YZ0,nDisp)
 %
 % opt   : options struct, 
 % X     : data struct from spt.preprocess
 % N0    : model size to search for
 % YZww  : list of smoothing radii for q(Y,Z) moving average diffusion
-%         filter. [] works (no YZ filtering used in the search).
-% Nrestarts : number of independent restarts to use for searching. 
+%         filter. Default [] (no YZ filtering used in the search).
+% Nrestarts : number of independent restarts. Default 1.
+% YZ0   : precomputed q(Y,Z) distribution(s), either as a single YZ
+%         subfield, or as a cell vector of YZ subfields. Default {} (no
+%         pre-computed YZ distributions used).
+% nDisp : display level, ~as for vbYZdXt.converge, default 0.
 % 
-% start of actual code try to find a good models
+% output
+% Wbest : the best converged model
+% lnL   : all converged lower bound values
+% initMethod: cell vector of initialization method names
+% convTime  : convergence times of all initialization attempts.
+% initTime  : preprocessing time for the various initialization methods
+%             (only non-zero for moving average YZ models).
+% YZmv      : moving averages YZ structs (to make it possible to reuse
+%             them). 
 
 % search parameters
-% wAinit=tDwell*eye(N0)+(ones(N0,N0)-eye(N0)); % <dwell> ~ tDwell steps,
 
 Nwu=10;
-nDisp=0;
 dt=opt.timestep;
+if(~exist('Nrestarts','var') || isempty(Nrestarts))
+    Nrestarts=1;
+end
+if(~exist('nDisp','var') || isempty(nDisp))
+    nDisp=0;
+end
 
 % small variance data
 X0=X;
 X0.v=1e-6*X0.v;
 
 % precompute moving average q(Y,Z) distributions
-YZmv=cell(size(YZww));
-initTime={};
-parfor k=1:numel(YZww)
-    tic
-    YZmv{k}=mleYZdXt.YZinitMovingAverage(X,YZww(k),3e-2,opt.shutterMean,opt.blurCoeff,dt);
-    initTime{k}=toc;
-end
-initTime=[initTime{:}];
-if(nDisp>0)
-   disp(['YZfilters [ ' int2str(YZww) ' ] computed in [ ' num2str(initTime,3) ' ] s.]']); 
+if(isempty(YZww))
+    YZmv={};
+    initTime=[];
+elseif(isreal(YZww)) % then compute moving average initializations
+    YZmv=cell(size(YZww));
+    initTime={};
+    parfor k=1:numel(YZww)
+        tic
+        YZmv{k}=mleYZdXt.YZinitMovingAverage(X,YZww(k),3e-2,opt.shutterMean,opt.blurCoeff,dt);
+        initTime{k}=toc;
+    end
+    initTime=[initTime{:}];    
+    if(nDisp>0)
+        disp(['YZfilters [ ' int2str(YZww) ' ] computed in [ ' num2str(initTime,3) ' ] s.']);
+    end
 end
 initTime=[initTime zeros(1,5)];
+
+% precomputed YZ structs
+if(exist('YZ0','var') && ~isempty(YZ0))
+    if(isstruct(YZ0))
+        YZ0={YZ0};
+    end
+    initTime=[initTime zeros(1,numel(YZ0))];
+else
+    YZ0={};
+end
 
 % independent restarts
 W=cell(1,Nrestarts);
@@ -65,7 +96,22 @@ parfor r=1:Nrestarts
             W{r}=V;
         end
         WCtime{r}{m}=toc;
-    end    
+    end
+    %% pre-computed YZ structs
+    for k=1:numel(YZ0)
+        m=m+1;tic;
+        initMethod{r}{m}=['YZ0(' int2str(k) ')S'];
+        V=vbYZdXt.createModel(opt,X,N0,P.lambda/2/dt,P.A,P.p0);
+        V.YZ=YZ0{k};
+        V=vbYZdXt.hiddenStateUpdate(V,X);
+        V=vbYZdXt.converge(V,X,'display',nDisp,'Nwarmup',Nwu);
+        WlnL{r}{m}=V.lnL;
+        V.init=initMethod{r}{m};
+        if(V.lnL>W{r}.lnL)
+            W{r}=V;
+        end
+        WCtime{r}{m}=toc;
+    end
     %% Suniform : q(S) = uniform
     m=m+1;tic;
     initMethod{r}{m}='uniformS';

@@ -1,35 +1,29 @@
-function W=createModel(opt,X,N,D_init,A_init,p0_init)
-% W=createModel(opt,X,N,D_init,A_init,p0_init)
-% construct a vbYZdXt model struct based on prior parameters in
-% opt. opt can be either an options struct or the name of a
-% runinput file.
-% opt   : runinput options struct or runinput file name
-% N     : number of states
-% X     : preprocessed data struct
-% D_init,A_init,p0_init: Optional initial guess for variational mean values of model
-%            parameters (strength according to data set size). If not
-%            given, the mean values are sampled from the prior
-%            distributions.
+function W=createModel(opt,X,N,D_init,A_init,p0_init,npc)
+% W=createModel(opt,X,N,D_init,A_init,p0_init,npc)
+% construct a vbYZdXt model with N states, based on data X and options opt.
 %
+% opt   : runinput options struct or runinput file name
+% X     : preprocessed data struct
+% N     : number of states
+% 
+% initial parameters : 
+% D_init,A_init,p0_init : specify parameter mean values. Default: sample
+%                         from the prior distributions.
+% npc   : strength (number of pseudocounts) in the parameter distributions.
+%         Default = number of steps in the data set.
+%         
 % Variational models for trajectories and hidden states are constructed
 % based on the input data (using mleYZdXt.init_P_dat).
 
-% save model options: try not to, to avoid redundant information
-% opt=spt.getOptions(opt);
-% W.opt=opt;
-
+%% basic model set-up
+W=struct;
 % number of states
 W.numStates=N;
 
 % dimension
 W.dim=opt.dim;
 
-% create prior distributions: ML decides to pass the arguments
-% that are actually needed, rather than constructing e.g., a
-% class hierarchy of priors. Philisophy is that the vbXdXmodel
-% objects knows and handles its own priors, and that these
-% priors might be resused by other models as well.
-%% sampling properties
+% sampling properties
 W.timestep=opt.timestep;
 W.shutterMean=opt.shutterMean; % tau
 W.blurCoeff=opt.blurCoeff;     % R
@@ -38,8 +32,6 @@ if( W.shutterMean>0 && W.shutterMean<1 && W.blurCoeff>0 && W.blurCoeff<=0.25 && 
 else
     error('Unphysical blur coefficients. Need 0<tau<1, 0<R<=0.25.')
 end
-
-
 %% diffusion constant prior
 switch opt.prior.diffusionCoeff.type
     case 'mean_strength'
@@ -81,7 +73,7 @@ else
     error(['vbUSPT prior.transitionMatrix.type : ' ...
         W.opt.prior.initialState.type ' not recognized.'])
 end
-%% initial parameter model
+%% initial parameters
 W.P=W.P0;
 W.P.aggregate=1:N; % default state aggregation (no aggregation)
 if(exist('D_init','var') && numel(D_init)==W.numStates)
@@ -104,13 +96,15 @@ else
     B_mean=0.001+0.999*dirrnd(W.P0.wB);
     A_init=diag(a_mean(:,2))+diag(a_mean(:,1))*B_mean;
 end
-% variational parameters
-Ttot=sum(X.T); % total strength
-W.P.n=W.P0.n+Ttot/W.numStates*ones(1,W.numStates);
+if(~exist('npc','var') || npc<1)
+    npc=sum(X.T); % total strength
+end
+
+W.P.n=W.P0.n+npc/W.numStates*ones(1,W.numStates);
 W.P.c=W.P0.c+(W.P.n-W.P0.n).*lambda_mean;
 W.P.wPi=W.P0.wPi+p0_mean*numel(X.T);
-W.P.wa=W.P0.wa+Ttot*a_mean;
-W.P.wB=W.P0.wB+Ttot/W.numStates*B_mean;
+W.P.wa=W.P0.wa+npc*a_mean;
+W.P.wB=W.P0.wB+npc/W.numStates*B_mean;
 % Kullback-Leibler divergence terms
 W.P.KL_a=zeros(W.numStates,1);
 W.P.KL_B=zeros(W.numStates,1);
