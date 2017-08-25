@@ -101,7 +101,7 @@ end
 % deal with various ways of specifing misc. variables
 if(~exist('misc','var') || isempty(misc))
     hasMisc=false; % simple case, go on with empty misc variable
-elseif(iscell(misc))
+elseif(iscell(misc) && isreal(misc{1}))
     % base case, just go on
     hasMisc=true;
 elseif(isreal(misc))
@@ -123,6 +123,22 @@ elseif(isstruct(misc))
     [dat,X,varX]=spt.preprocess(X,varX,dim,[],warn,Tmin);
     dat.misc=Omisc;
     return
+elseif(iscell(misc) && iscell(misc{1}))
+    % then interpret as a cell vector of misc variables, and deal with each
+    % one separately
+    Omisc=cell(size(misc));
+    for m=1:numel(misc)
+        try
+            Odat=spt.preprocess(X,varX,dim,misc{m},false,Tmin);
+            Omisc{m}=Odat.misc;
+        catch me
+           error(['Could not preprocess misc{'  int2str(m) '}'])
+        end
+    end
+    [dat,X,varX]=spt.preprocess(X,varX,dim,[],warn,Tmin);
+    dat.misc=Omisc;
+    return
+
 end
 %% assemble output structure
 dat=struct;
