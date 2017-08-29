@@ -117,7 +117,8 @@ elseif(isstruct(misc))
             Odat=spt.preprocess(X,varX,dim,misc.(miscField{m}),false,Tmin);
             Omisc.(miscField{m})=Odat.misc;
         catch me
-           error(['Could not preprocess misc field '  miscField{m} ])
+            me
+            error(['Could not preprocess misc field '  miscField{m} ])
         end
     end
     [dat,X,varX]=spt.preprocess(X,varX,dim,[],warn,Tmin);

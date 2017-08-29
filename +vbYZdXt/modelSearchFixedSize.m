@@ -27,7 +27,7 @@ function [Wbest,lnL,initMethod,convTime,initTime,YZmv]=modelSearchFixedSize(opt,
 % search parameters
 
 Nwu=10;
-dt=opt.timestep;
+dt=opt.trj.timestep;
 if(~exist('Nrestarts','var') || isempty(Nrestarts))
     Nrestarts=1;
 end

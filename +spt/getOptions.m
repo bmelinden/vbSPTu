@@ -78,25 +78,19 @@ end
 % test to see if the runinput file exists
 RIexists=exist(runinputfile,'file');
 if(~RIexists)
-    error(['vbspt.getOptions: runinput file not found: ' runinputfile ' .'])        
+    error(['spt.getOptions: runinput file not found: ' runinputfile ' .'])        
 end
-if(isempty(path_tmp))
-    path_tmp='.';
+if(isempty(path_tmp)) % no path given, interpreted as relative path
+    path_tmp='';
     isRelPath=true;
-    isAbsPath=false;
-else
+else % if path is given, interpret as relative path if possible
     isRelPath=exist(fullfile(pwd,runinputfile),'file');
-    d0=pwd;
-    cd ..
-    isAbsPath=exist(runinputfile,'file'); % if the file exists whatever directory it is called from
-    cd(d0);
-    clear d0;
 end
-%& make path_tmp an absolute path if it isn't already
+% make path_tmp an absolute path if it isn't already
 if(isRelPath)
     path_tmp=fullfile(pwd,path_tmp);
 end
-
+clear isRelPath
 disp('vbspt.getOptions looking for runinput file : ')
 disp(fullfile(path_tmp,[name_tmp ext_tmp]));
 %% evaluate runinput file and store all variables to opt structure

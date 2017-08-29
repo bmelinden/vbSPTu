@@ -16,27 +16,27 @@ elseif(ischar(opt))
     end
 end
 
-Tmin=opt.Tmin;
-dim=opt.dim;
+Tmin=opt.trj.Tmin;
+dim=opt.trj.dim;
 
-if(~isempty(opt.trajectoryfield))
-    R=load(fullfile(opt.runinputroot,opt.inputfile),opt.trajectoryfield);
-    X=R.(opt.trajectoryfield);
+if(~isempty(opt.trj.trajectoryfield))
+    R=load(fullfile(opt.runinputroot,opt.trj.inputfile),opt.trj.trajectoryfield);
+    X=R.(opt.trj.trajectoryfield);
 else
     error('missing option trajectoryfield')
 end
-if(~isempty(opt.uncertaintyfield))
-    R=load(fullfile(opt.runinputroot,opt.inputfile),opt.uncertaintyfield);
-    varX=R.(opt.uncertaintyfield);
+if(~isempty(opt.trj.uncertaintyfield))
+    R=load(fullfile(opt.runinputroot,opt.trj.inputfile),opt.trj.uncertaintyfield);
+    varX=R.(opt.trj.uncertaintyfield);
 else
     varX=[];
 end
-if(~isempty(opt.miscfield))
-    if(ischar(opt.miscfield)) % a single misc. field name
-        misc=load(fullfile(opt.runinputroot,opt.inputfile),opt.miscfield);
+if(~isempty(opt.trj.miscfield))
+    if(ischar(opt.trj.miscfield)) % a single misc. field name
+        misc=load(fullfile(opt.runinputroot,opt.trj.inputfile),opt.trj.miscfield);
         % misc=misc.(opt.miscfield);
-    elseif(iscell(opt.miscfield)) % multiple misc. field names in a cell vector 
-        misc=load(fullfile(opt.runinputroot,opt.inputfile),opt.miscfield{:});
+    elseif(iscell(opt.trj.miscfield)) % multiple misc. field names in a cell vector 
+        misc=load(fullfile(opt.runinputroot,opt.trj.inputfile),opt.trj.miscfield{:});
     end
 else
     misc=[];

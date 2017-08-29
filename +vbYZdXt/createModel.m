@@ -21,12 +21,12 @@ W=struct;
 W.numStates=N;
 
 % dimension
-W.dim=opt.dim;
+W.dim=opt.trj.dim;
 
 % sampling properties
-W.timestep=opt.timestep;
-W.shutterMean=opt.shutterMean; % tau
-W.blurCoeff=opt.blurCoeff;     % R
+W.timestep=opt.trj.timestep;
+W.shutterMean=opt.trj.shutterMean; % tau
+W.blurCoeff=opt.trj.blurCoeff;     % R
 beta=W.shutterMean*(1-W.shutterMean)-W.blurCoeff; % beta = tau(1-tau)-R
 if( W.shutterMean>0 && W.shutterMean<1 && W.blurCoeff>0 && W.blurCoeff<=0.25 && beta>0)
 else
