@@ -194,14 +194,17 @@ classdef YZSmodel
         this= Siter(this,dat,iType);
         this=YZiter(this,dat,iType);
         this= Piter(this,dat,iType);
-        this=converge(this,dat,iType);
-
-        this=remove1state(this,dat,s);
-        this=splitModel(this,dat,s);
-        this=sortModel(this,ind,p)
+        %this=converge(this,dat,iType);
         
-        this=initParameters(this,opt,dat,varargin);
-        P=estimateParameters(this,dat);
-        [dlnL,dM]=modelConvergence(W1,W2);
+        %S=estimateStates(this,dat,iType);
+        %P=estimateParameters(this,dat);
+        
+        %this=remove1state(this,dat,s);
+        %this=splitModel(this,dat,s);
+        %this=sortModel(this,ind,p)
+        
+        %this=initParameters(this,opt,dat,varargin);
+
+        %[dlnL,dM]=relDiff(this,W0);
     end
 end

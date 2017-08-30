@@ -14,7 +14,7 @@ function [W,sMaxP,sVit,WS]=hiddenStateUpdate(W,dat)
 % ML 2017-07-06
 
 % compute variational average parameters
-[iLambda,lnLambda,lnp0,lnQ]=vbYZdXt.effectiveParameters(W);
+[lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(W.P.wPi,W.P.wa,W.P.wB,W.P.n,W.P.c);
 
 % update variatyional q(S)
 switch nargout

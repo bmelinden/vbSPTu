@@ -12,6 +12,10 @@ function [S,lnL,sMaxP,sVit,funWS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambd
 % lnp0  : <ln(pi)>=psi(W.P.wPi)-psi(sum(W.P.wPi))   (VB) or ln(p0) (MLE)
 % lnQ   : lnQ(i,i) = <ln(1-a(i))>                   (VB)
 %         lnQ(i,j) = <ln(a(i))>  + <lnB(i,j)>, i~=j (VB)
+%         <ln(1-a)> = psi(W.P.wa(:,2)) - psi(sum(W.P.wa,2)); (VB)
+%         <ln(a)>   = psi(W.P.wa(:,1)) - psi(sum(W.P.wa,2)); (VB)
+%         <ln(B)>   = psi(W.P.wB) - psi(sum(W.P.wB,2));      (VB)
+%
 %         or ln(A) (MLE).
 % ------------------------------------------------------------------------
 % for models where localization errors are fit parameters
