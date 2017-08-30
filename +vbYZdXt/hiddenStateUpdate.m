@@ -2,7 +2,7 @@ function [W,sMaxP,sVit,WS]=hiddenStateUpdate(W,dat)
 % [W,sMaxP,sVit,WS]=hiddenStateUpdate(W,dat)
 % one round of VB hidden state EM iteration (maximum likelihood) in a
 % diffusive HMM, with possibly missing position data. Calling
-% spt.hiddenStateUpdate with appropriate effective parameters
+% YZShmm.hiddenStateUpdate with appropriate effective parameters
 %
 % W     : vbYZdXt model struct
 % dat   : data struct with variance field dat.v (from spt.preprocess)
@@ -19,13 +19,13 @@ function [W,sMaxP,sVit,WS]=hiddenStateUpdate(W,dat)
 % update variatyional q(S)
 switch nargout
     case 1
-        W.S=spt.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
+        W.S=YZShmm.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
     case 2
-        [W.S,~,sMaxP]=spt.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
+        [W.S,~,sMaxP]=YZShmm.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
     case 3
-        [W.S,~,sMaxP,sVit]=spt.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
+        [W.S,~,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
     case 4
-        [W.S,~,sMaxP,sVit,WS]=spt.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
+        [W.S,~,sMaxP,sVit,WS]=YZShmm.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
 end
 %% assemble the lower bound
 W.lnL=W.S.lnZ...

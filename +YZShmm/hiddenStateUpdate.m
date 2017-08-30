@@ -1,5 +1,5 @@
 function [S,lnL,sMaxP,sVit,funWS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs)
-% [W,sMaxP,sVit,WS]=hiddenStateUpdate(W,dat)
+% [W,sMaxP,sVit,WS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs)
 % one hidden state iteration for in adiffusive HMM, with possibly missing
 % position data  
 %

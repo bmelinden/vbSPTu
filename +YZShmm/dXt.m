@@ -13,11 +13,16 @@ classdef dXt < YZShmm.YZSmodel
         function this= Siter(this,dat,iType)
             % update the variational hidden state distribution
             
+            tau=this.param.shutterMean;
+            R  =this.param.blurCoeff;
             warning('need to separate counts and pseudocounts in P, P0')
             switch lower(iType)
                 case 'mle'
-                    %%% got this far
-                    lnp0=
+                    lnp0=log(rowNormalize(this.P.wPi));
+                    lnQ =log(rowNormalize(diag(this.P.wa(:,2))+this.P.wB));
+                    Lambda = this.P.c./(this.P.n+1);
+                    iLambda =1./Lambda;
+                    lnLambda=log(Lambda);
                 case 'map'
                 case 'vb'                    
                     [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
@@ -26,10 +31,8 @@ classdef dXt < YZShmm.YZSmodel
                 otherwise
                     error(['iType= ' iType ' not known. Use {mle,map,vb,none}.'] )
             end
-            tau=this.param.shutterMean;
-            R  =this.param.blurCoeff;
             
-            [S,lnL,sMaxP,sVit,funWS]=spt.hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs)            
+            [S,lnL,sMaxP,sVit,funWS]=YZShmm.hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
             % dat   : preprocessed data struct (spt.preprocess)
             % YZ    : variational trajectory model struct
             % tau   : W.shutterMean
@@ -43,6 +46,11 @@ classdef dXt < YZShmm.YZSmodel
             %         <ln(a)>   = psi(W.P.wa(:,1)) - psi(sum(W.P.wa,2)); (VB)
             %         <ln(B)>   = psi(W.P.wB) - psi(sum(W.P.wB,2));      (VB)
             %         or ln(A) (MLE).            
+            % ------------------------------------------------------------------------
+            % for models where localization errors are fit parameters
+            % lnVs  : <ln v> =ln(cv)-psi(nv) (VB) or ln(v) (MLE)
+            % iVs   : <1./v> = nv./cv        (VB) or 1./v  (MLE)
+            % -------------------------------------------------------------------------
         end
         function this=YZiter(this,dat,iType)
         end
