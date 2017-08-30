@@ -1,9 +1,10 @@
-function [Wbest,lnL,initMethod,convTime,initTime]=modelSearchFixedSize(X,dt,tau,R,N0,tDwell,Drange,YZww,Nrestarts)
+function [Wbest,lnL,initMethod,convTime,initTime]=modelSearchFixedSize(X,dt,tau,R,N0,nDwell,Drange,YZww,Nrestarts)
+% [Wbest,lnL,initMethod,convTime,initTime]=modelSearchFixedSize(X,dt,tau,R,N0,tDwell,Drange,YZww,Nrestarts)
 
 %% generate synthetic data and try to find a good models
 
 % search parameters
-wAinit=tDwell*eye(N0)+(ones(N0,N0)-eye(N0)); % <dwell> ~ tDwell steps,
+wAinit=nDwell*eye(N0)+(ones(N0,N0)-eye(N0)); % <dwell> ~ tDwell steps,
 
 Nwu=10;
 nDisp=0;

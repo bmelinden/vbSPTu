@@ -48,7 +48,7 @@ elseif(isreal(YZww)) % then compute moving average initializations
     initTime={};
     parfor k=1:numel(YZww)
         tic
-        YZmv{k}=mleYZdXt.YZinitMovingAverage(X,YZww(k),3e-2,opt.shutterMean,opt.blurCoeff,dt);
+        YZmv{k}=mleYZdXt.YZinitMovingAverage(X,YZww(k),3e-2,opt.trj.shutterMean,opt.trj.blurCoeff,dt);
         initTime{k}=toc;
     end
     initTime=[initTime{:}];    
@@ -76,9 +76,9 @@ initMethod={};
 if(Nrestarts>0)
 parfor r=1:Nrestarts
 %%%for r=1:Nrestarts
-    tDwell=(opt.init_tD(1)+diff(opt.init_tD)*rand(1,N0)); % [s]
+    tDwell=(opt.init.Trange(1)+diff(opt.init.Trange)*rand(1,N0)); % [s]
     wAinit=tDwell/dt*eye(N0)+(ones(N0,N0)-eye(N0));
-    P=mleYZdXt.randomParameters(N0,dt,opt.init_D,wAinit);
+    P=mleYZdXt.randomParameters(N0,dt,opt.init.Drange,wAinit);
     initMethod{r}={};
     m=0;
     W{r}=struct('lnL',-inf);
