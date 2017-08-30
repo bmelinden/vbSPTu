@@ -9,5 +9,6 @@ classdef dXt < YZShmm.YZSmodel
             % initialize trajectory model
             this.YZ=spt.naiveYZfromX(dat);
         end
+        
     end    
 end
