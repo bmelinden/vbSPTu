@@ -34,4 +34,4 @@ beta=tau*(1-tau)-R;
 %datV(W.YZ.i1,:)=0;
 iLambda=1./W.P.lambda;
 iVs    =1./W.P.v;
-W.YZ=spt.diffusionPathUpdate(dat,W.S,tau,R,iLambda,iVs);
+W.YZ=YZShmm.diffusionPathUpdate(dat,W.S,tau,R,iLambda,iVs);

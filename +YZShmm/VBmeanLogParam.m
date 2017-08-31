@@ -1,5 +1,5 @@
-function [lnp0,lnQ,iLambda,lnLambda]=VBmeanLogRateDiff(wPi,wa,wB,n,c)
-% [lnp0,lnQ,iLambda,lnLambda]=VBlogSparameters(wPi,wa,wB,n,c)
+function [lnp0,lnQ,iLambda,lnLambda]=VBmeanLogParam(wPi,wa,wB,n,c)
+% [lnp0,lnQ,iLambda,lnLambda]=VBmeanLogParam(wPi,wa,wB,n,c)
 % varational parameter log-averages needed for VB updates of hidden states
 %
 % iLambda : <1/lambda=n./c
@@ -22,12 +22,16 @@ lna  =psi(wa(:,1))-psi(wa0);
 ln1ma=psi(wa(:,2))-psi(wa0);
 
 % conditional jump probabilities, <lnB>, with zeros on the diagonal
-I=eye(W.numStates); % N*N identity matrix
-wB0=sum(wB,2)*ones(1,W.numStates);
+N=size(wB,1);
+I=eye(N); % N*N identity matrix
+wB0=sum(wB,2)*ones(1,N);
 lnBd0  = psi(wB+I)-psi(wB0);
 lnBd0=lnBd0-diag(diag(lnBd0));
-
-lnQ=diag(ln1ma)+(lna*ones(1,W.numStates)-diag(lna))+lnBd0; % <ln A> or ln A
+if(N>1)
+    lnQ=diag(ln1ma)+(lna*ones(1,N)-diag(lna))+lnBd0; % <ln A> or ln A
+else
+    lnQ=0;
+end
 
 % step length variance
 iLambda =n./c; % <1/lambda>

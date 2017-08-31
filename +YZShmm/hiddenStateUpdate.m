@@ -75,10 +75,10 @@ H(YZ.i1,:)=0;
 lnQmax=max(lnQ(:));
 Q=exp(lnQ-lnQmax);
 %% forward-backward iteration
-[lnZ,S.wA,S.pst]=HMM_multiForwardBackward_startend(Q,H,dat.i0,dat.i1);
-S.lnZ=lnZ+sum(lnHmax)+lnQmax*sum(S.wA(:));
+[lnZs,S.wA,S.pst]=HMM_multiForwardBackward_startend(Q,H,dat.i0,dat.i1);
+S.lnZ=lnZs+sum(lnHmax)+lnQmax*sum(S.wA(:));
 %% likelihood lower bound after s
-lnL=S.lnZ+YZ.Fs_yz;
+lnL=S.lnZ+YZ.mean_lnpxz-YZ.mean_lnqyz;
 %% path estimates
 if(nargout>=3) % compute sequence of most likely states
     [~,sMaxP]=max(S.pst,[],2);

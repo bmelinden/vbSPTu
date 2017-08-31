@@ -60,7 +60,7 @@ end
 % if input is a struct, then just return it
 if(isstruct(runinputfile))
     opt=runinputfile;
-    disp('vbspt.getOptions got a struct input, returns struct as is.')
+    %disp('vbspt.getOptions got a struct input, returns struct as is.')
     return
 end
 

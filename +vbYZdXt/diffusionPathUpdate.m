@@ -4,4 +4,4 @@ function W=diffusionPathUpdate(W,dat)
 % localization uncertainties. Actual computing is done in
 % spt.diffusionPathUpdate 
 
-W.YZ=spt.diffusionPathUpdate(dat,W.S,W.shutterMean,W.blurCoeff,W.P.n./W.P.c);
+W.YZ=YZShmm.diffusionPathUpdate(dat,W.S,W.shutterMean,W.blurCoeff,W.P.n./W.P.c);
