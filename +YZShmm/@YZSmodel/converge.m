@@ -11,9 +11,10 @@ function [W,sMaxP,sVit]=converge(W,dat,varargin)
 % output arguments.
 %
 % Input :
-% W     : EM6 HMM model struct, e.g., created by vbYZdXt.init_P_dat
-% dat   : EM6 data struct, e.g., from vbYZdXt.preprocess
+% W     : YZSmodel object
+% dat   : data struct, e.g., from spt.preprocess
 % optional arguments in the form 'name', value
+% iType     : kind of iterations {'mle','map','vb'}.
 % Nwarmup   : number of initial iterations where model parameters are kept
 %             constant in order to 'burn in' the states and hidden path.
 %             Default 5.
@@ -48,23 +49,25 @@ sortModel=false;
 % parameter interpretations
 nv=1;
 while(nv <= length(varargin))
-   pname=varargin{nv};
+   pname=lower(varargin{nv});
    if(~ischar(pname))
        error(['optinal arguments must be name/value pairs.'])
    end
    pval=varargin{nv+1};
    nv=nv+2;
     
-   if(strcmp(pname,'Nwarmup'))
+   if(strcmp(pname,'nwarmup'))
       Nwarmup=pval;
-   elseif(strcmp(pname,'maxIter'))
+   elseif(strcmp(pname,'maxiter'))
       maxIter=pval;      
-   elseif(strcmp(pname,'lnLrelTol'))
+   elseif(strcmp(pname,'lnlreltol'))
       lnLrelTol=pval;      
-   elseif(strcmp(pname,'parTol'))
+   elseif(strcmp(pname,'partol'))
       parTol=pval;      
-   elseif(strcmp(pname,'Dsort'))
+   elseif(strcmp(pname,'dsort'))
       sortModel=pval;    
+   elseif(strcmp(pname,'itype'))
+      iType=pval;    
    elseif(strcmp(pname,'display'))
       n=pval;
       switch n
@@ -96,41 +99,31 @@ EMtimer=tic;
 
 converged_lnL=0;
 converged_par=false;
-dParam=inf;
+dPmax=inf;
 dlnLrel=inf;
-W2=struct;W1=struct;
+W1=W.clone();
 for r=1:(Nwarmup+maxIter)
     %%% debug
-    W3=W2;W2=W1;W1=W; % save some old steps
+    W2=W1.clone();W1=W.clone(); % save some old steps
     if(sortModel)
         % sort in order of increasing diffusion constant
-        W=vbYZdXt.sortModel(W);
+        W.sortModel();
     end
 
     % iterate
-    W=vbYZdXt.hiddenStateUpdate(W,dat);
-    dlnLrel=(W.lnL-lnL0)/abs(W.lnL);
-    lnL0=W.lnL;
-    W=vbYZdXt.diffusionPathUpdate(W,dat);
-    
+    W.YZiter(dat);   
+    W.Siter(dat);
     if(r>Nwarmup)
-        W=vbYZdXt.parameterUpdate(W,dat);
-        if(exist('P0','var'))
-            P1=vbYZdXt.parameterEstimate(W);
-            dLam=max(abs(P1.lambda(:)-P0.lambda(:))./P1.lambda(:));
-            dA=max(abs(P1.A(:)-P0.A(:)));
-            dp0=max(abs(P1.p0(:)-P0.p0(:)));
-            dParam=max([ dLam dA dp0]);
-            if(r>(Nwarmup+2))
-                if(dParam<parTol && ~converged_par)
-                    converged_par=true;
-                    EMexit.stopcondition='parTol';
-                end
+        W.Piter(dat);
+        [dlnLrel,dPmax,maxParName]=W.modelDiff(W1);
+        if(r>(Nwarmup+2))
+            if(dPmax<parTol && ~converged_par)
+                converged_par=true;
+                EMexit.stopcondition=maxParName;
             end
         end
-        % parameter convergence
-        P0=vbYZdXt.parameterEstimate(W);
     end
+    %%% got this far!!!
     
     % check for nan/inf and save if necessary
     if( ~isfinite(W.YZ.mean_lnqyz) || ~isfinite(W.YZ.mean_lnpxz) || ...
@@ -144,7 +137,7 @@ for r=1:(Nwarmup+maxIter)
     
     
     if(showConv_lnL)
-        disp(['it ' int2str(r) ', dlnL = ' num2str(dlnLrel,4) ', dPar = ' num2str(dParam,4) ])
+        disp(['it ' int2str(r) ', dlnL = ' num2str(dlnLrel,4) ', dPar = ' num2str(dPmax,4) ])
     end
     if(r>(Nwarmup+2) && abs(dlnLrel)<lnLrelTol && converged_lnL<4)
         converged_lnL=converged_lnL+1;
