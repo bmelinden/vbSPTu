@@ -21,11 +21,11 @@ switch nargout
     case 1
         W.S=YZShmm.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
     case 2
-        [W.S,~,sMaxP]=YZShmm.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
+        [W.S,sMaxP]=YZShmm.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
     case 3
-        [W.S,~,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
+        [W.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
     case 4
-        [W.S,~,sMaxP,sVit,WS]=YZShmm.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
+        [W.S,sMaxP,sVit,WS]=YZShmm.hiddenStateUpdate(dat,W.YZ,W.shutterMean,W.blurCoeff,iLambda,lnLambda,lnp0,lnQ);
 end
 %% assemble the lower bound
 W.lnL=W.S.lnZ...
