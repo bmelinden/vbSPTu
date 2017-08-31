@@ -76,8 +76,7 @@ end
 
 
 % test to see if the runinput file exists
-RIexists=exist(runinputfile,'file');
-if(~RIexists)
+if(~exist(runinputfile,'file'))
     error(['spt.getOptions: runinput file not found: ' runinputfile ' .'])        
 end
 if(isempty(path_tmp)) % no path given, interpreted as relative path

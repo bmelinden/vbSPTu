@@ -3,7 +3,7 @@ function [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda,iV)
 % one round of diffusion path update in a diffusive HMM, with possibly
 % missing position data. This function handles either point-wise
 % localization errors (variances dat.V), or uniform or state-dependent
-% errors (if iV and logV are given).
+% errors (if iV is given).
 %
 % dat   : preprocessed data field.
 % S     : W.S, variational hidden state distribution struct
@@ -105,11 +105,11 @@ YZ.mean_lnqyz=-dim*sum((1+log(2*pi))*(2*Tx+1)/2)+0.5*sum((logDetAzz+logDetInvSyy
 % <ln p(x|z)> : only contributes when the localization error is not a model parameter
 if(exist('iV','var') && ~isempty(iV))
     YZ.mean_lnpxz=0;
-    YZ.Fs_yz=-YZ.mean_lnqyz;
+    %YZ.Fs_yz=-YZ.mean_lnqyz;
 else
     ot=isfinite(datV(:,1))&(datV(:,1)>0);
     YZ.mean_lnpxz=-0.5*sum(sum(log(2*pi*datV(ot,:))+((dat.x(ot,:)-YZ.muZ(ot,:)).^2+YZ.varZ(ot,:))./datV(ot,:)));
-    YZ.Fs_yz=YZ.mean_lnpxz-YZ.mean_lnqyz;
+    %YZ.Fs_yz=YZ.mean_lnpxz-YZ.mean_lnqyz;
 end
 
 if(nargout>=2)

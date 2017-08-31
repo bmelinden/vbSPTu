@@ -99,10 +99,10 @@ W.P.KL_lambda= W.P0.n.*log(W.P.c./W.P0.c)...
     -gammaln(W.P.n)+gammaln(W.P0.n)...
     +(W.P.n-W.P0.n).*psi(W.P.n);
 % remove duplicate terms in each aggregate
-for a=1:max(W.P.aggregate)
-    ind=find(a==W.P.aggregate);
-    W.P.KL_lambda(ind(2:end))=0;
-end
+%for a=1:max(W.P.aggregate)
+%    ind=find(a==W.P.aggregate);
+%    W.P.KL_lambda(ind(2:end))=0;
+%end
 if(~isfinite(sum(W.P.KL_lambda)))
     error('vbYZdXt: KL_lambda not finite')
 end

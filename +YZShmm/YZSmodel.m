@@ -35,19 +35,19 @@ classdef YZSmodel < handle
         param=struct('dim',0,'timestep',0,'shutterMean',0,'blurCoeff',0);
         P0=struct;%('n',[],'c',[],'wPi',[],'wa',[],'wB',[],'Daggregate',[]);
         P =struct;%('n',[],'c',[],'wPi',[],'wa',[],'wB',[]);
-        S =struct('pst',[],'wA',[],'lnZs',0);
+        S =struct('pst',[],'wA',[],'lnZ',0);
         YZ=struct('i0',[],'i1',[],...
             'muY',[],'muZ',[],'varY',[],'varZ',[],...
             'covYtYtp1',[],'covYtZt',[],'covYtp1Zt',[],...
             'mean_lnqyz',0,'mean_lnpxz',0);        
         numStates=0;
-        lnL=-inf; % log likelohood (lower bound)        
+        lnL=0; % log likelohood (lower bound)        
         convergence=struct;
         comment='';
     end
     methods
         function this=YZSmodel(varargin)
-            % YZSmodel(N,opt,dat,p0_init,D_init,A_init)
+            % YZSmodel(N,opt,dat,p0_init,A_init,D_init)
             % construct a bare bones YZSmodel object 
             %
             % N     : number of states
@@ -60,14 +60,14 @@ classdef YZSmodel < handle
             %         given, the variational distributions for hidden 
             %         states and paths are initialized. 
             % initial parameters :
-            % p0_init,D_init,A_init : specify parameter most likely values.
+            % p0_init,A_init,D_init : specify parameter most likely values.
             %
             % opt, dat, and initial parameters are optional, but omitting
             % opt, dat will reslt in an incomplete model object, which is
             % only useful for cloning when all object properties are
             % duplicated later. 
                         
-            parName={'N','opt','dat','p0_init','D_init','A_init'};
+            parName={'N','opt','dat','p0_init','A_init','D_init'};
             for k=1:min(6,nargin)
                eval([parName{k} '= varargin{' int2str(k) '};']);
             end
@@ -121,23 +121,23 @@ classdef YZSmodel < handle
             else
                 p0_init=dirrnd(this.P0.wPi);
             end
-            if(exist('A_init','var') && prod(size(A)==this.numStates)==1)
+            if(exist('A_init','var') && prod(size(A_init)==this.numStates)==1)
                 % then all is wewll
             else
                 a_init=dirrnd(this.P0.wa);  % <a> = a_init(:,1) = prob(s(t+1)~=s(t))
                 B_init=dirrnd(this.P0.wB);                
                 A_init=diag(a_init(:,2))+diag(a_init(:,1))*B_init;
             end
-            if(exist('D_init','var') && numel(D)==this.numStates)
-                D_init=reshape(2*D*dt,1,this.numStates);
+            if(exist('D_init','var') && numel(D_init)==this.numStates)
+                D_init=reshape(D_init,1,this.numStates);
             else
                 D_init=1./gamrnd(this.P0.n,1./this.P0.c)/2/this.param.timestep;
             end
             this.setParameters(p0_init,A_init,D_init);
         end
-        function setParameters(this,p0,D,A,npc)
+        function setParameters(this,p0,A,D,npc)
             % setParameters(p0,D,A,npc)
-            % set variational mode values of rate&diffusion model parameters.
+            % set maximum likelihood values of rate&diffusion model parameters.
             % p0,D,A: parameter mode values.
             % npc   : strength (number of pseudocounts) in the parameter
             %         distributions. Must be >=2. Default = 1e5.
@@ -148,16 +148,17 @@ classdef YZSmodel < handle
             % initial parameters
             this.P.wPi=p0*npc;
             
-            a=[1-diag(A) diag(A)];
-            B=rowNormalize(A-diag(diag(A)));
-            this.P.wa=npc*a;
-            this.P.wB=npc/this.numStates*B;
+            wA=npc*A;
+            wB=wA-diag(diag(wA));
+            wa=[sum(wB,2) diag(wA)];
+            this.P.wa=wa;
+            this.P.wB=wB;
             if(this.numStates==1)
                 this.P.wa=npc;
                 this.P.wB=0;
             end
             this.P.n=npc/this.numStates*ones(1,this.numStates);
-            this.P.c=2*D*this.param.timestep.*(this.P.n+1);
+            this.P.c=2*D*this.param.timestep.*this.P.n; 
         end
         function that=clone(this)
             % clone()

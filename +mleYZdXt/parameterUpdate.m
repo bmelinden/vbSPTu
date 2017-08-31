@@ -43,7 +43,8 @@ n=W.dim*sum(W.S.pst(indS,:),1);
 
 % new for YZhmm: analytical maximum for diffusion step variance!
 W.P.lambda=c./n;
-
+%W.P.n=n; % useful for debugging
+%W.P.c=c;
 % deal with unoccupied states
 iNull=find(n==0);
 if(~isempty(iNull))

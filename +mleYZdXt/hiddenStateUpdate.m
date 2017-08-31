@@ -11,7 +11,6 @@ function [W,sMaxP,sVit,WS]=hiddenStateUpdate(W,dat)
 % good enough to blame on model differences...).
 % v2: optimized computing lnH by getting rid of the trj loop
 
-
 %% start of actual code
 tau=W.shutterMean;
 R=W.blurCoeff;
@@ -37,11 +36,11 @@ H=exp(lnH);
 H(W.YZ.i1,:)=0;
 %% forward-backward iteration
 %[ln3,wA3,ps3]=HMM_multiForwardBackward_g1(W.P.A,H,dat.i1);
-[lnZ,W.S.wA,W.S.pst]=HMM_multiForwardBackward_startend(W.P.A,H,dat.i0,dat.i1);
-W.S.lnZ=lnZ+sum(lnHmax);
+[lnZs,W.S.wA,W.S.pst]=HMM_multiForwardBackward_startend(W.P.A,H,dat.i0,dat.i1);
+W.S.lnZ=lnZs+sum(lnHmax);
 
 %% likelihood lower bound after s
-W.lnL=W.S.lnZ+W.YZ.Fs_yz;
+W.lnL=W.S.lnZ+W.YZ.mean_lnpxz-W.YZ.mean_lnqyz;
 %% path estimates
 if(nargout>=2) % compute sequence of most likely states
     [~,sMaxP]=max(W.S.pst,[],2);

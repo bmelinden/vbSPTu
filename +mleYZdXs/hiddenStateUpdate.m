@@ -15,11 +15,12 @@ lnVs=log(W.P.v);
 iVs=1./W.P.v;
 switch nargout
     case 1
-        [W.S,W.lnL]           =YZShmm.hiddenStateUpdate(dat,W.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs);
+        [W.S]           =YZShmm.hiddenStateUpdate(dat,W.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs);
     case 2
-        [W.S,W.lnL,sMaxP]     =YZShmm.hiddenStateUpdate(dat,W.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs);
+        [W.S,sMaxP]     =YZShmm.hiddenStateUpdate(dat,W.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs);
     case 3
-        [W.S,W.lnL,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,W.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs);
+        [W.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,W.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs);
 end
 
-%[S,lnL,sMaxP,sVit,funWS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs)
+W.lnL=W.S.lnZ-W.YZ.mean_lnqyz;
+

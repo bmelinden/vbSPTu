@@ -1,4 +1,4 @@
-function [S,lnL,sMaxP,sVit,funWS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs)
+function [S,sMaxP,sVit,funWS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs)
 % [W,sMaxP,sVit,WS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs)
 % one hidden state iteration for in adiffusive HMM, with possibly missing
 % position data  
@@ -31,7 +31,6 @@ function [S,lnL,sMaxP,sVit,funWS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambd
 % v1: modified from EMhmm version, checked correctness (not perfect, but
 % good enough to blame on model differences...).
 % v2: optimized computing lnH by getting rid of the trj loop
-
 
 %% start of actual code
 beta=tau*(1-tau)-R;
@@ -77,17 +76,15 @@ Q=exp(lnQ-lnQmax);
 %% forward-backward iteration
 [lnZs,S.wA,S.pst]=HMM_multiForwardBackward_startend(Q,H,dat.i0,dat.i1);
 S.lnZ=lnZs+sum(lnHmax)+lnQmax*sum(S.wA(:));
-%% likelihood lower bound after s
-lnL=S.lnZ+YZ.mean_lnpxz-YZ.mean_lnqyz;
 %% path estimates
-if(nargout>=3) % compute sequence of most likely states
+if(nargout>=2) % compute sequence of most likely states
     [~,sMaxP]=max(S.pst,[],2);
     sMaxP(YZ.i1)=0;
 end
-if(nargout>=4) % compute Viterbi path, with a small offset to avoid infinities
+if(nargout>=3) % compute Viterbi path, with a small offset to avoid infinities
     sVit=HMM_multiViterbi_log_startend(log(Q+1e-50),log(H+1e-50),dat.i0,dat.i1);
 end
-if(nargout>=5)
+if(nargout>=4)
    fname=['foo_' int2str(ceil(1e5*rand)) '.mat'];
    save(fname);
    funWS=load(fname);
