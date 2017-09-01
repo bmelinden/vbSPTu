@@ -32,7 +32,7 @@ classdef YZSmodel < handle
     
     %% start of actual code
     properties
-        param=struct('dim',0,'timestep',0,'shutterMean',0,'blurCoeff',0);
+        sample=struct('dim',0,'timestep',0,'shutterMean',0,'blurCoeff',0);
         P0=struct;%('n',[],'c',[],'wPi',[],'wa',[],'wB',[],'Daggregate',[]);
         P =struct;%('n',[],'c',[],'wPi',[],'wa',[],'wB',[]);
         S =struct('pst',[],'wA',[],'lnZ',0);
@@ -42,7 +42,7 @@ classdef YZSmodel < handle
             'mean_lnqyz',0,'mean_lnpxz',0);        
         numStates=0;
         lnL=0; % log likelohood (lower bound)        
-        convergence=struct;
+        EMexit=struct;
         comment='';
     end
     methods
@@ -73,8 +73,6 @@ classdef YZSmodel < handle
             end
             %% set up basic model structure with a number of states
             this.numStates=N;
-            
-            % dimension
             % parameter and prior structs
             this.P0.wPi=zeros(1,this.numStates);
             this.P0.wa =zeros(this.numStates,2);
@@ -89,22 +87,23 @@ classdef YZSmodel < handle
             this.P.KL_lambda=zeros(1,this.numStates);
             %% sampling properties and prior parameters
             if(exist('opt','var'))
+                
                 opt=spt.getOptions(opt); % in case optt is a runinput file
                 
                 % sampling parameters
-                this.param.dim=opt.trj.dim;                
-                this.param.timestep=opt.trj.timestep;
-                this.param.shutterMean=opt.trj.shutterMean; % tau
-                this.param.blurCoeff=opt.trj.blurCoeff;     % R
-                beta=this.param.shutterMean*(1-this.param.shutterMean)-this.param.blurCoeff; % beta = tau(1-tau)-R
-                if( this.param.shutterMean>0 && this.param.shutterMean<1 && ...
-                        this.param.blurCoeff>0 && this.param.blurCoeff<=0.25 && beta>0)
+                this.sample.dim=opt.trj.dim;                
+                this.sample.timestep=opt.trj.timestep;
+                this.sample.shutterMean=opt.trj.shutterMean; % tau
+                this.sample.blurCoeff=opt.trj.blurCoeff;     % R
+                beta=this.sample.shutterMean*(1-this.sample.shutterMean)-this.sample.blurCoeff; % beta = tau(1-tau)-R
+                if( this.sample.shutterMean>0 && this.sample.shutterMean<1 && ...
+                        this.sample.blurCoeff>0 && this.sample.blurCoeff<=0.25 && beta>0)
                 else
                     error('Unphysical blur coefficients. Need 0<tau<1, 0<R<=0.25.')
                 end
             
                 % construct prior distributions
-                this.P0=YZShmm.makeP0ADpriors(opt.prior,this.numStates,this.param.timestep);
+                this.P0=YZShmm.makeP0ADpriors(opt.prior,this.numStates,this.sample.timestep);
             end
             %% simple trajectory model and hidden state distributions
             if(exist('dat','var') && ~isempty(dat))
@@ -114,26 +113,39 @@ classdef YZSmodel < handle
                 this.S.wA=ones(this.numStates,this.numStates);
             end
             %% set parameter values
-            % fisrt, check for given parameter values, and replace
-            % with prior samples if not given
-            if(exist('p0_init','var') && numel(p0_init)==this.numStates)
-                p0_init=reshape(p0_init,1,this.numStates);
-            else
-                p0_init=dirrnd(this.P0.wPi);
+            if(exist('opt','var'))
+                % first, check for given parameter values, and replace
+                % with prior samples if not given
+                if(exist('p0_init','var') && numel(p0_init)==this.numStates)
+                    p0_init=reshape(p0_init,1,this.numStates);
+                else
+                    % seems better to give all states equal probability to
+                    % start with
+                    p0_init=ones(1,this.numStates)/this.numStates;%dirrnd(this.P0.wPi);
+                end
+                if(exist('A_init','var') && prod(size(A_init)==this.numStates)==1)
+                    % then all is well
+                elseif(isfield(opt,'init') && isfield(opt.init,'Trange') && ~isempty(opt.init.Trange))
+                    n_init=(opt.init.Trange(1)+diff(opt.init.Trange)*rand(this.numStates,1))/opt.trj.timestep;
+                    a_init=[1./n_init 1-1./n_init];
+                    B_init=ones(this.numStates)-eye(this.numStates);
+                    A_init=diag(a_init(:,2))+diag(a_init(:,1))*B_init;
+                else % sample from the prior
+                    a_init=dirrnd(this.P0.wa);  % <a> = a_init(:,1) = prob(s(t+1)~=s(t))
+                    B_init=dirrnd(this.P0.wB);
+                    A_init=diag(a_init(:,2))+diag(a_init(:,1))*B_init;
+                end
+                if(exist('D_init','var') && numel(D_init)==this.numStates)
+                    D_init=reshape(D_init,1,this.numStates);
+                elseif(isfield(opt,'init') && isfield(opt.init,'Drange') && ~isempty(opt.init.Drange))
+                    lnDrange=log(opt.init.Drange);
+                    lnD_init=(lnDrange(1)+diff(lnDrange)*rand(this.numStates,1));
+                    D_init=exp(lnD_init);
+                else % sample from the prior
+                    D_init=1./gamrnd(this.P0.n,1./this.P0.c)/2/this.sample.timestep;
+                end
+                this.setMLEParameters(p0_init,A_init,D_init);
             end
-            if(exist('A_init','var') && prod(size(A_init)==this.numStates)==1)
-                % then all is wewll
-            else
-                a_init=dirrnd(this.P0.wa);  % <a> = a_init(:,1) = prob(s(t+1)~=s(t))
-                B_init=dirrnd(this.P0.wB);                
-                A_init=diag(a_init(:,2))+diag(a_init(:,1))*B_init;
-            end
-            if(exist('D_init','var') && numel(D_init)==this.numStates)
-                D_init=reshape(D_init,1,this.numStates);
-            else
-                D_init=1./gamrnd(this.P0.n,1./this.P0.c)/2/this.param.timestep;
-            end
-            this.setMLEParameters(p0_init,A_init,D_init);
         end
         function setMLEParameters(this,p0,A,D,npc)
             % setMLEParameters(p0,D,A,npc)
@@ -158,7 +170,8 @@ classdef YZSmodel < handle
                 this.P.wB=0;
             end
             this.P.n=npc/this.numStates*ones(1,this.numStates);
-            this.P.c=2*D*this.param.timestep.*this.P.n; 
+            D=reshape(D,1,this.numStates);
+            this.P.c=2*this.sample.timestep*D.*this.P.n; 
         end
         function P=getParameters(this,iType)
             switch lower(iType)
@@ -185,6 +198,12 @@ classdef YZSmodel < handle
                 otherwise
                     error(['iType= ' iType ' not known. Use {mle,map,vb,none}.'] )
             end
+        end
+        function W=createModel(this,varargin)
+            % create a new instance of the model by calling its constructor
+            % function 
+            constructorFun=eval(['@' class(this)]);            
+            W=constructorFun(varargin{:});
         end
         function that=clone(this)
             % clone()

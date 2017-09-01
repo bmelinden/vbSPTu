@@ -41,7 +41,7 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 
 % default parameter values
 lnLrelTol=1e-8;
-parTol=1e-4;
+parTol=1e-3;
 SYPwarmup=[0 0 5];
 maxIter=5000;
 minIter=3;
@@ -98,6 +98,7 @@ SYPwarmup=SYPwarmup-min(SYPwarmup); % no point withholding all
 % construct convergence report
 EMexit=struct;
 EMexit.stopcondition='maxiter';
+EMexit.iType=iType;
 % convergence iterations
 
 EMtimer=tic;
@@ -169,9 +170,9 @@ EMexit.numiter=r;
 EMexit.dlnLrel=dlnLrel;
 EMexit.dP=dPmax;
 EMexit.dPname=dPmaxName;
-this.convergence=EMexit;
+this.EMexit=EMexit;
 if(showExit)
-    disp(this.convergence)
+    disp(this.EMexit)
 end
 
 %% path estimates

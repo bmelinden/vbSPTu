@@ -27,8 +27,11 @@ mle/vb : maximum likelihood estimate or variational Bayes.
 ---
 to do:
 
-- handle multipåle misc fields gracefully: perhaps so that dat.misc
-  has fields dat.misc.s, dat.misc.y ...
+- check that N=1 is handle correctly, in terms of priors and KL-terms
+- make tolerance parameters from opt go into model obj and be used by
+  convergence function
+- make the data a static part of the model objects, using a handle
+  calss if nothing lse works...
 - rearrange options struct with multiple levels, e.g.,
   opt.input, opt.output, opt.prior, opt.VBanalysis, opt.convergence, opt.init
 

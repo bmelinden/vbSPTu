@@ -14,8 +14,8 @@ function [dlnLrel,sMaxP,sVit]=Siter(this,dat,iType)
 
 % ML 2017-09-01
 
-tau=this.param.shutterMean;
-R  =this.param.blurCoeff;
+tau=this.sample.shutterMean;
+R  =this.sample.blurCoeff;
 % for now, I assume that the difference btw MAP/MLE is
 % only in computing the parameter counts (i.e., adding
 % prior pseudocounts or not).
