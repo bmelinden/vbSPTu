@@ -1,7 +1,8 @@
 function [sMaxP,sVit]=converge(this,dat,varargin)
-% [W,sMaxP,sVit]=converge(W,dat)
-% Run VB EM iterations on the diffusive HMM W and data dat, until
-% convergence, using a YZdXt HMM model.
+% [sMaxP,sVit]=converge(dat,'iType',iType,'param1',value1,...) 
+%
+% Run EM iterations of type iType (see below) on the model object with data
+% dat, until convergence.
 %
 % Output:
 % W     : converged HMM model
@@ -11,7 +12,6 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 % output arguments.
 %
 % Input :
-% W     : YZSmodel object
 % dat   : data struct, e.g., from spt.preprocess
 % optional arguments in the form 'name', value
 % iType     : kind of iterations {'mle','map','vb'}. Default: mle
@@ -33,7 +33,7 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 % 2016-06-28 : researched convergence problems, and found one that was due
 % to one state becoming completely unoccopied, which in turn induces NaNs
 % in the transition matrix, and from there to the whole model.
-% 2017-06-27: started modifying to fit in the YZhmm package instead. Very
+% 2017-06-27: started modifying to fit in the YZShmm package instead. Very
 % small differences
 
 %% start of actual code
@@ -131,7 +131,7 @@ for r=1:(SYPwarmup+maxIter)
          ~isempty(find(~isfinite(this.YZ.muZ),1)) ||    ~isempty(find(~isfinite(this.YZ.muY),1)) ||    ....
             ~isfinite(this.S.lnZ) || ~isfinite(sum(this.S.wA(:))) || ...
             ~isfinite(sum(this.P.KL_a(:))) ||~isfinite(sum(this.P.KL_B(:))))
-        errFile=['YZShmm_' class(W) '_naninf_err' int2str(ceil(1e9*rand)) '.mat'];
+        errFile=['YZShmm_' class(this) '_naninf_err' int2str(ceil(1e9*rand)) '.mat'];
         save(errFile)
         error(['NaN/Inf in model fields! Saving workspace to ' errFile])
     end

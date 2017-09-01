@@ -32,7 +32,6 @@ classdef YZSmodel < handle
     
     %% start of actual code
     properties
-        sample=struct('dim',0,'timestep',0,'shutterMean',0,'blurCoeff',0);
         P0=struct;%('n',[],'c',[],'wPi',[],'wa',[],'wB',[],'Daggregate',[]);
         P =struct;%('n',[],'c',[],'wPi',[],'wa',[],'wB',[]);
         S =struct('pst',[],'wA',[],'lnZ',0);
@@ -40,6 +39,7 @@ classdef YZSmodel < handle
             'muY',[],'muZ',[],'varY',[],'varZ',[],...
             'covYtYtp1',[],'covYtZt',[],'covYtp1Zt',[],...
             'mean_lnqyz',0,'mean_lnpxz',0);        
+        sample=struct('dim',0,'timestep',0,'shutterMean',0,'blurCoeff',0);
         numStates=0;
         lnL=0; % log likelohood (lower bound)        
         EMexit=struct;
@@ -173,32 +173,6 @@ classdef YZSmodel < handle
             D=reshape(D,1,this.numStates);
             this.P.c=2*this.sample.timestep*D.*this.P.n; 
         end
-        function P=getParameters(this,iType)
-            switch lower(iType)
-                case 'mle'
-                    % assumes model is converged with MLE
-                    P.p0=rowNormalize(this.P.wPi);
-                    P.A=rowNormalize(diag(this.P.wa(:,2))+this.P.wB);
-                    P.lambda=this.P.c./this.P.n;
-                case 'map'
-                   % assumes model is MAP-converged
-                    P.p0=rowNormalize(this.P.wPi-1);
-                    a=rowNormalize(this.P.wa-1);
-                    B1=ones(this.numStates,this.numStates)-eye(this.numStates);
-                    B=rowNormalize(this.P.wB-B1);
-                    P.A=diag(a(:,2))+diag(a(:,1))*B;
-                    P.lambda=this.P.c./(this.P.n+1);
-                case 'vb'
-                    % assumes model is VB-converged
-                    P.p0=rowNormalize(this.P.wPi);
-                    a=rowNormalize(this.P.wa);
-                    B=rowNormalize(this.P.wB);
-                    P.A=diag(a(:,2))+diag(a(:,1))*B;
-                    P.lambda=this.P.c./(this.P.n-1);
-                otherwise
-                    error(['iType= ' iType ' not known. Use {mle,map,vb,none}.'] )
-            end
-        end
         function W=createModel(this,varargin)
             % create a new instance of the model by calling its constructor
             % function 
@@ -219,6 +193,8 @@ classdef YZSmodel < handle
                 that.(prop{k})= this.(prop{k});
             end
         end
+        P=getParameters(this,iType);
+        removeState(this,s,opt,dat,iType);
     end
     methods (Abstract, Access = public)
         [slnLrel,sMaxP,sVit]=Siter(this,dat,iType);

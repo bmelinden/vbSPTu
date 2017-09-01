@@ -1,5 +1,6 @@
 function ind=sortModel(this,ind)
-% sort VB model according to ind (default: sort(lambda*))
+% ind=sortModel(ind)
+% sort YZShmm.YSmodel according to ind (default: sort(lambda*))
 if(~exist('ind','var') || numel(ind)~=this.numStates)
    [~,ind]=sort(this.P.c./(this.P.n+1));  % sort on MAP values
 end

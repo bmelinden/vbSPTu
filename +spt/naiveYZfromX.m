@@ -13,7 +13,9 @@ function YZ=naiveYZfromX(dat,v)
 
 YZ=struct;
 if(~exist('v','var')  || isempty(v))
-    v=0.001*mean(median(diff(dat.x,1).^2,'omitnan'));
+    dx2=diff(dat.x,1).^2;
+    v=0.001*median(dx2(isfinite(dx2)));
+    clear dx2
 end
 
 % hidden path subfield, with no Infs or NaNs

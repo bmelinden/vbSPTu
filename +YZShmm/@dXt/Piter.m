@@ -1,4 +1,4 @@
-function this= Piter(this,~,iType)
+function Piter(this,~,iType)
 tau=this.sample.shutterMean;
 R  =this.sample.blurCoeff;
 switch lower(iType)

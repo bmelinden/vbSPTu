@@ -26,7 +26,10 @@ dc = max(abs((this.P.c-that.P.c)./(this.P.c+that.P.c)*2));
 dParam=[dwPi dwa dwB dn dc];
 dPname={'wPi','wa','wB','n','c'};
 
+dPname=dPname(isfinite(dParam));
+dParam=dParam(isfinite(dParam));
+
 % return zero change when
-[dPmax,ii]=max(dParam,[],'omitnan');
+[dPmax,ii]=max(dParam);
 dPmaxName=dPname{ii};
 

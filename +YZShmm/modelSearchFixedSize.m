@@ -49,7 +49,7 @@ end
 X0=X;
 warning('cannot assume data with variances')
 X0.v=1e-6*X0.v;
-cDisp=1;
+cDisp=0;
 % precompute moving average q(Y,Z) distributions
 if(~exist('YZww','var') || isempty(YZww))
     YZww=[];
@@ -127,28 +127,33 @@ parfor r=1:Nrestarts
         if(V.lnL>W{r}.lnL)
             W{r}=V;
         end
-        WCtime{r}{m}=toc;
         if(cDisp>0)
             V.EMexit.init=V.comment;disp(V.EMexit);
             disp('----------')
         end
+        WCtime{r}{m}=toc;
     end
     %% Suniform : q(S) = uniform
     m=m+1;tic;
     initMethod{r}{m}='uniformS';
     V=V0.clone();
     V.YZiter(X,iType);
-    V.converge(X,'display',nDisp,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);
-    WlnL{r}{m}=V.lnL;
-    V.comment=initMethod{r}{m};
-    if(V.lnL>W{r}.lnL)
-        W{r}=V;
+    try
+        V.converge(X,'display',nDisp,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);
+        WlnL{r}{m}=V.lnL;
+        V.comment=initMethod{r}{m};
+        if(V.lnL>W{r}.lnL)
+            W{r}=V;
+        end
+        if(cDisp>0)
+            V.EMexit.init=V.comment;disp(V.EMexit);
+            disp('----------')
+        end
+    catch me
+        me
+        WlnL{r}{m}=nan;
     end
     WCtime{r}{m}=toc;
-    if(cDisp>0)
-        V.EMexit.init=V.comment;disp(V.EMexit);
-        disp('----------')
-    end
     %% YZdata   : q(Y,Z) = data
     m=m+1;tic;
     initMethod{r}{m}='YZdata';
@@ -230,7 +235,8 @@ parfor r=1:Nrestarts
     %% look for winner for this particular initial condition
     this_lnL=[ WlnL{r}{:}];
     [this_lnLmax,b]=max(this_lnL);
-    fprintf('round %d winner: %s lnL = %0.3e.\n',r,initMethod{r}{b},this_lnLmax);
+    lnL_sort=-sort(-this_lnL);
+    fprintf('round %d winner: %s dlnL = %0.1e.\n',r,initMethod{r}{b},this_lnLmax-lnL_sort(2));
 end
 lnL=[WlnL{1}{:}];
 convTime=[WCtime{1}{:}];
