@@ -1,10 +1,25 @@
-function this= Siter(this,dat,iType)
+function [dlnLrel,sMaxP,sVit]=Siter(this,dat,iType)
+% [dlnLrel,sMaxP,sVit]=Siter(dat,iType)
 % update the variational hidden state distribution
+%
+% dat   : spt.preprocess data struct 
+% iType : type of iteration {'mle','map','vb'}
+%
+% dlnLrel : relative change in log likelihood/lower bound
+% sMaxP   : sequence of most likely states
+% sVit    : Viterbi path, most likely sequence of states. Note that the
+% 
+% sMaxP, sVit require some extra computing, and are therefore only computed
+% when asked for. 
+
+% ML 2017-09-01
+
 tau=this.param.shutterMean;
 R  =this.param.blurCoeff;
 % for now, I assume that the difference btw MAP/MLE is
 % only in computing the parameter counts (i.e., adding
 % prior pseudocounts or not).
+lnL0=this.lnL;
 switch lower(iType)
     case 'mle'
         lnp0=log(rowNormalize(this.P.wPi));
@@ -12,7 +27,14 @@ switch lower(iType)
         Lambda = this.P.c./this.P.n;
         iLambda =1./Lambda;
         lnLambda=log(Lambda);
-        this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+        switch nargout
+            case {0,1}
+                this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+            case 2
+                [this.S,sMaxP]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+            case 3
+                [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+        end
         this.lnL=this.S.lnZ+this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
     case 'map'
         lnp0=log(rowNormalize(this.P.wPi-1));
@@ -24,14 +46,30 @@ switch lower(iType)
         Lambda = this.P.c./(this.P.n+1);
         iLambda =1./Lambda;
         lnLambda=log(Lambda);
-        this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+        switch nargout
+            case {0,1}
+                this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+            case 2
+                [this.S,sMaxP]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+            case 3
+                [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+        end
         this.lnL=this.S.lnZ+this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
     case 'vb'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
-        this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-        this.lnL=this.S.lnZ...
+        switch nargout
+            case {0,1}           
+                this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+            case 2
+                [this.S,sMaxP]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+            case 3
+                [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+        end
+        lnL1=this.S.lnZ...
             -sum(this.P.KL_a)-sum(this.P.KL_B)-sum(this.P.KL_pi)-sum(this.P.KL_lambda)...
             +this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
+        dlnLrel=(lnL1-lnL0)*2/abs(lnL1+lnL0);
+        this.lnL=lnL1;
     case 'none'
         return
     otherwise

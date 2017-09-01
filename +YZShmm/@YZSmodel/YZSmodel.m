@@ -197,12 +197,12 @@ classdef YZSmodel < handle
             
             prop=fieldnames(this);
             for k=1:numel(prop)
-                this.(prop{k})= that.(prop{k});
+                that.(prop{k})= this.(prop{k});
             end
         end
     end
     methods (Abstract, Access = public)
-        Siter(this,dat,iType);
+        [slnLrel,sMaxP,sVit]=Siter(this,dat,iType);
         YZiter(this,dat,iType);
         Piter(this,dat,iType);
         %this=converge(this,dat,iType);
