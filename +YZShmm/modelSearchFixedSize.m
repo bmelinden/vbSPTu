@@ -28,6 +28,10 @@ function [Wbest,lnL,initMethod,convTime,initTime,YZmv]=modelSearchFixedSize(clas
 %             (only non-zero for moving average YZ models).
 % YZmv      : moving averages YZ structs (to make it possible to reuse
 %             them). 
+% example
+% 
+% [Wbest,lnL,initMethod]=...
+% YZShmm.modelSearchFixedSize(@YZShmm.dXt,10,opt,X,'vb',[2 3 4],20,[],1)
 
 % search parameters
 
@@ -104,7 +108,7 @@ parfor r=1:Nrestarts
         V.Siter(X,iType);
         V.converge(X,'display',nDisp,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);
         WlnL{r}{m}=V.lnL;
-        V.comment=initMethod{r}{m};
+        V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
             W{r}=V;
         end
@@ -123,7 +127,7 @@ parfor r=1:Nrestarts
         V.Siter(X,iType);
         V.converge(X,'display',nDisp,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);        
         WlnL{r}{m}=V.lnL;
-        V.comment=initMethod{r}{m};
+        V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
             W{r}=V;
         end
@@ -141,7 +145,7 @@ parfor r=1:Nrestarts
     try
         V.converge(X,'display',nDisp,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);
         WlnL{r}{m}=V.lnL;
-        V.comment=initMethod{r}{m};
+        V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
             W{r}=V;
         end
@@ -161,7 +165,7 @@ parfor r=1:Nrestarts
     V.Siter(X,iType);
     V.converge(X,'display',nDisp,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);
     WlnL{r}{m}=V.lnL;
-    V.comment=initMethod{r}{m};
+    V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
     if(V.lnL>W{r}.lnL)
         W{r}=V;
     end
@@ -179,7 +183,7 @@ parfor r=1:Nrestarts
     V.Siter(X,iType);
     V.converge(X,'display',nDisp,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);    
     WlnL{r}{m}=V.lnL;
-    V.comment=initMethod{r}{m};
+    V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
     if(V.lnL>W{r}.lnL)
         W{r}=V;
     end
@@ -205,7 +209,7 @@ parfor r=1:Nrestarts
     V.Piter(X,iType);
     V.converge(X,'display',nDisp,'SYPwarmup',[0 0 0],'iType',iType);
     WlnL{r}{m}=V.lnL;
-    V.comment=initMethod{r}{m};
+    V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
     if(V.lnL>W{r}.lnL)
         W{r}=V;
     end
@@ -223,7 +227,7 @@ parfor r=1:Nrestarts
     V.Piter(X,iType);
     V.converge(X,'display',nDisp,'SYPwarmup',[0 0 0],'iType',iType);
     WlnL{r}{m}=V.lnL;
-    V.comment=initMethod{r}{m};
+    V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
     if(V.lnL>W{r}.lnL)
         W{r}=V;
     end

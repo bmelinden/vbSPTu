@@ -82,7 +82,7 @@ if(nargout>=2) % compute sequence of most likely states
     sMaxP(YZ.i1)=0;
 end
 if(nargout>=3) % compute Viterbi path, with a small offset to avoid infinities
-    sVit=HMM_multiViterbi_log_startend(log(Q+1e-50),log(H+1e-50),dat.i0,dat.i1);
+    sVit=HMM_multiViterbi_log_startend(log(Q+1e-500),log(H+1e-500),dat.i0,dat.i1);
 end
 if(nargout>=4)
    fname=['foo_' int2str(ceil(1e5*rand)) '.mat'];

@@ -69,19 +69,22 @@ if(~isfinite(sum(KL_lambda)))
 end
 %% KL_d
 if(isfield(P0,'wd') && nargout >= 5)
-    wd0=sum( P.wd,2);
-    ud0=sum(P0.wd,2);
-    KL_d=gammaln(wd0)-gammaln(ud0)...
-        -(wd0-ud0).*psi(wd0)-(...
-        gammaln(P.wd(:,1))-gammaln(P0.wd(:,1))...
-        -(P.wd(:,1)-P0.wd(:,1)).*psi(P.wd(:,1))...
-        +gammaln(P.wd(:,2))-gammaln(P0.wd(:,2))...
-        -(P.wd(:,2)-P0.wd(:,2)).*psi(P.wd(:,2)));
-    if(~isfinite(sum(KL_a)))
-        %%% debug
-        P0.wd
-        P.wd
-        error('vbYZdXt: KL_d not finite')
+    KL_d=0;
+    if(N>1)
+        wd0=sum( P.wd,2);
+        ud0=sum(P0.wd,2);
+        KL_d=gammaln(wd0)-gammaln(ud0)...
+            -(wd0-ud0).*psi(wd0)-(...
+            gammaln(P.wd(:,1))-gammaln(P0.wd(:,1))...
+            -(P.wd(:,1)-P0.wd(:,1)).*psi(P.wd(:,1))...
+            +gammaln(P.wd(:,2))-gammaln(P0.wd(:,2))...
+            -(P.wd(:,2)-P0.wd(:,2)).*psi(P.wd(:,2)));
+        if(~isfinite(sum(KL_a)))
+            %%% debug
+            P0.wd
+            P.wd
+            error('vbYZdXt: KL_d not finite')
+        end
+        clear wd0 ud0;
     end
-    clear wd0 ud0;
 end

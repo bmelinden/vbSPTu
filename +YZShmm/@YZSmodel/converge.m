@@ -21,7 +21,7 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 %             is measured against changes in S and P.
 % maxIter   : maximum number of iterations. Default 5000.
 % minIter   : minimum number of iterations. Default 5;
-% lnLrelTol : relative convergence criteria for (lnL(n)-lnL(n-1))/|lnL(n)|.
+% lnLTol    : relative convergence criteria for (lnL(n)-lnL(n-1))/|lnL(n)|.
 %             Default 1e-8;
 % parTol    : convergence criteria for parameters lambda (relative), A, p0
 %             (absolute). Default 1e-3;
@@ -38,9 +38,8 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 
 %% start of actual code
 
-
 % default parameter values
-lnLrelTol=1e-8;
+lnLTol=1e-8;
 parTol=1e-3;
 SYPwarmup=[0 0 5];
 maxIter=5000;
@@ -65,8 +64,8 @@ while(nv <= length(varargin))
       maxIter=pval;      
    elseif(strcmp(pname,'miniter'))
       minIter=pval;      
-   elseif(strcmp(pname,'lnlreltol'))
-      lnLrelTol=pval;      
+   elseif(strcmp(pname,'lnltol'))
+      lnLTol=pval;      
    elseif(strcmp(pname,'partol'))
       parTol=pval;      
    elseif(strcmp(pname,'dsort'))
@@ -143,7 +142,7 @@ for r=1:(SYPwarmup+maxIter)
     else
         converged_par=0;
     end
-    if(dlnLrel<lnLrelTol)
+    if(dlnLrel<lnLTol)
         converged_lnL=converged_lnL+1;
     else
         converged_lnL=0;
@@ -158,7 +157,7 @@ for r=1:(SYPwarmup+maxIter)
         if(converged_lnL>converged_par)
             EMexit.stopcondition=dPmaxName;
         else
-            EMexit.stopcondition='lnLrelTol';
+            EMexit.stopcondition='lnLTol';
         end
         break 
     end

@@ -26,7 +26,7 @@ wa(:,2)=wa(:,1)*(dwellStepMean-1);
 % model:
 if(N==1)
     wB=0;
-    %wa=[0 0]; % there really should not be an a-variable for N=1, but
+    wa=[0 1]; % there really should not be an a-variable for N=1, but
     %this is taken care of elsewhere (mostly in VBEMiterator).
 end
 

@@ -166,7 +166,7 @@ classdef YZSmodel < handle
             this.P.wa=wa;
             this.P.wB=wB;
             if(this.numStates==1)
-                this.P.wa=npc;
+                this.P.wa=[0 npc];
                 this.P.wB=0;
             end
             this.P.n=npc/this.numStates*ones(1,this.numStates);
@@ -194,23 +194,20 @@ classdef YZSmodel < handle
             end
         end
         P=getParameters(this,iType);
-        removeState(this,s,opt,dat,iType);
+        [Wbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel);
+        [dlnLrel,dPmax,dPmaxName]=modelDiff(this,that);
+        W=removeState(this,s,opt);
+        ind=sortModel(this,ind);
+        [sMaxP,sVit]=converge(this,dat,varargin);
     end
     methods (Abstract, Access = public)
         [slnLrel,sMaxP,sVit]=Siter(this,dat,iType);
         YZiter(this,dat,iType);
         Piter(this,dat,iType);
-        %this=converge(this,dat,iType);
         
         %S=estimateStates(this,dat,iType);
-        %P=estimateParameters(this,dat);
-        
-        %this=remove1state(this,dat,s);
         %this=splitModel(this,dat,s);
         %this=sortModel(this,ind,p)
         
-        %this=initParameters(this,opt,dat,varargin);
-
-        %[dlnL,dM]=relDiff(this,W0);
     end
 end

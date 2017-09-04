@@ -35,8 +35,8 @@ compute.maxHidden = 10;
 compute.stateEstimate = 0;
 
 compute.maxIter = 1e4;    % maximum number of VB iterations ([]: use default values).
-compute.relTolF = 1e-9;   % convergence criterion for relative change in likelihood bound.
-compute.tolPar  = 1e-4;   % convergence criterion for M-step parameters (leave non-strict).
+compute.lnLTol  = 1e-9;   % convergence criterion for relative change in likelihood bound.
+compute.parTol  = 1e-4;   % convergence criterion for M-step parameters (leave non-strict).
 
 % Bootstrapping on individual trajectories
 compute.bootstrapNum =  100; % for production, more bootstrap iterations are better

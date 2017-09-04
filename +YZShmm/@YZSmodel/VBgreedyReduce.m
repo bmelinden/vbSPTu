@@ -1,68 +1,87 @@
-function [lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel)
+function [Wbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel)
 % [lnLsearch,Nsearch,Wsearch]=VBgreedyReduce(this,dat,opt,displayLevel)
+% Perform a greedy search for smaller models with larger VB evidence by
+% systematically pruning the states of the starting class. 
 
 if(~exist('displayLevel','var'))
     displayLevel=0;
 end
-saveWsearch=false;
-if(nargout>=3)
-    saveWsearch=true;
+if(~exist('dat','var') || isempty(dat))
+    dat=spt.preprocess(opt);
 end
-
 % start by VB-converging the start model
 titer=tic;
-this.converge(dat,'iType','vb','display',0);
+Wbest=this.clone(); % this will be the currently best model
+Wbest.converge(dat,'iType','vb','display',0);
 
 %% greedy search
 % search log
-lnLsearch=this.lnL;
-Nsearch=this.numStates;
-Psearch=this.P;
-
+lnLsearch=Wbest.lnL;
+Nsearch  =Wbest.numStates;
+Psearch  =Wbest.getParameters('vb'); % log search parameters
 while(true) % try successive removal of low-occupancy states
     improved=false;
-    [~,h]=sort(this.getParameters('vb').pOcc); % prune states in order of increasing occupancy
+    [~,h]=sort(Wbest.getParameters('vb').pOcc);
+    % to two prune states in order of increasing occupancy
     for k=1:length(h)
         % try to remove states, if more than one state exists
-        if(this.numStates>1)
-            wTMP=this.clone();
-            wTMP.removeState(h(k));
-            %%% got this far!!!
+        if(Wbest.numStates>1)
+            Wtmp=Wbest.removeState(h(k),opt);
+            Wtmp.Siter(dat,'vb');
+            Wtmp.Piter(dat,'vb');
             
-            
-            
-            
-            
-            wTMP.VBconverge(dat,'displayLevel',displayLevel,'maxIter',opt.maxIter,'relTolF',opt.relTolF,'tolPar',opt.tolPar);
-            wTMP.sortModel();
-            Psearch(end+1)=wTMP.copy();Psearch(end).compress();
-
-            if(wTMP.F>w0.F) % then this helped, and we should go on
-                w0=wTMP.copy;
+            % attempt 1: just remove a state and converge
+            Wtmp.converge(dat,'iType','vb','display',displayLevel,...
+                'SYPwarmup',[0 0 0],...
+                'maxIter',opt.compute.maxIter,'lnLTol',opt.compute.lnLTol,'parTol',opt.compute.parTol);
+            Wtmp.sortModel();
+            lnLsearch(end+1)=Wtmp.lnL;
+            Nsearch(end+1)  =Wtmp.numStates;
+            Psearch(end+1)  =Wtmp.getParameters('vb'); % log search parameters
+            if(Wtmp.lnL>Wbest.lnL) % then this helped, and we should go on
                 improved=true;
-                break % start over and try to improve the new w0
+                fprintf('Removing state %d of %d helped, dlnL/|lnL| = %.2e.\n', ...
+                    h(k),Wbest.numStates,Wtmp.modelDiff(Wbest));
+                Wbest=Wtmp.clone();
+                break % start over and try to improve the new Wbest
+            else
+                fprintf('Removing state %d of %d did not help, dlnL/|lnL| = %.2e.\n', ...
+                    h(k),Wbest.numStates,Wtmp.modelDiff(Wbest));
             end
             
-            % if this did not help, try again with some added transitions
-            if(w0.numStates>2) % this only makes sense if reduced models have >1 state
+            % if this did not help, try again some other stuff that only
+            % makes sense if reduced model has >1 state
+            if(Wbest.numStates>2) % this only makes sense if reduced models have >1 state
+                % add some extra transitions
                 tx0=tic;
-                wTMP=w0.copy();
-                wTMP.removeState(h(k));
-                od=ceil(max(max(max(wTMP.P.wB-wTMP.P0.wB)),1e-2/(wTMP.numStates-1)*sum(wTMP.S.wA(:))));
-                wTMP.P.wB=wTMP.P.wB+od*(1-eye(wTMP.numStates));
-                wa=[sum(wTMP.P.wB,2) diag(wTMP.S.wA)];
-                wTMP.P.wa=wTMP.P0.wa+wa;
-                wTMP.Siter();
-                wTMP.YZiter(dat);
-                wTMP.VBconverge(dat,'displayLevel',displayLevel,'maxIter',opt.maxIter,'relTolF',opt.relTolF,'tolPar',opt.tolPar);
-                wTMP.sortModel();
-                Psearch(end+1)=wTMP.copy();Psearch(end).compress();
-                if(wTMP.F>w0.F)
-                    fprintf('Adding  %d extra transitions to %d-state model helped, dF/|F| = %.2e, t = %.1f s.\n', ...
-                        od,wTMP.numStates, (wTMP.F-w0.F)/abs(wTMP.F),toc(tx0));
-                    w0=wTMP.copy();
+                Wtmp=Wbest.removeState(h(k),opt);
+                % interpolate transition parameters close to the prior
+                nwa0=sum(Wtmp.P0.wa(:));
+                nwa =sum(Wtmp.P.wa(:) )-nwa0;
+                nwB0=sum(Wtmp.P0.wB(:));
+                nwB =sum(Wtmp.P.wB(:) )-nwB0;
+                Wtmp.P.wa=(1+0.1*nwa/nwa0)*Wtmp.P0.wa+0.9*Wtmp.P.wa;
+                Wtmp.P.wB=(1+0.1*nwB/nwB0)*Wtmp.P0.wB+0.9*Wtmp.P.wB;
+                Wtmp.Piter(dat,'vb');
+                Wtmp.Siter(dat,'vb');
+                
+                Wtmp.converge(dat,'iType','vb','display',displayLevel,...
+                    'SYPwarmup',[0 0 0],...
+                    'maxIter',opt.compute.maxIter,'lnLTol',opt.compute.lnLTol,'parTol',opt.compute.parTol);
+                
+                Wtmp.sortModel();
+                lnLsearch(end+1)=Wtmp.lnL;
+                Nsearch(end+1)  =Wtmp.numStates;
+                Psearch(end+1)  =Wtmp.getParameters('vb'); % log search parameters
+                if(Wtmp.lnL>Wbest.lnL)
+                    fprintf('Removing state %d of %d w trans. interpolation helped, dlnL/|lnL| = %.2e, t = %.1f s.\n', ...
+                        h(k),Wbest.numStates,Wtmp.modelDiff(Wbest),toc(tx0));
+                    Wbest=Wtmp.clone();
                     improved=true;
                     break % go on to try an dimprove the new model instead
+                else
+                    fprintf('Removing state %d of %d w trans. interpolation did not help, dlnL/|lnL| = %.2e, t = %.1f s.\n', ...
+                        h(k),Wbest.numStates,Wtmp.modelDiff(Wbest),toc(tx0));
                 end
             end
         end
@@ -72,12 +91,5 @@ while(true) % try successive removal of low-occupancy states
         break
     end
 end
-lnLsearch=zeros(1,numel(Psearch));
-Nsearch=zeros(1,numel(Psearch));
-for ii=1:numel(Psearch)
-   lnLsearch(ii)=Psearch(ii).F; 
-   Nsearch(ii)=Psearch(ii).numStates;
-end
-
-%disp(['greedyReduction finished search in '  num2str(toc(titer)) ' s, with ' int2str(this.numStates) ' states.'] )
+fprintf('VBgreedyReduce finished: %d -> %d states.\n',this.numStates,Wbest.numStates);
 

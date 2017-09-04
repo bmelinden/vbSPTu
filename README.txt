@@ -27,11 +27,15 @@ mle/vb : maximum likelihood estimate or variational Bayes.
 ---
 to do:
 
+- make Xiter(...,iType) a YSZmodel function that calls child-class
+  functions Xiter_mle, Xiter_map, Xiter_vb. 
+- separate state estimates from Siter
 - check that N=1 is handle correctly, in terms of priors and KL-terms
 - make tolerance parameters from opt go into model obj and be used by
   convergence function
 - make the data a static part of the model objects, using a handle
-  calss if nothing lse works...
+  class if nothing lse works...
+- more compact (fewer lines) convergence notifications
 - rearrange options struct with multiple levels, e.g.,
   opt.input, opt.output, opt.prior, opt.VBanalysis, opt.convergence, opt.init
 

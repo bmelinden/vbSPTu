@@ -1,5 +1,6 @@
-function removeState(this,s,opt,dat,iType)
-% reduce the dimensionality of a model by removing state s
+function W=removeState(this,s,opt)
+% produce a new (cloned) model object with reduced dimensionality by
+% removing state s from a model.
 
 N=this.numStates;
 if(s<0 || s>N )
@@ -12,6 +13,8 @@ else
     sk=[1:s-1 s+1:N]; % states to keep
 
     W=this.createModel(N-1,opt);
+    W.comment=this.comment;
+    
     W.YZ=this.YZ;
     W.P.n=this.P.n(sk);
     W.P.c=this.P.c(sk);
@@ -19,6 +22,7 @@ else
         W.S.pst=ones(size(this.S.pst,1),1);
         W.S.pst(W.YZ.i1,1)=0;
         W.S.wA=sum(W.S.pst);
+        W.P.wPi=numel(W.YZ.i0);
     elseif(N>2)
         % then we have >1 state in the remaining model, and need to take
         % care of transition model as well
@@ -33,7 +37,5 @@ else
         W.P.wB=this.P.wB(sk,sk)+(toS*frS)*(1/sum(frS)+1/sum(toS)).*(1-eye(N-1));
         
     end
-    this=W;
-    this.Siter(dat,iType);
 end
 
