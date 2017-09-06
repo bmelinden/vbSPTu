@@ -194,7 +194,7 @@ classdef YZSmodel < handle
             end
         end
         P=getParameters(this,iType);
-        [Wbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel);
+        [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel);
         [dlnLrel,dPmax,dPmaxName]=modelDiff(this,that);
         W=removeState(this,s,opt);
         ind=sortModel(this,ind);

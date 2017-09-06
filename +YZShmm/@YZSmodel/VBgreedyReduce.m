@@ -1,5 +1,5 @@
-function [Wbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel)
-% [lnLsearch,Nsearch,Wsearch]=VBgreedyReduce(this,dat,opt,displayLevel)
+function [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel)
+% [Wbest,WNbest,lnLsearch,Nsearch,Wsearch]=VBgreedyReduce(this,dat,opt,displayLevel)
 % Perform a greedy search for smaller models with larger VB evidence by
 % systematically pruning the states of the starting class. 
 
@@ -14,6 +14,8 @@ titer=tic;
 Wbest=this.clone(); % this will be the currently best model
 Wbest.converge(dat,'iType','vb','display',0);
 
+WNbest={};
+WNbest{Wbest.numStates}=Wbest.clone();
 %% greedy search
 % search log
 lnLsearch=Wbest.lnL;
@@ -38,6 +40,10 @@ while(true) % try successive removal of low-occupancy states
             lnLsearch(end+1)=Wtmp.lnL;
             Nsearch(end+1)  =Wtmp.numStates;
             Psearch(end+1)  =Wtmp.getParameters('vb'); % log search parameters
+            % keep track of best model at each visited size
+            if(isempty(WNbest{Wtmp.numStates}) || Wtmp.lnL > WNbest{Wtmp.numStates}.lnL)
+                WNbest{Wtmp.numStates}=Wtmp.clone();
+            end
             if(Wtmp.lnL>Wbest.lnL) % then this helped, and we should go on
                 improved=true;
                 fprintf('Removing state %d of %d helped, dlnL/|lnL| = %.2e.\n', ...
@@ -73,6 +79,10 @@ while(true) % try successive removal of low-occupancy states
                 lnLsearch(end+1)=Wtmp.lnL;
                 Nsearch(end+1)  =Wtmp.numStates;
                 Psearch(end+1)  =Wtmp.getParameters('vb'); % log search parameters
+                % keep track of best model at each visited size
+                if(isempty(WNbest{Wtmp.numStates}) || Wtmp.lnL > WNbest{Wtmp.numStates}.lnL)
+                    WNbest{Wtmp.numStates}=Wtmp.clone();
+                end
                 if(Wtmp.lnL>Wbest.lnL)
                     fprintf('Removing state %d of %d w trans. interpolation helped, dlnL/|lnL| = %.2e, t = %.1f s.\n', ...
                         h(k),Wbest.numStates,Wtmp.modelDiff(Wbest),toc(tx0));
