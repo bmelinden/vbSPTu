@@ -15,12 +15,14 @@ for k=1:2:numel(varargin)
    eval([varargin{k} '= varargin{' int2str(k+1) '};'])
 end
 
+P=struct;
 switch lower(iType)
     case 'mle'
         % assumes model is converged with MLE
         P.p0=rowNormalize(this.P.wPi);
         P.A=rowNormalize(diag(this.P.wa(:,2))+this.P.wB);
         lambda=this.P.c./this.P.n;
+        dwellSteps = reshape(sum(this.P.wa,2)./this.P.wa(:,1),1,this.numStates);
     case 'map'
         % assumes model is MAP-converged
         P.p0=rowNormalize(this.P.wPi-1);
@@ -29,6 +31,7 @@ switch lower(iType)
         B=rowNormalize(this.P.wB-B1);
         P.A=diag(a(:,2))+diag(a(:,1))*B;
         lambda=this.P.c./(this.P.n+1);
+        dwellSteps =reshape(1./a,1,this.numStates);
     case 'vb'
         % assumes model is VB-converged
         P.p0=rowNormalize(this.P.wPi);
@@ -36,10 +39,14 @@ switch lower(iType)
         B=rowNormalize(this.P.wB);
         P.A=diag(a(:,2))+diag(a(:,1))*B;
         lambda=this.P.c./(this.P.n-1);
+        dwellSteps =reshape(1./a,1,this.numStates);
     otherwise
         error(['iType= ' iType ' not known. Use {mle,map,vb,none}.'] )
 end
 P.D=lambda/2/this.sample.timestep;
 P.pOcc=rowNormalize(sum(this.S.pst,1));
 P.pT  =rowNormalize(sum(this.S.pst(this.YZ.i1-1,:),1));
+P.dwellTime=dwellSteps*this.sample.timestep;
+% put dwellSteps last
+P.dwellSteps=dwellSteps;
 end

@@ -200,6 +200,7 @@ classdef YZS0 < handle
         [sMaxP,sVit]=converge(this,dat,varargin);
         Piter(this,dat,iType);
         P=getParameters(this,varargin);
+        displayParameters(this,varargin);
     end
     methods (Abstract, Access = public)
         [slnLrel,sMaxP,sVit]=Siter(this,dat,iType);

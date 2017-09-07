@@ -9,6 +9,7 @@ function displayStruct(P,varargin)
 %                                     P.f1 +- dP.f1
 % 'fieldName',{'f1','f2',...}       : displays fields f1,f2,... Default:
 %                                     all fields in P.
+% 'excludeField' {'f1','f2',...}    : fields not to display
 % 'scale', {'f1',s1,'f2',s2,...}    : rescales fields f1,f2,... in P and dP
 %                                     by factors s1,s2.
 % 'units',{'f1','u1',f2','u2',...}  : print units u1,u2, after the
@@ -30,6 +31,12 @@ hasdP=exist('dP','var') & ~isempty(dP);
 % field names to display
 if(~exist('fieldName','var'))    
     fieldName=fieldnames(P);
+end
+if(exist('excludeField','var'))
+    %fieldName=setdiff(fieldName,excludeField);
+    for k=1:numel(excludeField)
+        fieldName=fieldName(~strcmp(fieldName,excludeField{k}));
+    end
 end
 % rescale diplay values
 if(exist('scale'))
