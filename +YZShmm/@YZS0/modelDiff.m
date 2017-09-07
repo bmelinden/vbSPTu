@@ -8,7 +8,7 @@ function [dlnLrel,dPmax,dPmaxName]=modelDiff(this,that)
 % [0,1], where absolute difference is used instead. Relative differences
 % are computed as 2*(x2-x1)/|x1+x2|
 %
-% W1,W2: YZShmm.YZSmodel objects
+% W1,W2: YZShmm.YZS0 objects
 %
 % dlnLrel : relative log likelihood difference, dlnL/|lnL|
 % dPmax   : max parameter difference  |dP/P|, or just |dP| for variables

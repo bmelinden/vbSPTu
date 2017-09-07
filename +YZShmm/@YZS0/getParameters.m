@@ -1,4 +1,20 @@
-function P=getParameters(this,iType)
+function P=getParameters(this,varargin)
+% P=YZShmm.YZS0.getParameters(this,dat,iType)
+% Return a struct with some useful estimates:
+% p0    : initial state probability
+% A     : tranition matrix
+% D     : diffusion constant (=lambda/2/dt)
+% pOcc  : average state occupancy, pOcc(k) = <s(t)==k>
+% pT    : state occupancy at endpoint of trajectories, pT(k) = <s(T)==k>
+%
+% input parameter-value pairs
+% 'data' ,dat   : data struct, from spt.preprocess (actually not used here)
+% 'iType',iType : type of parameter estimate to use {'mle','map','vb'}. 
+
+for k=1:2:numel(varargin)
+   eval([varargin{k} '= varargin{' int2str(k+1) '};'])
+end
+
 switch lower(iType)
     case 'mle'
         % assumes model is converged with MLE
@@ -25,4 +41,5 @@ switch lower(iType)
 end
 P.D=lambda/2/this.sample.timestep;
 P.pOcc=rowNormalize(sum(this.S.pst,1));
+P.pT  =rowNormalize(sum(this.S.pst(this.YZ.i1-1,:),1));
 end

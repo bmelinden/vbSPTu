@@ -1,6 +1,6 @@
 function [Wbest,lnL,initMethod,convTime,initTime,YZmv]=modelSearchFixedSize(classFun,N0,opt,X,iType,YZww,Nrestarts,YZ0,nDisp)
 % [Wbest,lnL,initMethod,convTime,initTime,YZmv]=...
-%      YZShmm.modelSearchFixedSize(classFun,opt,X,N0,iType,YZww,Nrestarts,YZ0,nDisp)
+%      YZShmm.modelSearchFixedSize(classFun,N0,opt,X,iType,YZww,Nrestarts,YZ0,nDisp)
 %
 % classFun : YZhmm model constructor handle (e.g. @YZShmm.dXt)
 % N0    : model size to search for
@@ -30,8 +30,6 @@ function [Wbest,lnL,initMethod,convTime,initTime,YZmv]=modelSearchFixedSize(clas
 %             them). 
 % example
 % 
-% [Wbest,lnL,initMethod]=...
-% YZShmm.modelSearchFixedSize(@YZShmm.dXt,10,opt,X,'vb',[2 3 4],20,[],1)
 
 % search parameters
 

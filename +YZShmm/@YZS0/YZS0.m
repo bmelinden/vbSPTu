@@ -1,4 +1,4 @@
-classdef YZSmodel < handle
+classdef YZS0 < handle
     % handle class inheritance makes the object call pass by reference,
     % i.e., one can manipulate the internal state of the object without
     % explicitly accepting an object output. 
@@ -46,9 +46,9 @@ classdef YZSmodel < handle
         comment='';
     end
     methods
-        function this=YZSmodel(varargin)
-            % YZSmodel(N,opt,dat,p0_init,A_init,D_init)
-            % construct a bare bones YZSmodel object 
+        function this=YZS0(varargin)
+            % YZS0(N,opt,dat,p0_init,A_init,D_init)
+            % construct a bare bones YZS0 object 
             %
             % N     : number of states
             % opt   : optional runinput options struct or runinput file
@@ -185,7 +185,7 @@ classdef YZSmodel < handle
             % attributes
             
             % initialize new object of the same class as this, possibly a
-            % subclass of YZSmodel
+            % subclass of YZS0
             that=eval([class(this) '(' int2str(this.numStates) ');']);
             
             prop=fieldnames(this);
@@ -193,17 +193,17 @@ classdef YZSmodel < handle
                 that.(prop{k})= this.(prop{k});
             end
         end
-        P=getParameters(this,iType);
         [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel);
         [dlnLrel,dPmax,dPmaxName]=modelDiff(this,that);
         W=removeState(this,s,opt);
         ind=sortModel(this,ind);
         [sMaxP,sVit]=converge(this,dat,varargin);
+        Piter(this,dat,iType);
+        P=getParameters(this,varargin);
     end
     methods (Abstract, Access = public)
         [slnLrel,sMaxP,sVit]=Siter(this,dat,iType);
         YZiter(this,dat,iType);
-        Piter(this,dat,iType);
         
         %S=estimateStates(this,dat,iType);
         %this=splitModel(this,dat,s);

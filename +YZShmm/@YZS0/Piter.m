@@ -1,6 +1,7 @@
 function Piter(this,~,iType)
 tau=this.sample.shutterMean;
 R  =this.sample.blurCoeff;
+
 switch lower(iType)
     case 'mle'
         [wPi,wa,wB,n,c]=YZShmm.parameterParameters(this.YZ,this.S,tau,R);
