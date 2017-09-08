@@ -38,7 +38,7 @@ W=classFun(N0,opt,X);
 W.YZiter(X,iType);
 clear W;
 
-Nwu=10;
+Nwu=opt.modelSearch.Pwarmup;
 dt=opt.trj.timestep;
 if(~exist('Nrestarts','var') || isempty(Nrestarts))
     Nrestarts=1;
@@ -238,7 +238,8 @@ parfor r=1:Nrestarts
     this_lnL=[ WlnL{r}{:}];
     [this_lnLmax,b]=max(this_lnL);
     lnL_sort=-sort(-this_lnL);
-    fprintf('round %d winner: %s dlnL = %0.1e.\n',r,initMethod{r}{b},this_lnLmax-lnL_sort(2));
+    dlnLrel=(this_lnLmax-lnL_sort(2))*2/(this_lnLmax+lnL_sort(2));
+    fprintf('round %d winner: %s dlnL = %0.1e.\n',r,initMethod{r}{b},dlnLrel);
 end
 lnL=[WlnL{1}{:}];
 convTime=[WCtime{1}{:}];

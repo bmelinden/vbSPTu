@@ -31,7 +31,7 @@ switch lower(iType)
         B=rowNormalize(this.P.wB-B1);
         P.A=diag(a(:,2))+diag(a(:,1))*B;
         lambda=this.P.c./(this.P.n+1);
-        dwellSteps =reshape(1./a,1,this.numStates);
+        dwellSteps =reshape(1./a(:,1),1,this.numStates);
     case 'vb'
         % assumes model is VB-converged
         P.p0=rowNormalize(this.P.wPi);
@@ -39,7 +39,7 @@ switch lower(iType)
         B=rowNormalize(this.P.wB);
         P.A=diag(a(:,2))+diag(a(:,1))*B;
         lambda=this.P.c./(this.P.n-1);
-        dwellSteps =reshape(1./a,1,this.numStates);
+        dwellSteps =reshape(1./a(:,1),1,this.numStates);
     otherwise
         error(['iType= ' iType ' not known. Use {mle,map,vb,none}.'] )
 end

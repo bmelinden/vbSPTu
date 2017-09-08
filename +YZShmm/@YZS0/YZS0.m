@@ -40,6 +40,8 @@ classdef YZS0 < handle
             'covYtYtp1',[],'covYtZt',[],'covYtp1Zt',[],...
             'mean_lnqyz',0,'mean_lnpxz',0);        
         sample=struct('dim',0,'timestep',0,'shutterMean',0,'blurCoeff',0);
+        conv=struct('maxIter',1e4,'lnLTol',1e-9,'parTol',1e-3);
+
         numStates=0;
         lnL=0; % log likelohood (lower bound)        
         EMexit=struct;
@@ -101,7 +103,15 @@ classdef YZS0 < handle
                 else
                     error('Unphysical blur coefficients. Need 0<tau<1, 0<R<=0.25.')
                 end
-            
+                % convergence parameters, if specified and non-empty
+                if(isfield(opt,'converge'))
+                    fn=fieldnames(this.conv);
+                    for k=1:numel(fn)
+                        if(isfield(opt.converge,fn{k}) && ~isempty(opt.converge.(fn{k})))
+                            this.conv.(fn{k})=opt.converge.(fn{k});
+                        end
+                    end
+                end
                 % construct prior distributions
                 this.P0=YZShmm.makeP0ADpriors(opt.prior,this.numStates,this.sample.timestep);
             end

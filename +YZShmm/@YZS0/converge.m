@@ -19,12 +19,12 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 %             in other variable. Default [0 0 5] (keeps parameters
 %             constant for the first 5 iterations). Note that convergence
 %             is measured against changes in S and P.
-% maxIter   : maximum number of iterations. Default 5000.
-% minIter   : minimum number of iterations. Default 5;
+% maxIter   : maximum number of iterations. Default: object setting.
 % lnLTol    : relative convergence criteria for (lnL(n)-lnL(n-1))/|lnL(n)|.
-%             Default 1e-8;
+%             Default: object setting.
 % parTol    : convergence criteria for parameters lambda (relative), A, p0
-%             (absolute). Default 1e-3;
+%             (absolute). Default: object setting.
+% minIter   : minimum number of iterations. Default 5;
 % Dsort     : sort model in order of increasing diffusion constants.
 %             Default=false.
 % display   : Level of output. 0: no output. 1 (default): print convergence
@@ -39,10 +39,10 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 %% start of actual code
 
 % default parameter values
-lnLTol=1e-8;
-parTol=1e-3;
+maxIter=this.conv.maxIter;
+lnLTol=this.conv.lnLTol;
+parTol=this.conv.parTol;
 SYPwarmup=[0 0 5];
-maxIter=5000;
 minIter=3;
 showConv_lnL=false;
 showExit=true;

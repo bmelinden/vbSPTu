@@ -9,7 +9,7 @@ function P=getParameters(this,varargin)
 % RMS   : RMS(d,s) is the average RMS localization error in for state s, in
 %         dimension d. Only if data is given.
 %
-% 'data' ,dat   : data struct, from spt.preprocess (actually not used here)
+% 'data' ,dat   : data struct, from spt.preprocess
 % 'iType',iType : type of parameter estimate to use {'mle','map','vb'}.
 
 for k=1:2:numel(varargin)
