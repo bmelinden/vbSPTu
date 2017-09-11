@@ -81,7 +81,8 @@ W=classFun(maxHidden,opt,X);
 W.YZiter(X,'vb');
 clear W;
 % pre-compute moving average initial guesses
-[~,~,~,~,~,YZmv0]=YZShmm.modelSearchFixedSize(classFun,1,opt,X,'vb',YZww,0, {},0);
+[~,~,~,~,~,YZmv]=YZShmm.modelSearchFixedSize(classFun,1,opt,X,'vb',YZww,0, {},0);
+YZ0={YZ0{:},YZmv{:}};
 %% greedy search 
 Witer  =cell(1,Nrestart); % save all models generated in each run
 Niter  =cell(1,Nrestart); % save all models generated in each run
