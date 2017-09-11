@@ -1,5 +1,4 @@
-function [Wbest,WbestN,INlnL,Psearch,YZmv]=VBmodelSearchVariableSize(opt,classFun,X,YZ0,nDisp)
-%
+function [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(opt,X,YZ0,display)
 %
 % classFun : YZhmm model constructor handle (e.g. @YZShmm.dXt)
 % opt   : options struct or runinputfile name
@@ -8,13 +7,19 @@ function [Wbest,WbestN,INlnL,Psearch,YZmv]=VBmodelSearchVariableSize(opt,classFu
 % YZ0   : precomputed q(Y,Z) distribution(s) to include as initial guesses,
 %         either as a single YZ subfield, or as a cell vector of YZ
 %         subfields. Default {} (no pre-computed YZ distributions used). 
-% nDisp : display level, ~as for vbYZdXt.converge, default 0.
+% display : display level, ~as for vbYZdXt.converge, default 0.
 % 
-% output
+% output: 
 % Wbest : the best converged model
-% WbestN: best converged models of each size
-% Nse,arch,lnLsearch,Psearch : N, lnL, Parameter estimates of all models
-% encountered during the greedy search.
+% WbestN: best converged models of each size ( or a struct with field
+%         lnL=-inf, if the search did not get to small enough model sizes).
+% dlnL  : The highest lnL-values for each model size, relative to the
+%         overall best value. dlnL=nan for model sizes not encountered.
+% INlnL : Iteration-, model size, and lnL- value for each model encountered
+%         during the greedy search. 
+% P     : Parameter struct (using the getParameters method) for each model
+%         encountered during the greedy search.
+% 
 % YZmv      : moving averages YZ structs (to make it possible to reuse
 %             them). 
 
@@ -59,9 +64,7 @@ maxHidden  =opt.modelSearch.maxHidden;
 YZww=opt.modelSearch.YZww;
 Pwu =opt.modelSearch.Pwarmup;
 Nrestart=opt.modelSearch.restarts;
-if(~exist('classFun','var') || isempty(classFun))
-    classFun=opt.model;
-end
+classFun=opt.model;
 
 if(~exist('X','var') || isempty(X))
     X=spt.preprocess(opt);
@@ -70,15 +73,15 @@ end
 if(~exist('YZ0','var') || isempty(YZ0))
     YZ0={};
 end
-if(~exist('nDisp','var') || isempty(nDisp))
-    nDisp=0;
+if(~exist('display','var') || isempty(display))
+    display=0;
 end
 % test non-opptional parameters
 W=classFun(maxHidden,opt,X);
-W.YZiter(X,iType);
+W.YZiter(X,'vb');
 clear W;
 % pre-compute moving average initial guesses
-[~,~,~,~,~,YZmv0]=modelSearchFixedSize(classFun,1,opt,X,'vb',YZww,0, {},0);
+[~,~,~,~,~,YZmv0]=YZShmm.modelSearchFixedSize(classFun,1,opt,X,'vb',YZww,0, {},0);
 %% greedy search 
 Witer  =cell(1,Nrestart); % save all models generated in each run
 Niter  =cell(1,Nrestart); % save all models generated in each run
@@ -90,52 +93,58 @@ if(opt.compute.parallelize_config)
     eval(opt.compute.parallel_start)
 end
 parfor iter=1:Nrestart   
-%for iter=1:Nrestart.runs    %%% debug without parfor
+%%%for iter=1:Nrestart %%% debug without parfor
     % Greedy search strategy is probably more efficient than to start over
     % at each model size. We simply start with a large model, and
     % systematically remove the least occupied statate until things start
     % to get worse.
     titer=tic;
-    [W0,lnL]=YZShmm.modelSearchFixedSize(classFun,maxHidden,opt,X,'vb',[],1,YZ0,0); % one random parameter set
-    Witer{iter}
+    [W0,~]=YZShmm.modelSearchFixedSize(classFun,maxHidden,opt,X,'vb',[],1,YZ0,0); % one random parameter set
+    Witer{iter}={};
     [WbestIter,Witer{iter},lnLiter{iter},Niter{iter},Piter{iter}]=W0.VBgreedyReduce(X,opt,0);
     
-    disp(['Iter ' int2str(iter) '. Finished greedy search in '  num2str(toc(titer)) ' s, with ' int2str(WbestIter.numStates) ' states.'] )
+    if(display>0)
+        disp(['Iter ' int2str(iter) '. Finished greedy search in '  num2str(toc(titer)) ' s, with ' int2str(WbestIter.numStates) ' states.'] )
+    end
 end
 %% collect best models for all sizes
-INF=[];
-Wbest=Witer{1}{1}.clone();
+INlnL=[];
+P=[];
+Wbest=struct('lnL',-inf);
 WbestN=cell(1,maxHidden);
+dlnL=nan(1,maxHidden);
+for k=1:maxHidden
+    WbestN{k}=struct('lnL',-inf);
+end
 bestIter=0;
 for iter=1:Nrestart
     for k=1:length(Witer{iter})
-        w=Witer{iter}{k}; % remember handle class
-        w.sortModel();
-        INF(end+1,1:3)=[iter w.numStates w.lnL];
-        if(w.lnL>Wbest.lnL)
-            Wbest=w.clone();
-            bestIter=iter;
-        end
-        if(isempty(WbestN{w.numStates}) || w.lnL>WbestN{w.numStates}.lnL)
-            WbestN{w.numStates}=w.clone();
+        w=Witer{iter}{k}; % remember: models < handle class
+        if(~isempty(w))
+            w.sortModel();
+            INlnL(end+1,1:3)=[iter w.numStates w.lnL];
+            if(isempty(P))
+                P=w.getParameters('data',X,'iType','vb');
+            else
+                P(end+1)=w.getParameters('data',X,'iType','vb');
+            end
+            if(w.lnL>Wbest.lnL)
+                Wbest=w.clone();
+                bestIter=iter;
+            end
+            if(isempty(WbestN{w.numStates}) || w.lnL>WbestN{w.numStates}.lnL)
+                WbestN{w.numStates}=w.clone();
+                dlnL(w.numStates)=w.lnL;
+            end
         end
     end
 end
-disp(['Best model size: ' int2str(Wbest.numStates) ', from iteration ' int2str(bestIter) '.'])
-%% write results to outputfile???
-error('got this far!!!')
-res=struct;
-res.options=opt;
-res.Wbest=Wbest;
-res.WbestN=WbestN;
-res.INF=INF;
-for k=1:length(WbestN)
-    res.dF(k)=WbestN{k}.lnL-Wbest.lnL;
+dlnL=dlnL-max(dlnL);
+if(display>0)
+    disp(['Best model size: ' int2str(Wbest.numStates) ', from iteration ' int2str(bestIter) '.'])
 end
-
-% saving the models prior to bootstrapping them
-disp(['Saving ' opt.outputfile ' after ' num2str(toc(tstart)/60) ' min.']);
-save(opt.outputfile,'-struct','res');
+return
+%%% got this far!!!
 
 
 %% bootstrapping

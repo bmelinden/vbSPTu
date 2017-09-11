@@ -1,6 +1,7 @@
 function P=getParameters(this,varargin)
 % P=YZShmm.YZS0.getParameters(this,dat,iType)
 % Return a struct with some useful estimates:
+% lnL   : log likelihood
 % p0    : initial state probability
 % A     : tranition matrix
 % D     : diffusion constant (=lambda/2/dt)
@@ -10,12 +11,16 @@ function P=getParameters(this,varargin)
 % input parameter-value pairs
 % 'data' ,dat   : data struct, from spt.preprocess (actually not used here)
 % 'iType',iType : type of parameter estimate to use {'mle','map','vb'}. 
+%
+% NOTE: No iterations are performed, so unless the model has been converged
+% with the correct iType, the estimates may not be correct.
 
 for k=1:2:numel(varargin)
    eval([varargin{k} '= varargin{' int2str(k+1) '};'])
 end
 
 P=struct;
+P.lnL=this.lnL;
 switch lower(iType)
     case 'mle'
         % assumes model is converged with MLE

@@ -238,8 +238,10 @@ parfor r=1:Nrestarts
     this_lnL=[ WlnL{r}{:}];
     [this_lnLmax,b]=max(this_lnL);
     lnL_sort=-sort(-this_lnL);
-    dlnLrel=(this_lnLmax-lnL_sort(2))*2/(this_lnLmax+lnL_sort(2));
-    fprintf('round %d winner: %s dlnL = %0.1e.\n',r,initMethod{r}{b},dlnLrel);
+    dlnLrel=(this_lnLmax-lnL_sort(2))*2/abs(this_lnLmax+lnL_sort(2));
+    if(nDisp>0)
+        fprintf('round %d winner: %s dlnL = %0.1e.\n',r,initMethod{r}{b},dlnLrel);
+    end
 end
 lnL=[WlnL{1}{:}];
 convTime=[WCtime{1}{:}];

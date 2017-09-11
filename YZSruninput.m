@@ -71,13 +71,16 @@ modelSearch.Pwarmup   = 10; % number of warmup iterations without parameter upda
 %% bootstrap
 %% not-yet used options
 return
+% HMM analysis output
+out.outputFile = './foo.mat';
+out.jobID = '';
 % Bootstrapping on individual trajectories
 compute.bootstrapNum =  100; % for production, more bootstrap iterations are better
 compute.fullBootstrap = false; % this option is not implemented yet
 % output 
 % This section sepifices where the output of the analysis is to be saved
-out.outputfile = './foo.mat';
-out.jobID = '---------------';
+
+
 % Evaluate extra estimates including Viterbi paths
 compute.stateEstimate = 0;
 

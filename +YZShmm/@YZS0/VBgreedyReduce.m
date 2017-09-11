@@ -1,10 +1,10 @@
-function [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel)
-% [Wbest,WNbest,lnLsearch,Nsearch,Wsearch]=VBgreedyReduce(this,dat,opt,displayLevel)
+function [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,display)
+% [Wbest,WNbest,lnLsearch,Nsearch,Wsearch]=VBgreedyReduce(this,dat,opt,display)
 % Perform a greedy search for smaller models with larger VB evidence by
 % systematically pruning the states of the starting class. 
 
-if(~exist('displayLevel','var'))
-    displayLevel=0;
+if(~exist('display','var'))
+    display=0;
 end
 if(~exist('dat','var') || isempty(dat))
     dat=spt.preprocess(opt);
@@ -33,9 +33,9 @@ while(true) % try successive removal of low-occupancy states
             Wtmp.Piter(dat,'vb');
             
             % attempt 1: just remove a state and converge
-            Wtmp.converge(dat,'iType','vb','display',displayLevel,...
+            Wtmp.converge(dat,'iType','vb','display',display,...
                 'SYPwarmup',[0 0 0],...
-                'maxIter',opt.compute.maxIter,'lnLTol',opt.compute.lnLTol,'parTol',opt.compute.parTol);
+                'maxIter',opt.conv.maxIter,'lnLTol',opt.conv.lnLTol,'parTol',opt.conv.parTol);
             Wtmp.sortModel();
             lnLsearch(end+1)=Wtmp.lnL;
             Nsearch(end+1)  =Wtmp.numStates;
@@ -46,13 +46,17 @@ while(true) % try successive removal of low-occupancy states
             end
             if(Wtmp.lnL>Wbest.lnL) % then this helped, and we should go on
                 improved=true;
-                fprintf('Removing state %d of %d helped, dlnL/|lnL| = %.2e.\n', ...
-                    h(k),Wbest.numStates,Wtmp.modelDiff(Wbest));
+                if(display>1)
+                    fprintf('Removing state %d of %d helped, dlnL/|lnL| = %.2e.\n', ...
+                        h(k),Wbest.numStates,Wtmp.modelDiff(Wbest));
+                end
                 Wbest=Wtmp.clone();
                 break % start over and try to improve the new Wbest
             else
-                fprintf('Removing state %d of %d did not help, dlnL/|lnL| = %.2e.\n', ...
-                    h(k),Wbest.numStates,Wtmp.modelDiff(Wbest));
+                if(display>1)
+                    fprintf('Removing state %d of %d did not help, dlnL/|lnL| = %.2e.\n', ...
+                        h(k),Wbest.numStates,Wtmp.modelDiff(Wbest));
+                end
             end
             
             % if this did not help, try again some other stuff that only
@@ -71,9 +75,9 @@ while(true) % try successive removal of low-occupancy states
                 Wtmp.Piter(dat,'vb');
                 Wtmp.Siter(dat,'vb');
                 
-                Wtmp.converge(dat,'iType','vb','display',displayLevel,...
+                Wtmp.converge(dat,'iType','vb','display',display,...
                     'SYPwarmup',[0 0 0],...
-                    'maxIter',opt.compute.maxIter,'lnLTol',opt.compute.lnLTol,'parTol',opt.compute.parTol);
+                    'maxIter',opt.conv.maxIter,'lnLTol',opt.conv.lnLTol,'parTol',opt.conv.parTol);
                 
                 Wtmp.sortModel();
                 lnLsearch(end+1)=Wtmp.lnL;
@@ -84,14 +88,18 @@ while(true) % try successive removal of low-occupancy states
                     WNbest{Wtmp.numStates}=Wtmp.clone();
                 end
                 if(Wtmp.lnL>Wbest.lnL)
-                    fprintf('Removing state %d of %d w trans. interpolation helped, dlnL/|lnL| = %.2e, t = %.1f s.\n', ...
-                        h(k),Wbest.numStates,Wtmp.modelDiff(Wbest),toc(tx0));
+                    if(display>1)
+                        fprintf('Removing state %d of %d w trans. interpolation helped, dlnL/|lnL| = %.2e, t = %.1f s.\n', ...
+                            h(k),Wbest.numStates,Wtmp.modelDiff(Wbest),toc(tx0));
+                    end
                     Wbest=Wtmp.clone();
                     improved=true;
                     break % go on to try an dimprove the new model instead
                 else
-                    fprintf('Removing state %d of %d w trans. interpolation did not help, dlnL/|lnL| = %.2e, t = %.1f s.\n', ...
-                        h(k),Wbest.numStates,Wtmp.modelDiff(Wbest),toc(tx0));
+                    if(display>1)
+                        fprintf('Removing state %d of %d w trans. interpolation did not help, dlnL/|lnL| = %.2e, t = %.1f s.\n', ...
+                            h(k),Wbest.numStates,Wtmp.modelDiff(Wbest),toc(tx0));
+                    end
                 end
             end
         end
@@ -101,5 +109,6 @@ while(true) % try successive removal of low-occupancy states
         break
     end
 end
-fprintf('VBgreedyReduce finished: %d -> %d states.\n',this.numStates,Wbest.numStates);
-
+if(display>0)
+    fprintf('VBgreedyReduce finished: %d -> %d states.\n',this.numStates,Wbest.numStates);
+end
