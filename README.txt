@@ -26,11 +26,7 @@ mle/vb : maximum likelihood estimate or variational Bayes.
 
 ---
 to do:
-- more consistently use parameter-value pair input
 - separate state estimates from Siter
-- make tolerance parameters from opt go into model obj and be used by
-  convergence function
-- more compact (fewer lines) convergence notifications
 - make Xiter(...,iType) a YSZmodel function that calls child-class
   functions Xiter_mle, Xiter_map, Xiter_vb.
 - VBsearch and fixedSizeSearch should take initial guess models and
@@ -38,7 +34,6 @@ to do:
 - check that N=1 is handle correctly, in terms of priors and KL-terms
 - make the data a static part of the model objects, using a handle
   class if nothing lse works...
-- INlnL output also from greedyReduce
 - change Tmin (used now) two trjLmin (as in vbSPT)?
 
 - the meaning of opt.dim: number of dimensions -> specifying which
@@ -46,18 +41,13 @@ to do:
 
 - B-prior with tunable strength for different sparsity 
 - specifying priors explicitly (same for all states)
-- diffusionPathUpdate or hiddenStateUpdate first in .converge?
-
-- make more uniform models: all model parameters specified by their
-  pseudocount parameters in W.P, W.P0, so that VB-, MLE-, and
-  MAP- iterations can be applied to all models.
-
-- replace mleXXX.diffusionPathUpdate with calls to spt.diffusionPathUpdate
 
 - get rid of redundant model fields W.dim, dat.dim, W.numStates,W.YZ.Fs_yz?
-W.YZ.i0,i0 W.lnL too?
-
-- consistent parameter dimensions: row index = state in P.lambda
+  W.YZ.i0,i0 W.lnL too?
 
 - consistently use W.P.aggregate-type fields for diffusion constant
   and deatch rates
+
+less important
+- make tolerance parameters from opt go into model obj and be used by
+  convergence function

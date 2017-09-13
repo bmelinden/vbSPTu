@@ -77,7 +77,6 @@ else % use rough SNR instead
     X0.v=1e-6*mean(median(diff(X0.x).^2,'omitnan'))*ones(size(X0.x));
     X0.v(isnan(X0.x))=nan;
 end
-cDisp=0;
 % precompute moving average q(Y,Z) distributions
 if(~exist('YZww','var') || isempty(YZww))
     YZww=[];
@@ -92,7 +91,7 @@ elseif(isreal(YZww)) % then compute moving average initializations
         initTime{k}=toc;
     end
     initTime=[initTime{:}];
-    if(cDisp>0)
+    if(displayLevel>=2)
         disp(['YZfilters [ ' int2str(YZww) ' ] computed in [ ' num2str(initTime,3) ' ] s.']);
     end
 end
@@ -140,8 +139,9 @@ elseif(restarts>0)
                 W{r}=V;
             end
             WCtime{r}{m}=toc;
-            if(cDisp>0)
-                V.EMexit.init=V.comment;disp(V.EMexit);
+            if(displayLevel>=2)
+                V.EMexit.init=V.comment;
+                disp(V.EMexit);
                 disp('----------')
             end
         end
@@ -158,8 +158,9 @@ elseif(restarts>0)
             if(V.lnL>W{r}.lnL)
                 W{r}=V;
             end
-            if(cDisp>0)
-                V.EMexit.init=V.comment;disp(V.EMexit);
+            if(displayLevel>=2)
+                V.EMexit.init=V.comment;
+                disp(V.EMexit);
                 disp('----------')
             end
             WCtime{r}{m}=toc;
@@ -176,8 +177,9 @@ elseif(restarts>0)
             if(V.lnL>W{r}.lnL)
                 W{r}=V;
             end
-            if(cDisp>0)
-                V.EMexit.init=V.comment;disp(V.EMexit);
+            if(displayLevel>=2)
+                V.EMexit.init=V.comment;
+                disp(V.EMexit);
                 disp('----------')
             end
         catch me
@@ -197,8 +199,9 @@ elseif(restarts>0)
             W{r}=V;
         end
         WCtime{r}{m}=toc;
-        if(cDisp>0)
-            V.EMexit.init=V.comment;disp(V.EMexit);
+        if(displayLevel>=2)
+            V.EMexit.init=V.comment;
+            disp(V.EMexit);
             disp('----------')
         end
         %% YZne     : q(Y,Z) = data, low errors
@@ -215,8 +218,9 @@ elseif(restarts>0)
             W{r}=V;
         end
         WCtime{r}{m}=toc;
-        if(cDisp>0)
-            V.EMexit.init=V.comment;disp(V.EMexit);
+        if(displayLevel>=2)
+            V.EMexit.init=V.comment;
+            disp(V.EMexit);
             disp('----------')
         end
         %% YZnbeInit: start w YZdata but with low error and blur
@@ -241,8 +245,9 @@ elseif(restarts>0)
             W{r}=V;
         end
         WCtime{r}{m}=toc;
-        if(cDisp>0)
-            V.EMexit.init=V.comment;disp(V.EMexit);
+        if(displayLevel>=2)
+            V.EMexit.init=V.comment;
+            disp(V.EMexit);
             disp('----------')
         end
         %% YZnbeInit: start w YZdata but with low error and blur, reser params
@@ -259,8 +264,9 @@ elseif(restarts>0)
             W{r}=V;
         end
         WCtime{r}{m}=toc;
-        if(cDisp>0)
-            V.EMexit.init=V.comment;disp(V.EMexit);
+        if(displayLevel>=2)
+            V.EMexit.init=V.comment;
+            disp(V.EMexit);
             disp('----------')
         end
         %% look for winner for this particular initial condition
@@ -269,15 +275,16 @@ elseif(restarts>0)
         lnL_sort=-sort(-this_lnL);
         dlnLrel=(this_lnLmax-lnL_sort(2))*2/abs(this_lnLmax+lnL_sort(2));
         if(displayLevel>1)
-            fprintf('round %d winner: %s dlnLrel = %0.1e.\n',r,initMethod{r}{b},dlnLrel);
+            fprintf('Round %d winner: %s dlnLrel = %0.1e.\n',r,initMethod{r}{b},dlnLrel);
         end
     end
     lnL=[WlnL{1}{:}];
     convTime=[WCtime{1}{:}];
     initMethod=initMethod{1};
-    Wbest=W{1};
-    bestIter=1;
-    for r=2:restarts
+    
+    Wbest=struct('lnL',-inf);
+    bestIter=nan;
+    for r=1:restarts
         lnL(r,:)=[WlnL{r}{:}];
         convTime(r,:)=[WCtime{r}{:}];
         if(W{r}.lnL>Wbest.lnL)
@@ -289,7 +296,7 @@ elseif(restarts>0)
     Wbest.sortModel();
     Wbest=Wbest.clone(); % sewer ties to earlier models
     if(displayLevel>0)
-        fprintf('Winner: %s, round %d.\n',r,initMethod{bestInit},bestIter);
+        fprintf('modelSearch done. Init %s, round %d.\n',initMethod{bestInit},bestIter);
     end
 end
 % to do: save correlation btw method and lnL

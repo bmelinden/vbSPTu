@@ -39,7 +39,7 @@ kOpt=2*find(strcmp('opt',varargin(1:2:end)),1);
 opt=varargin{kOpt};
 opt=spt.getOptions(opt);
 % default values
-restart=opt.modelSearch.restarts;
+restarts=opt.modelSearch.restarts;
 classFun=opt.model;
 maxHidden  =opt.modelSearch.maxHidden;
 YZww=opt.modelSearch.YZww;
@@ -68,35 +68,41 @@ disp([ datestr(now) ' : Starting VB greedy model search.'])
 if(isempty(data))
     data=spt.preprocess(opt);
     disp(['runinput file: ' opt.runinputfile])
-    disp(['input  file  : ' opt.inputfile])
+disp(['input  file  : ' opt.inputfile])
 end
+disp(['Restarts     : ' int2str(opt.modelSearch.restarts )])
+disp(['Max states   : ' int2str(opt.modelSearch.maxHidden)])
 disp('----------')
 % pre-compute moving average initial guesses
-[~,YZmv]=YZShmm.modelSearchFixedSize('classFun',classFun,'N0',1,'opt',opt,'data',data,'iType','vb','YZww',YZww,'displayLevel',0);
-qYZ0={qYZ0{:},YZmv{:}};
+[~,YZmv]=YZShmm.modelSearchFixedSize('classFun',classFun,'N0',1,'opt',opt,...
+    'data',data,'iType','vb','YZww',YZww,'displayLevel',0,'restarts',1);
+qYZ0=[qYZ0,YZmv];
 %% greedy search 
-Witer  =cell(1,restart); % save all models generated in each run
-Niter  =cell(1,restart); % save all models generated in each run
-lnLiter=cell(1,restart); % save all models generated in each run
-Piter  =cell(1,restart); % save all models generated in each run
+Witer  =cell(1,restarts); % best model of each size in each run
+Niter  =cell(1,restarts); % from all models generated in each run
+lnLiter=cell(1,restarts); % from all models generated in each run
+Piter  =cell(1,restarts); % from all models generated in each run
 % setup distributed computation toolbox
 if(opt.compute.parallelize_config)
     delete(gcp('nocreate'))
     eval(opt.compute.parallel_start)
 end
-parfor iter=1:restart   
-%%%for iter=1:Nrestart %%% debug without parfor
+parfor iter=1:restarts   
+%%%for iter=1:restarts %%% debug without parfor
     % Greedy search strategy is probably more efficient than to start over
     % at each model size. We simply start with a large model, and
     % systematically remove the least occupied statate until things start
     % to get worse.
     titer=tic;
-    W0=YZShmm.modelSearchFixedSize(classFun,maxHidden,opt,data,'vb',[],1,qYZ0,0); % one random parameter set
+    W0=YZShmm.modelSearchFixedSize('classFun',classFun,'N0',maxHidden,'opt',opt,...
+        'data',data,'iType','vb','qYZ0',qYZ0,'YZww',[],'displayLevel',displayLevel-2,'restarts',1);
     Witer{iter}={};
-    [WbestIter,Witer{iter}]=W0.VBgreedyReduce(data,opt,displayLevel-1);
+    [WbestIter,Witer{iter},lnLiter{iter},Niter{iter},Piter{iter}]=W0.VBgreedyReduce(data,opt,displayLevel-2);
     
     if(displayLevel>=2)
-        disp(['Iter ' int2str(iter) '. Finished greedy search in '  num2str(toc(titer)) ' s, with ' int2str(WbestIter.numStates) ' states.'] )
+        disp(['VBmodelSearch iter ' int2str(iter) ' finished in '  ...
+            num2str(toc(titer)) ' s, with ' int2str(WbestIter.numStates) ...
+            ' states from ' WbestIter.comment] )
     end
 end
 %% collect best models for all sizes
@@ -109,12 +115,13 @@ for k=1:maxHidden
     WbestN{k}=struct('lnL',-inf);
 end
 bestIter=0;
-for iter=1:restart
+for iter=1:restarts
+    INlnL=[INlnL; iter*ones(size(Niter{iter})) Niter{iter} lnLiter{iter}];
+    P    =[P; Piter{iter}];
     for k=1:length(Witer{iter})
         w=Witer{iter}{k}; % remember: models < handle class
         if(~isempty(w))
             w.sortModel();
-            INlnL(end+1,1:3)=[iter w.numStates w.lnL];
             if(isempty(P))
                 P=w.getParameters('data',data,'iType','vb');
             else
@@ -133,29 +140,6 @@ for iter=1:restart
 end
 dlnL=dlnL-max(dlnL);
 if(displayLevel>=1)
-    disp(['Best model size: ' int2str(Wbest.numStates) ', from iteration ' int2str(bestIter) '.'])
+    disp([datestr(now) ' : VBmodelSearch converged with ' int2str(Wbest.numStates) ' states, from iter ' int2str(bestIter) '. Total run time ' num2str(toc(tstart)/60,2) ' min.'])
 end
-return
-%%% got this far!!!
-
-
-%% bootstrapping
-
-if(opt.bootstrapNum>0)
-bootstrap = VB3_bsResult(opt, 'HMM_analysis');
-res.bootstrap=bootstrap;
-
-% save again after bootstrapping
-save(opt.outputfile,'-struct','res');
-end
-
-% End parallel computing
-if(opt.parallelize_config)
-    eval(opt.parallel_end)
-end
-
-disp([datestr(now) ' : Finished ' opt.runinputfile '. Total run time ' num2str(toc(tstart)/60) ' min.'])
-diary off
-end
-
 

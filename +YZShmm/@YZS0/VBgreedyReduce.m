@@ -41,9 +41,9 @@ while(true) % try successive removal of low-occupancy states
                 'SYPwarmup',[0 0 0],...
                 'maxIter',opt.conv.maxIter,'lnLTol',opt.conv.lnLTol,'parTol',opt.conv.parTol);
             Wtmp.sortModel();
-            lnLsearch(end+1)=Wtmp.lnL;
-            Nsearch(end+1)  =Wtmp.numStates;
-            Psearch(end+1)  =Wtmp.getParameters('iType','vb','data',data); % log search parameters
+            lnLsearch(end+1,1)=Wtmp.lnL;
+            Nsearch(end+1,1)  =Wtmp.numStates;
+            Psearch(end+1,1)  =Wtmp.getParameters('iType','vb','data',data); % log search parameters
             % keep track of best model at each visited size
             if(isempty(WNbest{Wtmp.numStates}) || Wtmp.lnL > WNbest{Wtmp.numStates}.lnL)
                 WNbest{Wtmp.numStates}=Wtmp.clone();
