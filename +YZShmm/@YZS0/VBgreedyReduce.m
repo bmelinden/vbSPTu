@@ -1,18 +1,22 @@
-function [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel)
+function [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,data,opt,displayLevel)
 % [Wbest,WNbest,lnLsearch,Nsearch,Wsearch]=VBgreedyReduce(this,dat,opt,displayLevel)
 % Perform a greedy search for smaller models with larger VB evidence by
-% systematically pruning the states of the starting class. 
+% systematically pruning the states of the starting object. 
+%
+% dat   : preprocessed data struct
+% opt	: options struct
+% displayLevel : amount of logging information to display (default 1).
 
 if(~exist('displayLevel','var'))
-    displayLevel=0;
+    displayLevel=1;
 end
-if(~exist('dat','var') || isempty(dat))
-    dat=spt.preprocess(opt);
+if(~exist('dat','var') || isempty(data))
+    data=spt.preprocess(opt);
 end
 % start by VB-converging the start model
 titer=tic;
 Wbest=this.clone(); % this will be the currently best model
-Wbest.converge(dat,'iType','vb','displayLevel',0);
+Wbest.converge(data,'iType','vb','displayLevel',0);
 
 WNbest={};
 WNbest{Wbest.numStates}=Wbest.clone();
@@ -20,26 +24,26 @@ WNbest{Wbest.numStates}=Wbest.clone();
 % search log
 lnLsearch=Wbest.lnL;
 Nsearch  =Wbest.numStates;
-Psearch  =Wbest.getParameters('iType','vb','data',dat); % log search parameters
+Psearch  =Wbest.getParameters('iType','vb','data',data); % log search parameters
 while(true) % try successive removal of low-occupancy states
     improved=false;
-    [~,h]=sort(Wbest.getParameters('iType','vb','data',dat).pOcc);
+    [~,h]=sort(Wbest.getParameters('iType','vb','data',data).pOcc);
     % to two prune states in order of increasing occupancy
     for k=1:length(h)
         % try to remove states, if more than one state exists
         if(Wbest.numStates>1)
             Wtmp=Wbest.removeState(h(k),opt);
-            Wtmp.Siter(dat,'vb');
-            Wtmp.Piter(dat,'vb');
+            Wtmp.Siter(data,'vb');
+            Wtmp.Piter(data,'vb');
             
             % attempt 1: just remove a state and converge
-            Wtmp.converge(dat,'iType','vb','displayLevel',displayLevel-1,...
+            Wtmp.converge(data,'iType','vb','displayLevel',displayLevel-2,...
                 'SYPwarmup',[0 0 0],...
                 'maxIter',opt.conv.maxIter,'lnLTol',opt.conv.lnLTol,'parTol',opt.conv.parTol);
             Wtmp.sortModel();
             lnLsearch(end+1)=Wtmp.lnL;
             Nsearch(end+1)  =Wtmp.numStates;
-            Psearch(end+1)  =Wtmp.getParameters('iType','vb','data',dat); % log search parameters
+            Psearch(end+1)  =Wtmp.getParameters('iType','vb','data',data); % log search parameters
             % keep track of best model at each visited size
             if(isempty(WNbest{Wtmp.numStates}) || Wtmp.lnL > WNbest{Wtmp.numStates}.lnL)
                 WNbest{Wtmp.numStates}=Wtmp.clone();
@@ -72,17 +76,17 @@ while(true) % try successive removal of low-occupancy states
                 nwB =sum(Wtmp.P.wB(:) )-nwB0;
                 Wtmp.P.wa=(1+0.1*nwa/nwa0)*Wtmp.P0.wa+0.9*Wtmp.P.wa;
                 Wtmp.P.wB=(1+0.1*nwB/nwB0)*Wtmp.P0.wB+0.9*Wtmp.P.wB;
-                Wtmp.Piter(dat,'vb');
-                Wtmp.Siter(dat,'vb');
+                Wtmp.Piter(data,'vb');
+                Wtmp.Siter(data,'vb');
                 
-                Wtmp.converge(dat,'iType','vb','displayLevel',displayLevel-1,...
+                Wtmp.converge(data,'iType','vb','displayLevel',displayLevel-2,...
                     'SYPwarmup',[0 0 0],...
                     'maxIter',opt.conv.maxIter,'lnLTol',opt.conv.lnLTol,'parTol',opt.conv.parTol);
                 
                 Wtmp.sortModel();
                 lnLsearch(end+1)=Wtmp.lnL;
                 Nsearch(end+1)  =Wtmp.numStates;
-                Psearch(end+1)  =Wtmp.getParameters('iType','vb','data',dat); % log search parameters
+                Psearch(end+1)  =Wtmp.getParameters('iType','vb','data',data); % log search parameters
                 % keep track of best model at each visited size
                 if(isempty(WNbest{Wtmp.numStates}) || Wtmp.lnL > WNbest{Wtmp.numStates}.lnL)
                     WNbest{Wtmp.numStates}=Wtmp.clone();

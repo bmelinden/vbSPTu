@@ -63,8 +63,8 @@ compute.parallel_start = 'theSPTpool=gcp;';  % executed before the parallelizabl
 compute.parallel_end = 'delete(theSPTpool)'; % executed after the parallelizable loop.
 %% model search
 modelSearch.YZww      = 2:6; % range of smoothing windows for running average initialization
-modelSearch.restarts  = 24; % number of independent restarts for model searches
-modelSearch.maxHidden = 20; % maximum model size for greedy model search
+modelSearch.restarts  = 12; % number of independent restarts for model searches
+modelSearch.maxHidden = 20; % maximum model size for multi-model search
 modelSearch.Pwarmup   = 10; % number of warmup iterations without parameter updates
 %% computing and optimization options
 %% cross-validation / pseudo Bayes factors

@@ -119,7 +119,7 @@ for r=1:(SYPwarmup+maxIter)
          ~isempty(find(~isfinite(this.YZ.muZ),1)) ||    ~isempty(find(~isfinite(this.YZ.muY),1)) ||    ....
             ~isfinite(this.S.lnZ) || ~isfinite(sum(this.S.wA(:))) || ...
             ~isfinite(sum(this.P.KL_a(:))) ||~isfinite(sum(this.P.KL_B(:))))
-        errFile=['YZShmm_' class(this) '_naninf_err' int2str(ceil(1e9*rand)) '.mat'];
+        errFile=[class(this) '_naninf_err' int2str(ceil(1e9*rand)) '.mat'];
         save(errFile)
         error(['NaN/Inf in model fields! Saving workspace to ' errFile])
     end
