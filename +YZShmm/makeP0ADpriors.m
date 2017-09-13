@@ -2,7 +2,7 @@ function P0=makeP0ADpriors(prior,N,dt)
 % makeP0ADpriors(prior,N,dt)
 % construct prior distributions from a prior field (prior)
 %
-% prior     : prior parameter struct (as in prior)
+% prior     : prior parameter struct (as in opt.prior)
 % N         : number of states
 % dt        : sampling timestep
 
@@ -48,5 +48,4 @@ switch prior.diffusionCoeff.type
         error(['YZShmm prior.diffusionCoeff.type : ' ...
             prior.diffusionCoeff.type ' not recognized.'])
 end
-
 end

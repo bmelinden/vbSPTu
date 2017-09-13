@@ -41,7 +41,10 @@ prior.transitionMatrix.dwellStd  = 100*trj.timestep;  % standard deviation of pr
 %prior.transitionMatrix.dwellMean = 10*timestep;      % prior dwell time in [s].
 %prior.transitionMatrix.dwellStrength = 20;  % transition rate strength (number of pseudocounts). Recommended to be at least 2*prior_tD/timestep.
 
-prior.localization.type = '';
+prior.positionVariance.type    = 'mode_strength';
+prior.positionVariance.v       = 20^2; % units of length^2
+prior.positionVariance.strength= 2;
+
 prior.detachment.type='';
 %% initial parameter guess
 % if fields are left out or empty, the model constructor will sample from
@@ -49,6 +52,7 @@ prior.detachment.type='';
 init.Drange = [0.01 10]*1e6;   % interval for diffusion constant initial guess [length^2/time] in same length units as the input data.
 init.Trange = [2 20]*trj.timestep;     % interval for mean dwell time initial guess in [s].
 % It is recommended to keep the initial tD guesses on the lower end of the expected spectrum.
+init.vrange = [5 50].^2; % interval for localization variance initial value(s), in units of length^2
 
 % using moving average diffusive initial guesses for fixed size model
 % search. These are the wRad arguments to mleYZdXt.YZinitMovingAverage 
