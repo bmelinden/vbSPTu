@@ -1,6 +1,6 @@
-function [Wbest,lnL,initMethod,convTime,initTime,YZmv]=modelSearchFixedSize(classFun,N0,opt,X,iType,YZww,Nrestarts,YZ0,nDisp)
+function [Wbest,lnL,initMethod,convTime,initTime,YZmv]=modelSearchFixedSize(classFun,N0,opt,X,iType,YZww,Nrestarts,YZ0,displayLevel)
 % [Wbest,lnL,initMethod,convTime,initTime,YZmv]=...
-%      YZShmm.modelSearchFixedSize(classFun,N0,opt,X,iType,YZww,Nrestarts,YZ0,nDisp)
+%      YZShmm.modelSearchFixedSize(classFun,N0,opt,X,iType,YZww,Nrestarts,YZ0,displayLevel)
 %
 % classFun : YZhmm model constructor handle (e.g. @YZShmm.dXt)
 % N0    : model size to search for
@@ -17,7 +17,7 @@ function [Wbest,lnL,initMethod,convTime,initTime,YZmv]=modelSearchFixedSize(clas
 %         either as a single YZ
 %         subfield, or as a cell vector of YZ subfields. Default {} (no
 %         pre-computed YZ distributions used). 
-% nDisp : display level, ~as for vbYZdXt.converge, default 0.
+% displayLevel : display level, ~as for vbYZdXt.converge, default 0.
 % 
 % output
 % Wbest : the best converged model
@@ -43,8 +43,8 @@ dt=opt.trj.timestep;
 if(~exist('Nrestarts','var') || isempty(Nrestarts))
     Nrestarts=1;
 end
-if(~exist('nDisp','var') || isempty(nDisp))
-    nDisp=0;
+if(~exist('displayLevel','var') || isempty(displayLevel))
+    displayLevel=0;
 end
 
 % small variance data
@@ -104,7 +104,7 @@ parfor r=1:Nrestarts
         V=V0.clone();
         V.YZ=YZmv{k};
         V.Siter(X,iType);
-        V.converge(X,'display',nDisp,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);
+        V.converge(X,'display',displayLevel,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);
         WlnL{r}{m}=V.lnL;
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
@@ -123,7 +123,7 @@ parfor r=1:Nrestarts
         V=V0.clone();
         V.YZ=YZ0{k};
         V.Siter(X,iType);
-        V.converge(X,'display',nDisp,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);        
+        V.converge(X,'display',displayLevel,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);        
         WlnL{r}{m}=V.lnL;
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
@@ -141,7 +141,7 @@ parfor r=1:Nrestarts
     V=V0.clone();
     V.YZiter(X,iType);
     try
-        V.converge(X,'display',nDisp,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);
+        V.converge(X,'display',displayLevel,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);
         WlnL{r}{m}=V.lnL;
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
@@ -161,7 +161,7 @@ parfor r=1:Nrestarts
     initMethod{r}{m}='YZdata';
     V=V0.clone();
     V.Siter(X,iType);
-    V.converge(X,'display',nDisp,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);
+    V.converge(X,'display',displayLevel,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);
     WlnL{r}{m}=V.lnL;
     V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
     if(V.lnL>W{r}.lnL)
@@ -179,7 +179,7 @@ parfor r=1:Nrestarts
     V=V0.clone();
     V.YZ=V1.YZ; % initial guess created from X0 data
     V.Siter(X,iType);
-    V.converge(X,'display',nDisp,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);    
+    V.converge(X,'display',displayLevel,'SYPwarmup',[0 0 Nwu],'minIter',Nwu+2,'iType',iType);    
     WlnL{r}{m}=V.lnL;
     V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
     if(V.lnL>W{r}.lnL)
@@ -199,13 +199,13 @@ parfor r=1:Nrestarts
     opt0.blurCoeff=1e-2/3;
     V1=classFun(N0,opt0,X0);
     V1.Siter(X0,iType);
-    V1.converge(X0,'display',nDisp,'Dsort',false,'iType',iType);
+    V1.converge(X0,'display',displayLevel,'Dsort',false,'iType',iType);
     V=V0.clone(); % now go back to original data
     V.S=V1.S;
     V.P=V1.P;
     V.YZiter(X,iType);
     V.Piter(X,iType);
-    V.converge(X,'display',nDisp,'SYPwarmup',[0 0 0],'iType',iType);
+    V.converge(X,'display',displayLevel,'SYPwarmup',[0 0 0],'iType',iType);
     WlnL{r}{m}=V.lnL;
     V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
     if(V.lnL>W{r}.lnL)
@@ -223,7 +223,7 @@ parfor r=1:Nrestarts
     V.S=V0.S;
     V.YZiter(X,iType);
     V.Piter(X,iType);
-    V.converge(X,'display',nDisp,'SYPwarmup',[0 0 0],'iType',iType);
+    V.converge(X,'display',displayLevel,'SYPwarmup',[0 0 0],'iType',iType);
     WlnL{r}{m}=V.lnL;
     V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
     if(V.lnL>W{r}.lnL)
@@ -239,7 +239,7 @@ parfor r=1:Nrestarts
     [this_lnLmax,b]=max(this_lnL);
     lnL_sort=-sort(-this_lnL);
     dlnLrel=(this_lnLmax-lnL_sort(2))*2/abs(this_lnLmax+lnL_sort(2));
-    if(nDisp>0)
+    if(displayLevel>0)
         fprintf('round %d winner: %s dlnL = %0.1e.\n',r,initMethod{r}{b},dlnLrel);
     end
 end

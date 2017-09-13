@@ -1,10 +1,10 @@
-function [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,display)
-% [Wbest,WNbest,lnLsearch,Nsearch,Wsearch]=VBgreedyReduce(this,dat,opt,display)
+function [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel)
+% [Wbest,WNbest,lnLsearch,Nsearch,Wsearch]=VBgreedyReduce(this,dat,opt,displayLevel)
 % Perform a greedy search for smaller models with larger VB evidence by
 % systematically pruning the states of the starting class. 
 
-if(~exist('display','var'))
-    display=0;
+if(~exist('displayLevel','var'))
+    displayLevel=0;
 end
 if(~exist('dat','var') || isempty(dat))
     dat=spt.preprocess(opt);
@@ -12,7 +12,7 @@ end
 % start by VB-converging the start model
 titer=tic;
 Wbest=this.clone(); % this will be the currently best model
-Wbest.converge(dat,'iType','vb','display',0);
+Wbest.converge(dat,'iType','vb','displayLevel',0);
 
 WNbest={};
 WNbest{Wbest.numStates}=Wbest.clone();
@@ -33,7 +33,7 @@ while(true) % try successive removal of low-occupancy states
             Wtmp.Piter(dat,'vb');
             
             % attempt 1: just remove a state and converge
-            Wtmp.converge(dat,'iType','vb','display',display,...
+            Wtmp.converge(dat,'iType','vb','displayLevel',displayLevel-1,...
                 'SYPwarmup',[0 0 0],...
                 'maxIter',opt.conv.maxIter,'lnLTol',opt.conv.lnLTol,'parTol',opt.conv.parTol);
             Wtmp.sortModel();
@@ -46,14 +46,14 @@ while(true) % try successive removal of low-occupancy states
             end
             if(Wtmp.lnL>Wbest.lnL) % then this helped, and we should go on
                 improved=true;
-                if(display>1)
+                if(displayLevel>1)
                     fprintf('Removing state %d of %d helped, dlnL/|lnL| = %.2e.\n', ...
                         h(k),Wbest.numStates,Wtmp.modelDiff(Wbest));
                 end
                 Wbest=Wtmp.clone();
                 break % start over and try to improve the new Wbest
             else
-                if(display>1)
+                if(displayLevel>1)
                     fprintf('Removing state %d of %d did not help, dlnL/|lnL| = %.2e.\n', ...
                         h(k),Wbest.numStates,Wtmp.modelDiff(Wbest));
                 end
@@ -75,7 +75,7 @@ while(true) % try successive removal of low-occupancy states
                 Wtmp.Piter(dat,'vb');
                 Wtmp.Siter(dat,'vb');
                 
-                Wtmp.converge(dat,'iType','vb','display',display,...
+                Wtmp.converge(dat,'iType','vb','displayLevel',displayLevel-1,...
                     'SYPwarmup',[0 0 0],...
                     'maxIter',opt.conv.maxIter,'lnLTol',opt.conv.lnLTol,'parTol',opt.conv.parTol);
                 
@@ -88,7 +88,7 @@ while(true) % try successive removal of low-occupancy states
                     WNbest{Wtmp.numStates}=Wtmp.clone();
                 end
                 if(Wtmp.lnL>Wbest.lnL)
-                    if(display>1)
+                    if(displayLevel>1)
                         fprintf('Removing state %d of %d w trans. interpolation helped, dlnL/|lnL| = %.2e, t = %.1f s.\n', ...
                             h(k),Wbest.numStates,Wtmp.modelDiff(Wbest),toc(tx0));
                     end
@@ -96,7 +96,7 @@ while(true) % try successive removal of low-occupancy states
                     improved=true;
                     break % go on to try an dimprove the new model instead
                 else
-                    if(display>1)
+                    if(displayLevel>1)
                         fprintf('Removing state %d of %d w trans. interpolation did not help, dlnL/|lnL| = %.2e, t = %.1f s.\n', ...
                             h(k),Wbest.numStates,Wtmp.modelDiff(Wbest),toc(tx0));
                     end
@@ -109,6 +109,6 @@ while(true) % try successive removal of low-occupancy states
         break
     end
 end
-if(display>0)
+if(displayLevel>0)
     fprintf('VBgreedyReduce finished: %d -> %d states.\n',this.numStates,Wbest.numStates);
 end

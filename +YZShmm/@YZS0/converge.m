@@ -27,7 +27,7 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 % minIter   : minimum number of iterations. Default 5;
 % Dsort     : sort model in order of increasing diffusion constants.
 %             Default=false.
-% display   : Level of output. 0: no output. 1 (default): print convergence
+% displayLevel   : Level of output. 0: no output. 1 (default): print convergence
 %             message. 2: print convergence every iteration.
 %
 % 2016-06-28 : researched convergence problems, and found one that was due
@@ -72,21 +72,10 @@ while(nv <= length(varargin))
       sortModel=pval;    
    elseif(strcmp(pname,'itype'))
       iType=pval;    
-   elseif(strcmp(pname,'display'))
+   elseif(strcmp(pname,'displaylevel'))
       n=pval;
-      switch n
-          case 0
-              showConv_lnL=false;
-              showExit=false;
-          case 1
-              showConv_lnL=false;
-              showExit=true;
-          case 2
-              showConv_lnL=true;
-              showExit=true;
-          otherwise
-              error(['Did not understand display ' int2str(n)])
-      end
+      showExit=(n>=1);
+      showConv_lnL=(n>=2);
    else
        error(['Unrecognized option ' pname ])
    end   

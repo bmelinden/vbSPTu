@@ -26,30 +26,18 @@ mle/vb : maximum likelihood estimate or variational Bayes.
 
 ---
 to do:
-
+- more consistently use parameter-value pair input
 - separate state estimates from Siter
 - make tolerance parameters from opt go into model obj and be used by
   convergence function
 - more compact (fewer lines) convergence notifications
-- systematic use of displayLevel parameters
-  0: no output whatsoever
-  1: brief output about end result
-  2: detailed output
-  When nesting calls to function with displaLevel output, the
-  displayLevel decreases by 1 for each nesting level.
-
 - make Xiter(...,iType) a YSZmodel function that calls child-class
   functions Xiter_mle, Xiter_map, Xiter_vb.
-- make Siter and Piter return convergence measures
-- convergence measure for YZiter? mean_lnq, mean_lnp?
-- more consistently use parameter-value pair input
 - VBsearch and fixedSizeSearch should take initial guess models and
-  improve upon them
+  improve upon them,
 - check that N=1 is handle correctly, in terms of priors and KL-terms
 - make the data a static part of the model objects, using a handle
   class if nothing lse works...
-- rearrange options struct with multiple levels, e.g.,
-  opt.input, opt.output, opt.prior, opt.VBanalysis, opt.conv, opt.init
 - INlnL output also from greedyReduce
 - change Tmin (used now) two trjLmin (as in vbSPT)?
 

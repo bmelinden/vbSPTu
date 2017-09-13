@@ -1,4 +1,4 @@
-function [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(opt,X,YZ0,display)
+function [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(opt,X,YZ0,displayLevel)
 %
 % classFun : YZhmm model constructor handle (e.g. @YZShmm.dXt)
 % opt   : options struct or runinputfile name
@@ -7,7 +7,7 @@ function [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(opt,X,YZ0,di
 % YZ0   : precomputed q(Y,Z) distribution(s) to include as initial guesses,
 %         either as a single YZ subfield, or as a cell vector of YZ
 %         subfields. Default {} (no pre-computed YZ distributions used). 
-% display : display level, ~as for vbYZdXt.converge, default 0.
+% displayLevel : display level, ~as for vbYZdXt.converge, default 0.
 % 
 % output: 
 % Wbest : the best converged model
@@ -73,8 +73,8 @@ end
 if(~exist('YZ0','var') || isempty(YZ0))
     YZ0={};
 end
-if(~exist('display','var') || isempty(display))
-    display=0;
+if(~exist('displayLevel','var') || isempty(displayLevel))
+    displayLevel=0;
 end
 % test non-opptional parameters
 W=classFun(maxHidden,opt,X);
@@ -102,9 +102,9 @@ parfor iter=1:Nrestart
     titer=tic;
     [W0,~]=YZShmm.modelSearchFixedSize(classFun,maxHidden,opt,X,'vb',[],1,YZ0,0); % one random parameter set
     Witer{iter}={};
-    [WbestIter,Witer{iter},lnLiter{iter},Niter{iter},Piter{iter}]=W0.VBgreedyReduce(X,opt,0);
+    [WbestIter,Witer{iter},lnLiter{iter},Niter{iter},Piter{iter}]=W0.VBgreedyReduce(X,opt,displayLevel-1);
     
-    if(display>0)
+    if(displayLevel>=2)
         disp(['Iter ' int2str(iter) '. Finished greedy search in '  num2str(toc(titer)) ' s, with ' int2str(WbestIter.numStates) ' states.'] )
     end
 end
@@ -141,7 +141,7 @@ for iter=1:Nrestart
     end
 end
 dlnL=dlnL-max(dlnL);
-if(display>0)
+if(displayLevel>=1)
     disp(['Best model size: ' int2str(Wbest.numStates) ', from iteration ' int2str(bestIter) '.'])
 end
 return
