@@ -24,10 +24,10 @@ WNbest{Wbest.numStates}=Wbest.clone();
 % search log
 lnLsearch=Wbest.lnL;
 Nsearch  =Wbest.numStates;
-Psearch  =Wbest.getParameters('iType','vb','data',data); % log search parameters
+Psearch  =Wbest.getParameters(data,'vb'); % log search parameters
 while(true) % try successive removal of low-occupancy states
     improved=false;
-    [~,h]=sort(Wbest.getParameters('iType','vb','data',data).pOcc);
+    [~,h]=sort(Wbest.getParameters(data,'vb').pOcc);
     % to two prune states in order of increasing occupancy
     for k=1:length(h)
         % try to remove states, if more than one state exists
@@ -43,7 +43,7 @@ while(true) % try successive removal of low-occupancy states
             Wtmp.sortModel();
             lnLsearch(end+1,1)=Wtmp.lnL;
             Nsearch(end+1,1)  =Wtmp.numStates;
-            Psearch(end+1,1)  =Wtmp.getParameters('iType','vb','data',data); % log search parameters
+            Psearch(end+1,1)  =Wtmp.getParameters(data,'vb'); % log search parameters
             % keep track of best model at each visited size
             if(isempty(WNbest{Wtmp.numStates}) || Wtmp.lnL > WNbest{Wtmp.numStates}.lnL)
                 WNbest{Wtmp.numStates}=Wtmp.clone();
@@ -86,7 +86,7 @@ while(true) % try successive removal of low-occupancy states
                 Wtmp.sortModel();
                 lnLsearch(end+1)=Wtmp.lnL;
                 Nsearch(end+1)  =Wtmp.numStates;
-                Psearch(end+1)  =Wtmp.getParameters('iType','vb','data',data); % log search parameters
+                Psearch(end+1)  =Wtmp.getParameters(data,'vb'); % log search parameters
                 % keep track of best model at each visited size
                 if(isempty(WNbest{Wtmp.numStates}) || Wtmp.lnL > WNbest{Wtmp.numStates}.lnL)
                     WNbest{Wtmp.numStates}=Wtmp.clone();

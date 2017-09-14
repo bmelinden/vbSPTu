@@ -2,7 +2,7 @@ function [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda,iV)
 % [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda,iV)
 % one round of diffusion path update in a diffusive HMM, with possibly
 % missing position data. This function handles either point-wise
-% localization errors (variances dat.V), or uniform or state-dependent
+% localization errors (variances dat.v), or uniform or state-dependent
 % errors (if iV is given).
 %
 % dat   : preprocessed data field.

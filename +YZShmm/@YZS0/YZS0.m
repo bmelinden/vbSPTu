@@ -154,19 +154,19 @@ classdef YZS0 < handle
                 else % sample from the prior
                     D_init=1./gamrnd(this.P0.n,1./this.P0.c)/2/this.sample.timestep;
                 end
-                this.setMLEParameters(p0_init,A_init,D_init);
+                this.setMLE_P0AD(p0_init,A_init,D_init);
             end
         end
-        function setMLEParameters(this,p0,A,D,npc)
-            % setMLEParameters(p0,D,A,npc)
+        function setMLE_P0AD(this,p0,A,D,npc)
+            % setMLEParameters(p0,D,A)
             % set maximum likelihood values of rate&diffusion model parameters.
             % p0,D,A: parameter mode values.
-            % npc   : strength (number of pseudocounts) in the parameter
-            %         distributions. Must be >=2. Default = 1e5.
-            
-            if(~exist('npc','var') || isempty(npc) || npc<2)
+            % npc   : number of pseudo-counts (default 1e5)
+
+            if(~exist('npc','var'))
                 npc=1e5;
             end
+            
             % initial parameters
             this.P.wPi=p0*npc;
             
@@ -209,7 +209,7 @@ classdef YZS0 < handle
         ind=sortModel(this,ind);
         [sMaxP,sVit]=converge(this,dat,varargin);
         Piter(this,dat,iType);
-        P=getParameters(this,varargin);
+        P=getParameters(this,dat,iType);
         displayParameters(this,varargin);
     end
     methods (Abstract, Access = public)

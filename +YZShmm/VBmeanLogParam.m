@@ -10,8 +10,9 @@ function [lnp0,lnQ,iLambda,lnLambda]=VBmeanLogParam(wPi,wa,wB,n,c)
 %         <ln(1-a)> = psi(wa(:,2)) - psi(sum(wa,2)); (VB)
 %         <ln(a)>   = psi(wa(:,1)) - psi(sum(wa,2)); (VB)
 %         <ln(B)>   = psi(wB) - psi(sum(wB,2));      (VB)
-
-
+% note that lambda and localization variances have the same type of
+% variational distributions (inverse gamma), and hence calling with
+% (n,c)->(nv,cv) will give results that can be interpreted using lambda->v.
 
 % initial state probability
 lnp0=psi(wPi)-psi(sum(wPi)); % <ln(pi)>

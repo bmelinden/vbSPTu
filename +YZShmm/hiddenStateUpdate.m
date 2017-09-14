@@ -1,7 +1,8 @@
 function [S,sMaxP,sVit,funWS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs)
 % [W,sMaxP,sVit,WS]=hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs)
 % one hidden state iteration for in adiffusive HMM, with possibly missing
-% position data  
+% position data, and localization variances given either in the data or as
+% model parameters lnVs, iVs (in which case the data is ignored).
 %
 % dat   : preprocessed data struct (spt.preprocess)
 % YZ    : variational trajectory model struct
@@ -62,8 +63,8 @@ if(addVterms)
     ot=isfinite(dat.x(:,1));
     dxz2=sum((dat.x-YZ.muZ).^2 + YZ.varZ,2);
     dxz2(~ot)=0;
-    ot(YZ.i1)=false;
-    lnH=lnH-0.5*ot*dim*lnVs-0.5*dxz2*iVs;
+    ot(YZ.i1)=0;
+    lnH=lnH-0.5*(dim*ot*lnVs+dxz2*iVs);
 end
 lnH(YZ.i1,:)=0;
 lnHmax=max(lnH,[],2);

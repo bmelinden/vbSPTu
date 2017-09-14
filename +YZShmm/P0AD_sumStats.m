@@ -1,5 +1,12 @@
-function [wPi,wa,wB,n,c,wd]=parameterParameters(YZ,S,tau,R,wBstruct)
+function [wPi,wa,wB,n,c]=P0AD_sumStats(YZ,S,tau,R,wBstruct)
+% [wPi,wa,wB,n,c]=YZShmm.P0AD_sumStats(YZ,S,tau,R,wBstruct)
 % compute parameters for model parameter updates
+% wPi = 
+% wa    : counts up transitions (column 1) and non-transitions (column 2)
+% wB    : transition count matrix. sum(wB(k,:)) = wa(k,1) I think
+% n,c   : count parameters for lambda variable
+
+% wd    : last state occupancy count, for deatch rate estimate
 
 %% start of actual code
 beta=tau*(1-tau)-R;
@@ -35,5 +42,5 @@ n=dim*sum(S.pst,1);
 
 % bleaching/detatchment/death rate
 % wd = [#detatchments #non-detachments], detatchment happen at t=T
-wd=[sum(S.pst(YZ.i1-1,:),1) sum(S.pst,1)-sum(S.pst(YZ.i1-1,:),1)];
+% wd=[sum(S.pst(YZ.i1-1,:),1) sum(S.pst,1)-sum(S.pst(YZ.i1-1,:),1)];
 

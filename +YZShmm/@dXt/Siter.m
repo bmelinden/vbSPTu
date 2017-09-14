@@ -27,15 +27,7 @@ switch lower(iType)
         Lambda = this.P.c./this.P.n;
         iLambda =1./Lambda;
         lnLambda=log(Lambda);
-        switch nargout
-            case {0,1}
-                this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-            case 2
-                [this.S,sMaxP]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-            case 3
-                [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-        end
-        this.lnL=this.S.lnZ+this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
+        lnL1=this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
     case 'map'
         lnp0=log(rowNormalize(this.P.wPi-1));
         a=rowNormalize(this.P.wa-1);
@@ -46,35 +38,35 @@ switch lower(iType)
         Lambda = this.P.c./(this.P.n+1);
         iLambda =1./Lambda;
         lnLambda=log(Lambda);
-        switch nargout
-            case {0,1}
-                this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-            case 2
-                [this.S,sMaxP]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-            case 3
-                [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-        end
-        this.lnL=this.S.lnZ+this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
+        
+        % log(prior) terms
+        p0lnPrior=gammaln(sum(this.P0.wPi))-sum(gammaln(this.P0.wPi))+sum(lnp0.*(this.P0.wPi-1)); % p0-log prior
+        walnPrior=sum(gammaln(sum(this.P0.wa,2))-sum(gammaln(this.P0.wa),2)+sum(log(a).*(this.P0.wa-1),2),1);
+        wBlnPrior=sum(gammaln(sum(this.P0.wB,2))-sum(gammaln(this.P0.wB+1-B1),2)+sum(log(B+1-B1).*(this.P0.wB-1),2),1);
+        lalnPrior=sum(this.P0.n.*log(this.P0.c)-gammaln(this.P0.n)-(this.P0.n-1).*log(Lambda)-this.P0.c./Lambda);
+        lnL1=p0lnPrior+walnPrior+wBlnPrior+lalnPrior+vlnPrior...
+            +this.YZ.mean_lnpxz-this.YZ.mean_lnqyz; % + q(Y,Z)-terms
     case 'vb'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
-        switch nargout
-            case {0,1}           
-                this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-            case 2
-                [this.S,sMaxP]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-            case 3
-                [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-        end
-        lnL1=this.S.lnZ...
-            -sum(this.P.KL_a)-sum(this.P.KL_B)-sum(this.P.KL_pi)-sum(this.P.KL_lambda)...
+        lnL1=-sum(this.P.KL_a)-sum(this.P.KL_B)-sum(this.P.KL_pi)-sum(this.P.KL_lambda)...
             +this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
-        dlnLrel=(lnL1-lnL0)*2/abs(lnL1+lnL0);
-        this.lnL=lnL1;
     case 'none'
         return
     otherwise
         error(['iType= ' iType ' not known. Use {mle,map,vb,none}.'] )
 end
+        
+switch nargout
+    case {0,1}
+        this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+    case 2
+        [this.S,sMaxP]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+    case 3
+        [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+end
+lnL1=lnL1+this.S.lnZ;
+dlnLrel=(lnL1-lnL0)*2/abs(lnL1+lnL0);
+this.lnL=lnL1;
 
 %[this.S,sMaxP,sVit,funWS]=YZShmm.hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
 % dat   : preprocessed data struct (spt.preprocess)

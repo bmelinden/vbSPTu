@@ -123,9 +123,9 @@ for iter=1:restarts
         if(~isempty(w))
             w.sortModel();
             if(isempty(P))
-                P=w.getParameters('data',data,'iType','vb');
+                P=w.getParameters(data,'vb');
             else
-                P(end+1)=w.getParameters('data',data,'iType','vb');
+                P(end+1)=w.getParameters(data,'vb');
             end
             if(w.lnL>Wbest.lnL)
                 Wbest=w.clone();

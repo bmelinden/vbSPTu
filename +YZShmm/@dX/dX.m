@@ -16,19 +16,24 @@ classdef dX < YZShmm.YZS0
                eval([parName{k} '= varargin{' int2str(k) '};']);
             end
             %% localization variance prior
-            P0v=opt.prior.positionVariance;
-            switch P0v.type
-                case 'mean_strength'
-                    [this.P0.nv,this.P0.cv]=spt.prior_inverse_gamma_mean_strength(N,P0v.v,P0v.strength);
-                case 'mode_strength'
-                    [this.P0.nv,this.P0.cv]=spt.prior_inverse_gamma_mode_strength(N,P0v.v,P0v.strength);
-                %case 'inv_mean_strength'
-                %    [this.P0.nv,this.P0.cv]=spt.prior_inverse_gamma_invmean_strength(N,P0v.v,P0v.strength);
-                otherwise
-                    error(['YZShmm prior.localizationVariance.type : ' P0v.type ' not recognized.'])
+            this.P0.nv=0;
+            this.P0.cv=0;
+            if(exist('opt','var'))
+                P0v=opt.prior.positionVariance;
+                switch P0v.type
+                    case 'mean_strength'
+                        [this.P0.nv,this.P0.cv]=spt.prior_inverse_gamma_mean_strength(1,P0v.v,P0v.strength);
+                    case 'mode_strength'
+                        [this.P0.nv,this.P0.cv]=spt.prior_inverse_gamma_mode_strength(1,P0v.v,P0v.strength);
+                        %case 'inv_mean_strength'
+                        %    [this.P0.nv,this.P0.cv]=spt.prior_inverse_gamma_invmean_strength(N,P0v.v,P0v.strength);
+                    otherwise
+                        error(['YZShmm prior.localizationVariance.type : ' P0v.type ' not recognized.'])
+                end
             end
             this.P.nv=this.P0.nv;
             this.P.cv=this.P0.cv;
+            this.P.KL_v=0;
             %% set localization variance value
             this.P.nv=this.P0.nv;
             this.P.cv=this.P0.cv;
@@ -36,7 +41,7 @@ classdef dX < YZShmm.YZS0
                 % first, check for given parameter values, and replace
                 % with prior samples if not given
                 if(exist('v_init','var') && numel(v_init)==1)
-                    % then we're good!
+                    % then we are good!
                 elseif(isfield(opt,'init') && isfield(opt.init,'vrange') && ~isempty(opt.init.vrange))
                     lnvrange=log(opt.init.vrange);
                     lnv_init=(lnvrange(1)+diff(lnvrange)*rand);
@@ -55,7 +60,11 @@ classdef dX < YZShmm.YZS0
                 this.YZ=spt.naiveYZfromX(dat,v_init);
             end
         end
-        %%% got this far!!!
-        P=getParameters(this,varargin);
+        setMLE_P0ADV(this,p0,A,D,v,npc);
+        P=getParameters(this,dat,iType);
+        [dlnLrel,sMaxP,sVit]=Siter(this,dat,iType);
+        YZiter(this,dat,iType); 
+        Piter(this,dat,iType);
+        [dlnLrel,dPmax,dPmaxName]=modelDiff(this,that);
     end
 end

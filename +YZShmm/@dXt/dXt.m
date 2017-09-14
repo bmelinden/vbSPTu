@@ -17,6 +17,8 @@ classdef dXt < YZShmm.YZS0
                 this.YZ=spt.naiveYZfromX(dat);
             end
         end
-        P=getParameters(this,varargin);
+	    P=getParameters(this,dat,iType);
+        [dlnLrel,sMaxP,sVit]=Siter(this,dat,iType);
+        YZiter(this,dat,iType);
     end
 end

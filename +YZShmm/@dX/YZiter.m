@@ -12,11 +12,18 @@ switch lower(iType)
     case 'mle'
         Lambda = this.P.c./this.P.n;
         iLambda =1./Lambda;
+        v=this.P.cv./this.P.nv;
+        iV=1./v;
     case 'map'
         Lambda = this.P.c./(this.P.n+1);
         iLambda =1./Lambda;
+        v=this.P.cv./(this.P.nv-1);
+        iV=1./v;    
     case 'vb'
         [~,~,iLambda,~]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
+        % localization variances length variance
+        iV  =this.P.nv./this.P.cv;         % <1/v>
+        %lnVs=log(this.P.cv)-psi(this.P.nv).*ones(1,this.numStates); % < ln(v)>
     case 'none'
         return
     otherwise
@@ -24,7 +31,7 @@ switch lower(iType)
 end
 tau=this.sample.shutterMean;
 Rcoeff  =this.sample.blurCoeff;
-this.YZ=YZShmm.diffusionPathUpdate(dat,this.S,tau,Rcoeff,iLambda);
+this.YZ=YZShmm.diffusionPathUpdate(dat,this.S,tau,Rcoeff,iLambda,iV);
 
 % [YZ,funWS]=diffusionPathUpdate(dat,S,tau,R,iLambda,iV)
 % one round of diffusion path update in a diffusive HMM, with possibly

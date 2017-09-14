@@ -1,5 +1,5 @@
-function P=getParameters(this,varargin)
-% P=YZShmm.YZS0.getParameters(this,dat,iType)
+function P=getParameters(this,~,iType)
+% P=YZShmm.YZS0.getParameters(this,~,iType)
 % Return a struct with some useful estimates:
 % lnL   : log likelihood
 % p0    : initial state probability
@@ -8,16 +8,12 @@ function P=getParameters(this,varargin)
 % pOcc  : average state occupancy, pOcc(k) = <s(t)==k>
 % pT    : state occupancy at endpoint of trajectories, pT(k) = <s(T)==k>
 %
-% input parameter-value pairs
-% 'data' ,dat   : data struct, from spt.preprocess (actually not used here)
-% 'iType',iType : type of parameter estimate to use {'mle','map','vb'}. 
+% input parameters
+% dat   : data struct, from spt.preprocess (actually not used here)
+% iType : type of parameter estimate to use {'mle','map','vb'}. 
 %
 % NOTE: No iterations are performed, so unless the model has been converged
 % with the correct iType, the estimates may not be correct.
-
-for k=1:2:numel(varargin)
-   eval([varargin{k} '= varargin{' int2str(k+1) '};'])
-end
 
 P=struct;
 P.lnL=this.lnL;

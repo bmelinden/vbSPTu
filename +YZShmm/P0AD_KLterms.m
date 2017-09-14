@@ -1,7 +1,7 @@
-function [KL_pi,KL_a,KL_B,KL_lambda,KL_d]=KLterms(P,P0)
-%% KUllback-Laibler terms
-% KL divergence of transition probabilities of s(t), new
-% parameterization
+function [KL_pi,KL_a,KL_B,KL_lambda]=P0AD_KLterms(P,P0)
+% [KL_pi,KL_a,KL_B,KL_lambda]=YZShmm.P0AD_KLterms(P,P0)
+% KL divergence of core parameters (p0, A, lambda) of our diffusive HMM,
+% using the a,B- parameterization of the transition matrix A.
 N=numel(P.wPi);
 
 %% KL_pi
@@ -67,8 +67,8 @@ KL_lambda= P0.n.*log(P.c./P0.c)...
 if(~isfinite(sum(KL_lambda)))
     error('vbYZdXt: KL_lambda not finite')
 end
-%% KL_d
-if(isfield(P0,'wd') && nargout >= 5)
+%% KL_d : put in separate file, or activate later if needed
+if(false)
     KL_d=0;
     if(N>1)
         wd0=sum( P.wd,2);
@@ -83,7 +83,7 @@ if(isfield(P0,'wd') && nargout >= 5)
             %%% debug
             P0.wd
             P.wd
-            error('vbYZdXt: KL_d not finite')
+            error('P0AD_KLterms: KL_d not finite')
         end
         clear wd0 ud0;
     end

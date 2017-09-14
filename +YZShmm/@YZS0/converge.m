@@ -16,7 +16,7 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 % optional arguments in the form 'name', value
 % iType     : kind of iterations {'mle','map','vb'}. Default: mle
 % SYPwarmup : omit a number of initial S/YZ/P iterations in order to burn
-%             in other variable. Default [0 0 5] (keeps parameters
+%             in other variable. Default [0 0 3] (keeps parameters
 %             constant for the first 5 iterations). Note that convergence
 %             is measured against changes in S and P.
 % maxIter   : maximum number of iterations. Default: object setting.
@@ -42,8 +42,8 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 maxIter=this.conv.maxIter;
 lnLTol=this.conv.lnLTol;
 parTol=this.conv.parTol;
-SYPwarmup=[0 0 5];
-minIter=3;
+SYPwarmup=[0 0 3];
+minIter=5;
 showConv_lnL=false;
 showExit=true;
 sortModel=false;
@@ -96,7 +96,7 @@ converged_par=0;
 dPmax=inf;
 dlnLrel=inf;
 W1=this.clone();
-for r=1:(SYPwarmup+maxIter)
+for r=1:+maxIter
     W2=W1.clone();W1=this.clone(); % save some old steps
     if(sortModel)
         % sort in order of increasing diffusion constant
@@ -107,7 +107,7 @@ for r=1:(SYPwarmup+maxIter)
     if(r>SYPwarmup(2))
         this.YZiter(dat,iType);
     end
-    if(r>SYPwarmup(2))
+    if(r>SYPwarmup(1))
         this.Siter( dat,iType);
     end
     if(r>SYPwarmup(3))
@@ -126,7 +126,7 @@ for r=1:(SYPwarmup+maxIter)
     
     % check convergence
     [dlnLrel,dPmax,dPmaxName]=this.modelDiff(W1);
-    if(dPmax<parTol)
+    if(dPmax<parTol && SYPwarmup(3)<r)
         converged_par=converged_par+1;
     else
         converged_par=0;

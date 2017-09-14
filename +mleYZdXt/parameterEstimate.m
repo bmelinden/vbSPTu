@@ -83,6 +83,7 @@ while(k<nargin-2)
 end
 
 est=struct;
+est.lnL=W.lnL;
 est.D = W.P.lambda/2/dt;
 est.lambda=W.P.lambda;
 est.p0= W.P.p0;
