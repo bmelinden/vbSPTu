@@ -25,7 +25,7 @@ function [est,est2]=parameterEstimate(W,varargin)
 %               up the summary statistics into two groups. If either of the
 %               two groups are empty, all parameter estimates are NaN.
 %
-% ML 2017-07-31 : adapted to mleYZdXs and mleYZdXu and models
+% ML 2017-07-31 : adapted to mleYZdXs and mleYZdX and models
 
 %% copyright notice
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

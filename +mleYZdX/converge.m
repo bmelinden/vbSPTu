@@ -112,13 +112,13 @@ for r=1:(Nwarmup+maxIter)
     end
 
     % iterate
-    W=mleYZdXu.hiddenStateUpdate(W,dat);
+    W=mleYZdX.hiddenStateUpdate(W,dat);
     dlnLrel=(W.lnL-lnL0)/abs(W.lnL);
     lnL0=W.lnL;
-    W=mleYZdXu.diffusionPathUpdate(W,dat);
+    W=mleYZdX.diffusionPathUpdate(W,dat);
     
     if(r>Nwarmup)
-        W=mleYZdXu.parameterUpdate(W,dat);
+        W=mleYZdX.parameterUpdate(W,dat);
         if(exist('lam0','var'))
             dLam=max(abs(W.P.lambda-lam0)./W.P.lambda);
             dA=max(abs(W.P.A(:)-A0(:)));
@@ -165,8 +165,8 @@ end
 
 %% path estimates
 if(nargout>=2) % compute sequence of most likely states
-    [W,sMaxP]=mleYZdXu.hiddenStateUpdate(W,dat);
+    [W,sMaxP]=mleYZdX.hiddenStateUpdate(W,dat);
 end
 if(nargout>=3) % compute Viterbi path, with a small offset to avoid infinities
-    [W,sMaxP,sVit]=mleYZdXu.hiddenStateUpdate(W,dat);
+    [W,sMaxP,sVit]=mleYZdX.hiddenStateUpdate(W,dat);
 end

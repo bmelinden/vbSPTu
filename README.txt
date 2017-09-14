@@ -19,19 +19,22 @@ Different model/algorithm combinations
 +mleYZdXu
 
 mle/vb : maximum likelihood estimate or variational Bayes.
- YZdXt : position uncertainty v(t,i) part of input data
- YZdXu : uniform position uncertainty part of the model
- YZdXs : state-dependent position uncertainty part of the model
+ dXt : position uncertainty v(t,i) part of input data
+ dX  : uniform position uncertainty part of the model
+ dXs : state-dependent position uncertainty part of the model
  Ds    : include state-dependent detachment7death rate in the model
 
 ---
 to do:
+
+- write simple test scripts, that systematically tests and
+  demonstrates all functionality of all model classes
+- check that N=1 is handle correctly, in terms of priors and KL-terms
 - separate state estimates from Siter
 - make Xiter(...,iType) a YSZmodel function that calls child-class
   functions Xiter_mle, Xiter_map, Xiter_vb.
 - VBsearch and fixedSizeSearch should take initial guess models and
   improve upon them,
-- check that N=1 is handle correctly, in terms of priors and KL-terms
 - make the data a static part of the model objects, using a handle
   class if nothing lse works...
 - change Tmin (used now) two trjLmin (as in vbSPT)?
