@@ -1,5 +1,5 @@
 function [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(varargin)
-% [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(opt,'P1',P1,...)
+% [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize('P1',P1,...)
 %
 % Input parameters are given as parameter-value pairs on the form
 % 'parameter',parameter (case sensitive):
