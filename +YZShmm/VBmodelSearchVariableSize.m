@@ -1,5 +1,5 @@
 function [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(varargin)
-% [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(opt,'P1',P1,...)
+% [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize('P1',P1,...)
 %
 % Input parameters are given as parameter-value pairs on the form
 % 'parameter',parameter (case sensitive):
@@ -73,6 +73,11 @@ end
 disp(['Restarts     : ' int2str(opt.modelSearch.restarts )])
 disp(['Max states   : ' int2str(opt.modelSearch.maxHidden)])
 disp('----------')
+% setup distributed computation toolbox
+if(opt.compute.parallelize_config)
+    delete(gcp('nocreate'))
+    eval(opt.compute.parallel_start)
+end
 % pre-compute moving average initial guesses
 [~,YZmv]=YZShmm.modelSearchFixedSize('classFun',classFun,'N0',1,'opt',opt,...
     'data',data,'iType','vb','YZww',YZww,'displayLevel',0,'restarts',1);
@@ -82,11 +87,6 @@ Witer  =cell(1,restarts); % best model of each size in each run
 Niter  =cell(1,restarts); % from all models generated in each run
 lnLiter=cell(1,restarts); % from all models generated in each run
 Piter  =cell(1,restarts); % from all models generated in each run
-% setup distributed computation toolbox
-if(opt.compute.parallelize_config)
-    delete(gcp('nocreate'))
-    eval(opt.compute.parallel_start)
-end
 parfor iter=1:restarts   
 %%%for iter=1:restarts %%% debug without parfor
     % Greedy search strategy is probably more efficient than to start over
@@ -97,7 +97,8 @@ parfor iter=1:restarts
     W0=YZShmm.modelSearchFixedSize('classFun',classFun,'N0',maxHidden,'opt',opt,...
         'data',data,'iType','vb','qYZ0',qYZ0,'YZww',[],'displayLevel',displayLevel-2,'restarts',1);
     Witer{iter}={};
-    [WbestIter,Witer{iter},lnLiter{iter},Niter{iter},Piter{iter}]=W0.VBgreedyReduce(data,opt,displayLevel-2);
+    [WbestIter,Witer{iter},lnLiter{iter},Niter{iter},Piter{iter}]=...
+        W0.VBgreedyReduce(data,opt,displayLevel-2);
     
     if(displayLevel>=2)
         disp(['VBmodelSearch iter ' int2str(iter) ' finished in '  ...

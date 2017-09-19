@@ -1,5 +1,5 @@
-function multiConverge_Dcomm(W,X,iType,Dcomm,varargin)
-% multiConverge(W,X,iType,Dcomm,varargin)
+function multiConverge_Dcomm(W,X,iType,Dcomm)
+% multiConverge(W,X,iType,Dcomm)
 % Simultaneously converge a set of models while enforcing common values for
 % some of their diffusion constants.
 % 

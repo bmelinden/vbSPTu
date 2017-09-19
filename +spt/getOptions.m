@@ -1,4 +1,4 @@
-% opt=vbspt.getOptions(runinputfile)
+% opt=spt.getOptions(runinputfile)
 %
 % convert SMeagol runinput parameters from a runinput file into an options
 % structure opt. All variables created by the command eval(runinputfile)
@@ -17,7 +17,7 @@
 
 %% copyright notice
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% vbspt.getOptions.m, read runinout parameters in the mesoSM package
+% spt.getOptions.m, read runinout parameters in the mesoSM package
 % derived from corresponding files in the vbTPM package.
 % =========================================================================
 % 
@@ -60,7 +60,7 @@ end
 % if input is a struct, then just return it
 if(isstruct(runinputfile))
     opt=runinputfile;
-    %disp('vbspt.getOptions got a struct input, returns struct as is.')
+    %disp('spt.getOptions got a struct input, returns struct as is.')
     return
 end
 
@@ -71,7 +71,7 @@ if(isempty(ext_tmp)) % then add in the .m extension
     [path_tmp, name_tmp, ext_tmp] = fileparts(runinputfile);
 end
 %if(~strcmp(ext_tmp,'.m') && ~isempty(ext_tmp)) % %% good new feature?
-%    error('vbspt.getOptions: ruininput file must be a Matlab .m file')
+%    error('spt.getOptions: ruininput file must be a Matlab .m file')
 %end
 
 
@@ -90,16 +90,16 @@ if(isRelPath)
     path_tmp=fullfile(pwd,path_tmp);
 end
 clear isRelPath
-disp('vbspt.getOptions looking for runinput file : ')
+disp('spt.getOptions looking for runinput file : ')
 disp(fullfile(path_tmp,[name_tmp ext_tmp]));
 %% evaluate runinput file and store all variables to opt structure
-oldFolder = cd(path_tmp); % oldFolder is path from which vbspt.getOption was called
+oldFolder = cd(path_tmp); % oldFolder is path from which spt.getOption was called
 % check that the runinput file is actually present in this folder
 abspathfile=fullfile(path_tmp,[name_tmp ext_tmp]);
 if(exist(abspathfile,'file'))
     eval(name_tmp)
 else
-    error(['vbspt.getOptions: runinput file not found: ' abspathfile ' .'])    
+    error(['spt.getOptions: runinput file not found: ' abspathfile ' .'])    
 end
 cd(oldFolder);
 clear oldFolder abspathfile; % forget what folder the options file happend to be called from
