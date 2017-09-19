@@ -19,7 +19,7 @@ trj.blurCoeff  =tE/dt/6; % Berglund blur coefficient R
 trj.dim = 2;
 trj.Tmin = 5;         % minimum number of positions per trajectory >=2 is 
 clear dt tE
-%% default model type (constructor handle)
+%% default model type (constructor handle, e.g., @YZShmm.xxx)
 model=@YZShmm.dXt; 
 %% Prior distributions
 % Diffusion constants
@@ -67,7 +67,7 @@ compute.parallel_start = 'theSPTpool=gcp;';  % executed before the parallelizabl
 compute.parallel_end = 'delete(theSPTpool)'; % executed after the parallelizable loop.
 %% model search
 modelSearch.YZww      = 2:6; % range of smoothing windows for running average initialization
-modelSearch.restarts  = 12; % number of independent restarts for model searches
+modelSearch.restarts  = 100; % number of independent restarts for model searches
 modelSearch.maxHidden = 20; % maximum model size for multi-model search
 modelSearch.Pwarmup   = 10; % number of warmup iterations without parameter updates
 %% computing and optimization options
