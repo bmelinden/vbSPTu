@@ -1,19 +1,19 @@
 classdef dX < YZShmm.YZS0
     % a hidden diffusive HMM with externally estimated point-wise
-    % localization errors 
+    % localization errors
     properties
     end
     methods
-        function this=dX(varargin)            
+        function this=dX(varargin)
             % dXt(N,opt,dat,p0_init,D_init,A_init,v_init)
             % same syntax as for the YZShmm.YZS0 constructor, except
             % that the data struct dat is expected to contain estimated
             % position variances.
             this=this@YZShmm.YZS0(varargin{:});
-
+            
             parName={'N','opt','dat','p0_init','A_init','D_init','v_init'};
             for k=1:min(6,nargin)
-               eval([parName{k} '= varargin{' int2str(k) '};']);
+                eval([parName{k} '= varargin{' int2str(k) '};']);
             end
             %% localization variance prior
             this.P0.nv=0;
@@ -60,10 +60,10 @@ classdef dX < YZShmm.YZS0
                 this.YZ=spt.naiveYZfromX(dat,v_init);
             end
         end
-        setMLE_P0ADV(this,p0,A,D,v,npc);
         P=getParameters(this,dat,iType);
+        setParamMLE(this,varargin);
         [dlnLrel,sMaxP,sVit]=Siter(this,dat,iType);
-        YZiter(this,dat,iType); 
+        YZiter(this,dat,iType);
         Piter(this,dat,iType);
         [dlnLrel,dPmax,dPmaxName]=modelDiff(this,that);
     end
