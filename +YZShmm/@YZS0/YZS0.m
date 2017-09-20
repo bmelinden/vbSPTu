@@ -154,34 +154,8 @@ classdef YZS0 < handle
                 else % sample from the prior
                     D_init=1./gamrnd(this.P0.n,1./this.P0.c)/2/this.sample.timestep;
                 end
-                this.setMLE_P0AD(p0_init,A_init,D_init);
+                this.setParamMLE('p0',p0_init,'A',A_init,'D',D_init);
             end
-        end
-        function setMLE_P0AD(this,p0,A,D,npc)
-            % setMLEParameters(p0,D,A)
-            % set maximum likelihood values of rate&diffusion model parameters.
-            % p0,D,A: parameter mode values.
-            % npc   : number of pseudo-counts (default 1e5)
-
-            if(~exist('npc','var'))
-                npc=1e5;
-            end
-            
-            % initial parameters
-            this.P.wPi=p0*npc;
-            
-            wA=npc*A;
-            wB=wA-diag(diag(wA));
-            wa=[sum(wB,2) diag(wA)];
-            this.P.wa=wa;
-            this.P.wB=wB;
-            if(this.numStates==1)
-                this.P.wa=[0 npc];
-                this.P.wB=0;
-            end
-            this.P.n=npc/this.numStates*ones(1,this.numStates);
-            D=reshape(D,1,this.numStates);
-            this.P.c=2*this.sample.timestep*D.*this.P.n; 
         end
         function W=createModel(this,varargin)
             % create a new instance of the model by calling its constructor
@@ -210,6 +184,7 @@ classdef YZS0 < handle
         [sMaxP,sVit]=converge(this,dat,varargin);
         Piter(this,dat,iType);
         P=getParameters(this,dat,iType);
+        setParamMLE(this,varargin);
         displayParameters(this,varargin);
     end
     methods (Abstract, Access = public)
