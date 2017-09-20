@@ -54,9 +54,6 @@ init.Trange = [2 20]*trj.timestep;     % interval for mean dwell time initial gu
 % It is recommended to keep the initial tD guesses on the lower end of the expected spectrum.
 init.vrange = [5 50].^2; % interval for localization variance initial value(s), in units of length^2
 
-% using moving average diffusive initial guesses for fixed size model
-% search. These are the wRad arguments to mleYZdXt.YZinitMovingAverage 
-init.YZwRad=[2 3 4];
 %% convergence criteria (leave empty to use model defaults)
 conv.maxIter = 1e4;    % maximum number of VB iterations ([]: use default values).
 conv.lnLTol  = 1e-8;   % convergence criterion for relative change in likelihood bound.
