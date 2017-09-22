@@ -58,6 +58,7 @@ switch lower(iType)
         lalnPrior=sum(this.P0.n.*log(this.P0.c)-gammaln(this.P0.n)-(this.P0.n-1).*log(Lambda)-this.P0.c./Lambda);
         vlnPrior=sum(this.P0.nv.*log(this.P0.cv)-gammaln(this.P0.nv)-(this.P0.nv-1).*log(v)-this.P0.cv./v);
         lnL1=p0lnPrior+walnPrior+wBlnPrior+lalnPrior+vlnPrior;
+        %%%this.P.lnP0=lnL1; %%% debug
     case 'vb'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
         % localization variances length variance takes the same variational
