@@ -39,7 +39,7 @@ switch lower(iType)
         Lambda = this.P.c./(this.P.n+1);
         iLambda =1./Lambda;
         lnLambda=log(Lambda);        
-        if(~isempty(find(A(:)<0)))
+        if(~isempty(find(A(:)<0,1)))
            error('Negative transition weight matrix MAP Siter. Possibly because the last Piter was not an MAP update.')
         end
         
@@ -58,7 +58,7 @@ switch lower(iType)
             +this.YZ.mean_lnpxz-this.YZ.mean_lnqyz; % + q(Y,Z)-terms
     case 'vb'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
-        lnL1=-sum(this.P.KL_a)-sum(this.P.KL_B)-sum(this.P.KL_pi)-sum(this.P.KL_lambda)...
+        lnL1=-sum(this.P.KL.a)-sum(this.P.KL.B)-sum(this.P.KL.pi)-sum(this.P.KL.lambda)...
             +this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
     case 'none'
         return
