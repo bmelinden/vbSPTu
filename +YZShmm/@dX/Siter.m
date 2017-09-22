@@ -66,7 +66,7 @@ switch lower(iType)
         [~,~,iV,lnV]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.nv,this.P.cv);
 
         % iType dependent contributions to lnL
-        lnL1=-sum(this.P.KL_a)-sum(this.P.KL_B)-sum(this.P.KL_pi)-sum(this.P.KL_lambda)-sum(this.P.KL_v);
+        lnL1=-sum(this.P.KL.a)-sum(this.P.KL.B)-sum(this.P.KL.pi)-sum(this.P.KL.lambda)-sum(this.P.KL.v);
     case 'none'
         return
     otherwise
