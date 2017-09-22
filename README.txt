@@ -26,7 +26,9 @@ mle/vb : maximum likelihood estimate or variational Bayes.
 
 ---
 to do:
-
+- compute KL_xxx (VB) or lnPxxx (MAP) during Piter, and clear/remove
+  fields from other move types, and use those results to compute lnL
+  in Siter.
 - write simple test scripts, that systematically tests and
   demonstrates all functionality of all model classes
 - check that N=1 is handle correctly, in terms of priors and KL-terms
