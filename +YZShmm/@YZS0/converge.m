@@ -2,7 +2,8 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 % [sMaxP,sVit]=converge(dat,'iType',iType,'param1',value1,...) 
 %
 % Run EM iterations of type iType (see below) on the model object with data
-% dat, until convergence.
+% dat, until convergence. Iterations are performed in order
+% Piter->Siter->YZiter, until convergence.
 %
 % Output:
 % W     : converged HMM model
@@ -16,9 +17,15 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 % optional arguments in the form 'name', value
 % iType     : kind of iterations {'mle','map','vb'}. Default: mle
 % SYPwarmup : omit a number of initial S/YZ/P iterations in order to burn
-%             in other variable. Default [0 0 3] (keeps parameters
+%             in other variable. Default [0 0 5] (keeps parameters
 %             constant for the first 5 iterations). Note that convergence
 %             is measured against changes in S and P.
+% SYPfixed  : omit S/YZ/P-iterations, i.e., keep one part of the model
+%             fixed. 1/2/3 -> omit S/YZ/P iterations. 0 (default): omit
+%             nothing. Convergnce criteria are not applied to
+%             distributions that are not updated. Note that keeping more
+%             than one distribution fixed corresponds to a single iteration
+%             of the non-fixed distribution, and is not implemented here.
 % maxIter   : maximum number of iterations. Default: object setting.
 % lnLTol    : relative convergence criteria for (lnL(n)-lnL(n-1))/|lnL(n)|.
 %             Default: object setting.
@@ -42,7 +49,8 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 maxIter=this.conv.maxIter;
 lnLTol=this.conv.lnLTol;
 parTol=this.conv.parTol;
-SYPwarmup=[0 0 3];
+SYPwarmup=[0 0 5];
+SYPfixed=0;
 minIter=5;
 showConv_lnL=false;
 showExit=true;
@@ -53,13 +61,14 @@ nv=1;
 while(nv <= length(varargin))
    pname=lower(varargin{nv});
    if(~ischar(pname))
-       error(['optinal arguments must be name/value pairs.'])
+       error('optinal arguments must be name/value pairs.')
    end
    pval=varargin{nv+1};
-   nv=nv+2;
-    
+   nv=nv+2;    
    if(strcmp(pname,'sypwarmup'))
       SYPwarmup=pval;
+   elseif(strcmp(pname,'sypfixed'))
+      SYPfixed=pval;
    elseif(strcmp(pname,'maxiter'))
       maxIter=pval;      
    elseif(strcmp(pname,'miniter'))
@@ -104,16 +113,15 @@ for r=1:+maxIter
     end
 
     % iterate
-    if(r>SYPwarmup(2))
-        this.YZiter(dat,iType);
-    end
-    if(r>SYPwarmup(1))
-        this.Siter( dat,iType);
-    end
-    if(r>SYPwarmup(3))
+    if(r>SYPwarmup(3) && SYPfixed~=3)
         this.Piter( dat,iType);
     end
-    
+    if(r>SYPwarmup(1)  && SYPfixed~=1)
+        this.Siter( dat,iType);
+    end
+    if(r>SYPwarmup(2)  && SYPfixed~=2)
+        this.YZiter(dat,iType);
+    end    
     % check for nan/inf and save if necessary
     if( ~isfinite(this.YZ.mean_lnqyz) || ~isfinite(this.YZ.mean_lnpxz) || ...
          ~isempty(find(~isfinite(this.YZ.muZ),1)) ||    ~isempty(find(~isfinite(this.YZ.muY),1)) ||    ....
@@ -126,12 +134,12 @@ for r=1:+maxIter
     
     % check convergence
     [dlnLrel,dPmax,dPmaxName]=this.modelDiff(W1);
-    if(dPmax<parTol && SYPwarmup(3)<r)
+    if( (dPmax<parTol && SYPwarmup(3)<r) || SYPfixed==3 )
         converged_par=converged_par+1;
     else
         converged_par=0;
     end
-    if(dlnLrel<lnLTol)
+    if(dlnLrel<lnLTol  || SYPfixed==1)
         converged_lnL=converged_lnL+1;
     else
         converged_lnL=0;

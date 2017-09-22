@@ -186,6 +186,7 @@ classdef YZS0 < handle
         P=getParameters(this,dat,iType);
         setParamMLE(this,varargin);
         displayParameters(this,varargin);
+        [Wii,Xii,W0,X0]=splitModelAndData(this,X,ii);
     end
     methods (Abstract, Access = public)
         [slnLrel,sMaxP,sVit]=Siter(this,dat,iType);
