@@ -52,7 +52,7 @@ switch lower(iType)
         wBlnPrior=sum(gammaln(sum(this.P0.wB, 2))-sum(gammaln(this.P0.wB+1-B1),2)+sum(log(B+I1).*(this.P0.wB-B1),2,'omitnan'),1);
         
         lalnPrior=sum(this.P0.n.*log(this.P0.c)-gammaln(this.P0.n)-(this.P0.n-1).*log(Lambda)-this.P0.c./Lambda);
-        %this.P.lnP0=p0lnPrior+walnPrior+wBlnPrior+lalnPrior;
+        %%%this.P.lnP0=p0lnPrior+walnPrior+wBlnPrior+lalnPrior;
         
         lnL1=p0lnPrior+walnPrior+wBlnPrior+lalnPrior...
             +this.YZ.mean_lnpxz-this.YZ.mean_lnqyz; % + q(Y,Z)-terms
