@@ -27,7 +27,6 @@ mle/vb : maximum likelihood estimate or variational Bayes.
 ---
 to do:
 - saving error files only when explicitly asking for it
-
 - a new class with aggregate diffusion constants and possibly
   forbitten transitions (wBstruct, or interpreting wB=0 as forbidden
   entries?)
@@ -36,7 +35,6 @@ to do:
   in Siter. On second thought, the prior terms should probably be
   computed during Siter as well, to make them correct also when this.P
   is kept fixed.
-- implement CV/PBF and bootstrapping.
 - write simple test scripts, that systematically tests and
   demonstrates all functionality of all model classes
 - check that N=1 is handle correctly, in terms of priors and KL-terms
