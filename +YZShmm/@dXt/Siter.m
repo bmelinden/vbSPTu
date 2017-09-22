@@ -32,19 +32,29 @@ switch lower(iType)
         lnp0=log(rowNormalize(this.P.wPi-1));
         a=rowNormalize(this.P.wa-1);
         B1=ones(this.numStates,this.numStates)-eye(this.numStates);
+        I1=eye(this.numStates);
         B=rowNormalize(this.P.wB-B1);
         A=diag(a(:,2))+diag(a(:,1))*B;
         lnQ =log(A);
         Lambda = this.P.c./(this.P.n+1);
         iLambda =1./Lambda;
-        lnLambda=log(Lambda);
+        lnLambda=log(Lambda);        
+        if(~isempty(find(A(:)<0)))
+           error('Negative transition weight matrix MAP Siter. Possibly because the last Piter was not an MAP update.')
+        end
         
         % log(prior) terms
-        p0lnPrior=gammaln(sum(this.P0.wPi))-sum(gammaln(this.P0.wPi))+sum(lnp0.*(this.P0.wPi-1)); % p0-log prior
-        walnPrior=sum(gammaln(sum(this.P0.wa,2))-sum(gammaln(this.P0.wa),2)+sum(log(a).*(this.P0.wa-1),2),1);
-        wBlnPrior=sum(gammaln(sum(this.P0.wB,2))-sum(gammaln(this.P0.wB+1-B1),2)+sum(log(B+1-B1).*(this.P0.wB-1),2),1);
+        % 'omitnan' in the last term because 0*log(0)=nan in matlab, but we
+        % want the limit log(0^0)=log(1)=0
+        p0lnPrior=    gammaln(sum(this.P0.wPi,2))-sum(gammaln(this.P0.wPi),2)+sum(lnp0.*(this.P0.wPi-1),'omitnan'); % p0-log prior
+        walnPrior=sum(gammaln(sum(this.P0.wa, 2))-sum(gammaln(this.P0.wa), 2)+sum(log(a).*(this.P0.wa-1),2,'omitnan'),1);
+        % special construct so that the diagonal B-terms do not contribute,
+        wBlnPrior=sum(gammaln(sum(this.P0.wB, 2))-sum(gammaln(this.P0.wB+1-B1),2)+sum(log(B+I1).*(this.P0.wB-B1),2,'omitnan'),1);
+        
         lalnPrior=sum(this.P0.n.*log(this.P0.c)-gammaln(this.P0.n)-(this.P0.n-1).*log(Lambda)-this.P0.c./Lambda);
-        lnL1=p0lnPrior+walnPrior+wBlnPrior+lalnPrior+vlnPrior...
+        %this.P.lnP0=p0lnPrior+walnPrior+wBlnPrior+lalnPrior;
+        
+        lnL1=p0lnPrior+walnPrior+wBlnPrior+lalnPrior...
             +this.YZ.mean_lnpxz-this.YZ.mean_lnqyz; % + q(Y,Z)-terms
     case 'vb'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);

@@ -48,9 +48,13 @@ switch lower(iType)
         iV=1./v*ones(1,this.numStates);
         % iType dependent contributions to lnL: log-priors in case of MAP
         % iterations
-        p0lnPrior=gammaln(sum(this.P0.wPi))-sum(gammaln(this.P0.wPi))+sum(lnp0.*(this.P0.wPi-1)); % p0-log prior
-        walnPrior=sum(gammaln(sum(this.P0.wa,2))-sum(gammaln(this.P0.wa),2)+sum(log(a).*(this.P0.wa-1),2),1);
-        wBlnPrior=sum(gammaln(sum(this.P0.wB,2))-sum(gammaln(this.P0.wB+1-B1),2)+sum(log(B+1-B1).*(this.P0.wB-1),2),1);
+        % 'omitnan' in the last term because 0*log(0)=nan in matlab, but we
+        % want the limit log(0^0)=log(1)=0
+        p0lnPrior=gammaln(sum(this.P0.wPi))-sum(gammaln(this.P0.wPi))+sum(lnp0.*(this.P0.wPi-1),'omitnan'); % p0-log prior
+        walnPrior=sum(gammaln(sum(this.P0.wa,2))-sum(gammaln(this.P0.wa),2)+sum(log(a).*(this.P0.wa-1),2,'omitnan'),1);
+        % wB: special construct so that the diagonal B-terms do not contribute,
+        wBlnPrior=sum(gammaln(sum(this.P0.wB,2))-sum(gammaln(this.P0.wB+1-B1),2)+sum(log(B+1-B1).*(this.P0.wB-1),2,'omitnan'),1);
+        
         lalnPrior=sum(this.P0.n.*log(this.P0.c)-gammaln(this.P0.n)-(this.P0.n-1).*log(Lambda)-this.P0.c./Lambda);
         vlnPrior=sum(this.P0.nv.*log(this.P0.cv)-gammaln(this.P0.nv)-(this.P0.nv-1).*log(v)-this.P0.cv./v);
         lnL1=p0lnPrior+walnPrior+wBlnPrior+lalnPrior+vlnPrior;
