@@ -61,7 +61,7 @@ for ii=1:maxIter
                 c(k,:)=W(k).P.c(Dcomm(k,:))-W(k).P0.c(Dcomm(k,:));
                 % do not double-count KL terms
                 if(k>1)
-                    W(k).P.KL_lambda(Dcomm)=0;
+                    W(k).P.KL.lambda(Dcomm)=0;
                 end
         end
     end

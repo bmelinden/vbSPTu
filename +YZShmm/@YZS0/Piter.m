@@ -14,7 +14,7 @@ switch lower(iType)
         %this.P.p0=rowNormalize(this.P.wPi);
         %this.P.A=rowNormalize(diag(this.P.wa(:,2))+this.P.wB);
         %this.P.lambda=this.P.c./this.P.n;
-        this.P.KL_pi=0;this.P.KL_a=0;this.P.KL_B=0;this.P.KL_lambda=0;
+        this.P.KL.pi=0;this.P.KL.a=0;this.P.KL.B=0;this.P.KL.lambda=0;
     case 'map'
         [wPi,wa,wB,n,c]=YZShmm.P0AD_sumStats(this.YZ,this.S,tau,R);
         this.P.wPi=this.P0.wPi+wPi;
@@ -29,7 +29,7 @@ switch lower(iType)
         %B=rowNormalize(this.P.wB-B1);
         %this.P.A=diag(a(:,2))+diag(a(:,1))*B;
         %this.P.lambda=this.P.c./(this.P.n+1);
-        this.P.KL_pi=0;this.P.KL_a=0;this.P.KL_B=0;this.P.KL_lambda=0;
+        this.P.KL.pi=0;this.P.KL.a=0;this.P.KL.B=0;this.P.KL.lambda=0;
     case 'vb'
         [wPi,wa,wB,n,c]=YZShmm.P0AD_sumStats(this.YZ,this.S,tau,R);
         this.P.wPi=this.P0.wPi+wPi;
@@ -37,7 +37,7 @@ switch lower(iType)
         this.P.wB =this.P0.wB+wB;
         this.P.n  =this.P0.n+n;
         this.P.c  =this.P0.c+c;
-        [this.P.KL_pi,this.P.KL_a,this.P.KL_B,this.P.KL_lambda]=YZShmm.P0AD_KLterms(this.P,this.P0);
+        [this.P.KL.pi,this.P.KL.a,this.P.KL.B,this.P.KL.lambda]=YZShmm.P0AD_KLterms(this.P,this.P0);
     case 'none'
         return
     otherwise

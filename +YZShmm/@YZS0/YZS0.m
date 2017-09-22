@@ -83,10 +83,11 @@ classdef YZS0 < handle
             this.P0.c  =zeros(1,this.numStates);
             this.P=this.P0;                        
             % Kullback-Leibler divergence terms
-            this.P.KL_pi=0;
-            this.P.KL_a=zeros(this.numStates,1);
-            this.P.KL_B=zeros(this.numStates,1);
-            this.P.KL_lambda=zeros(1,this.numStates);
+            this.P.KL=struct;
+            this.P.KL.pi=0;
+            this.P.KL.a=zeros(this.numStates,1);
+            this.P.KL.B=zeros(this.numStates,1);
+            this.P.KL.lambda=zeros(1,this.numStates);
             %% sampling properties and prior parameters
             if(exist('opt','var'))
                 

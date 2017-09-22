@@ -15,7 +15,7 @@ switch lower(iType)
         this.P.cv=sum(cv(:));
         this.P.nv=sum(nv(:));        
         % no KL terms in mle updates
-        this.P.KL_pi=0;this.P.KL_a=0;this.P.KL_B=0;this.P.KL_lambda=0;this.P.KL_v=0;
+        this.P.KL.pi=0;this.P.KL.a=0;this.P.KL.B=0;this.P.KL.lambda=0;this.P.KL.v=0;
     case 'map'
         this.P.wPi=this.P0.wPi+wPi;
         this.P.wa =this.P0.wa+wa;
@@ -26,7 +26,7 @@ switch lower(iType)
         this.P.cv=this.P0.cv+sum(cv(:));
         this.P.nv=this.P0.nv+sum(nv(:));
         % no KL terms in map updates
-        this.P.KL_pi=0;this.P.KL_a=0;this.P.KL_B=0;this.P.KL_lambda=0;this.P.KL_v=0;
+        this.P.KL.pi=0;this.P.KL.a=0;this.P.KL.B=0;this.P.KL.lambda=0;this.P.KL.v=0;
     case 'vb'
         this.P.wPi=this.P0.wPi+wPi;
         this.P.wa =this.P0.wa+wa;
@@ -36,9 +36,9 @@ switch lower(iType)
         % lump stats for all dimensions and states        
         this.P.cv=this.P0.cv+sum(cv(:));
         this.P.nv=this.P0.nv+sum(nv(:));        
-        [this.P.KL_pi,this.P.KL_a,this.P.KL_B,this.P.KL_lambda]=YZShmm.P0AD_KLterms(this.P,this.P0);        
+        [this.P.KL.pi,this.P.KL.a,this.P.KL.B,this.P.KL.lambda]=YZShmm.P0AD_KLterms(this.P,this.P0);        
         
-        this.P.KL_v= this.P0.nv.*log(this.P.cv./this.P0.cv)...
+        this.P.KL.v= this.P0.nv.*log(this.P.cv./this.P0.cv)...
             -this.P.nv.*(1-this.P0.cv./this.P.cv)...
             -gammaln(this.P.nv)+gammaln(this.P0.nv)...
             +(this.P.nv-this.P0.nv).*psi(this.P.nv);
