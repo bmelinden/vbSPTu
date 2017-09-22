@@ -68,7 +68,6 @@ classdef YZS0 < handle
             % opt, dat will reslt in an incomplete model object, which is
             % only useful for cloning when all object properties are
             % duplicated later. 
-                        
             parName={'N','opt','dat','p0_init','A_init','D_init'};
             for k=1:min(6,nargin)
                eval([parName{k} '= varargin{' int2str(k) '};']);
@@ -88,6 +87,13 @@ classdef YZS0 < handle
             this.P.KL.a=zeros(this.numStates,1);
             this.P.KL.B=zeros(this.numStates,1);
             this.P.KL.lambda=zeros(1,this.numStates);
+            % MAP log prior terms
+            this.P.lnP0=struct;
+            this.P.lnP0.pi=0;
+            this.P.lnP0.a=zeros(this.numStates,1);
+            this.P.lnP0.B=zeros(this.numStates,1);
+            this.P.lnP0.lambda=zeros(1,this.numStates);
+            
             %% sampling properties and prior parameters
             if(exist('opt','var'))
                 
