@@ -113,21 +113,24 @@ for r=1:+maxIter
     end
 
     % iterate
-    if(r>SYPwarmup(3) && SYPfixed~=3)
-        this.Piter( dat,iType);
+    try
+        if(r>SYPwarmup(3) && SYPfixed~=3)
+            this.Piter( dat,iType);
+        end
+        if(r>SYPwarmup(1)  && SYPfixed~=1)
+            this.Siter( dat,iType);
+        end
+        if(r>SYPwarmup(2)  && SYPfixed~=2)
+            this.YZiter(dat,iType);
+        end
+    catch me
+        errFile=[class(this) '_PSYZ_err' int2str(ceil(1e9*rand)) '.mat'];
+        save(errFile)
+        error(['Error during PSYZ-iteration. Saving workspace to ' errFile])        
     end
-    if(r>SYPwarmup(1)  && SYPfixed~=1)
-        this.Siter( dat,iType);
-    end
-    if(r>SYPwarmup(2)  && SYPfixed~=2)
-        this.YZiter(dat,iType);
-    end    
-    % check for nan/inf and save if necessary
+    % additional check for nan/inf in other fields
     if( ~isfinite(this.YZ.mean_lnqyz) || ~isfinite(this.YZ.mean_lnpxz) || ...
-         ~isempty(find(~isfinite(this.YZ.muZ),1)) ||    ~isempty(find(~isfinite(this.YZ.muY),1)) ||    ....
-            ~isfinite(this.S.lnZ) || ~isfinite(sum(this.S.wA(:))) || ...
-            ~isfinite(sum(this.P.KL.a(:))) ||~isfinite(sum(this.P.KL.B(:))) || ...
-            ~isfinite(sum(this.P.KL.pi(:))) ||~isfinite(sum(this.P.KL.lambda(:))))
+            ~isfinite(this.S.lnZ) || ~isfinite(sum(this.S.wA(:))))
         errFile=[class(this) '_naninf_err' int2str(ceil(1e9*rand)) '.mat'];
         save(errFile)
         error(['NaN/Inf in model fields! Saving workspace to ' errFile])
