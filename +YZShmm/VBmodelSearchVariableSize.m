@@ -1,5 +1,5 @@
 function [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(varargin)
-% [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize('P1',P1,...)
+% [Wbest,WbestN,dlnL,INlnL,P,YZmv]=YZShmm.VBmodelSearchVariableSize('P1',P1,...)
 %
 % Input parameters are given as parameter-value pairs on the form
 % 'parameter',parameter (case sensitive):
@@ -18,6 +18,8 @@ function [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(varargin)
 % qYZ0  : precomputed q(Y,Z) distribution(s) to include as initial guesses,
 %         either as a single YZ subfield, or as a cell vector of YZ
 %         subfields. Default {} (no pre-computed YZ distributions used).
+% Winit : cell vector of converged models to include in the comparison
+%         (e.g., result of an earlier model search).
 % displayLevel : display level. Default 1.
 %
 % output: 
@@ -46,33 +48,39 @@ YZww=opt.modelSearch.YZww;
 Pwarmup=opt.modelSearch.Pwarmup;
 data=[];
 qYZ0={};
+Winit={};
 displayLevel=1;
 % additional input parameters
-parNames={'opt','classFun','data','YZww','qYZ0','displayLevel','restarts'};
+parNames={'opt','classFun','data','YZww','qYZ0','displayLevel','restarts','Winit'};
 for k=1:2:numel(varargin)
     if(isempty(find(strcmp(varargin{k},parNames),1)))
         error(['Parameter ' varargin{k} ' not recognized.'])
     end
     eval([varargin{k} '=varargin{ ' int2str(k+1) '};'])
 end
+if(~iscell(qYZ0))
+    qYZ0={qYZ0};
+end
+
+% start message
+tstart=tic;
+% display some starting information
+uSPTlicense(mfilename)
+disp('----------')
+disp(['Restarts     : ' int2str(opt.modelSearch.restarts )])
+disp(['Max states   : ' int2str(opt.modelSearch.maxHidden)])
+if(isempty(data))
+    data=spt.preprocess(opt);
+    disp(['runinput file: ' opt.runinputfile])
+    disp(['input  file  : ' opt.trj.inputfile])
+end
+disp([ datestr(now) ' : Starting VB greedy model search.'])
+disp('----------')
+
 % test parameters
 W=classFun(maxHidden,opt,data);
 W.YZiter(data,'vb');
 clear W;
-
-% start message
-tstart=tic;
-uSPTlicense(mfilename)
-disp('----------')
-disp([ datestr(now) ' : Starting VB greedy model search.'])
-if(isempty(data))
-    data=spt.preprocess(opt);
-    disp(['runinput file: ' opt.runinputfile])
-disp(['input  file  : ' opt.inputfile])
-end
-disp(['Restarts     : ' int2str(opt.modelSearch.restarts )])
-disp(['Max states   : ' int2str(opt.modelSearch.maxHidden)])
-disp('----------')
 % setup distributed computation toolbox
 if(opt.compute.parallelize_config)
     delete(gcp('nocreate'))
@@ -116,6 +124,34 @@ for k=1:maxHidden
     WbestN{k}=struct('lnL',-inf);
 end
 bestIter=0;
+if(~isempty(Winit))
+    % put initial guesses in a cell vector if not in that form already
+    if(~iscell(Winit))
+        Winit0=Winit;
+        Winit=cell(size(Winit0));
+        for k=1:numel(Winit0)
+            Winit{k}=Winit0(k);
+        end
+    end
+    clear Winit0;
+    % converge Winit (just in case)
+    for k=1:numel(Winit)
+        try
+            w=Winit{k};
+            w.converge( data,'iType','vb','SYPwarmup',[0 0 -1]);
+        catch me
+            errFile=[class(this) '_Winit_err' int2str(ceil(1e9*rand)) '.mat'];
+            save(errFile)
+            warning(['Error while converging initial model ' int2str(k) '. Skipping that model, but saving workspace to ' errFile])
+            continue
+        end
+        if(w.lnL>Wbest.lnL)
+            Wbest=w.clone();
+        end
+        
+    end
+
+end
 for iter=1:restarts
     INlnL=[INlnL; iter*ones(size(Niter{iter})) Niter{iter} lnLiter{iter}];
     P    =[P; Piter{iter}];
@@ -141,6 +177,10 @@ for iter=1:restarts
 end
 dlnL=dlnL-max(dlnL);
 if(displayLevel>=1)
-    disp([datestr(now) ' : VBmodelSearch converged with ' int2str(Wbest.numStates) ' states, from iter ' int2str(bestIter) '. Total run time ' num2str(toc(tstart)/60,2) ' min.'])
+    if(bestIter>0)
+        disp([datestr(now) ' : VBmodelSearch converged with ' int2str(Wbest.numStates) ' states, from iter ' int2str(bestIter) '. Total run time ' num2str(toc(tstart)/60,2) ' min.'])
+    else
+        disp([datestr(now) ' : VBmodelSearch converged, but did not improve upon the Winit model with ' int2str(Wbest.numStates) ' states.'])
+    end
 end
 
