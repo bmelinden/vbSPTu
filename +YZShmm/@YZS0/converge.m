@@ -96,6 +96,7 @@ SYPwarmup=SYPwarmup-min(SYPwarmup); % no point withholding all
 EMexit=struct;
 EMexit.stopcondition='maxiter';
 EMexit.iType=iType;
+EMexit.numStates=this.numStates;
 % convergence iterations
 
 EMtimer=tic;
@@ -176,9 +177,9 @@ if(showExit)
 end
 
 %% path estimates
-if(nargout>=1) % compute sequence of most likely states
-    [W,sMaxP]=vbYZdXt.hiddenStateUpdate(W,dat);
+if(nargout>=1) % compute sequence of most likely states    
+    [~,sMaxP]=this.Siter(dat,iType);
 end
 if(nargout>=2) % compute Viterbi path, with a small offset to avoid infinities
-    [W,sMaxP,sVit]=vbYZdXt.hiddenStateUpdate(W,dat);
+    [~,sMaxP,sVit]=this.Siter(dat,iType);
 end
