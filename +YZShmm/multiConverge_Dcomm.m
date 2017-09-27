@@ -62,8 +62,7 @@ for ii=1:maxIter
                 % only share counts from the data
                 n(k,:)=W(k).P.n(Dcomm(k,:))-W(k).P0.n(Dcomm(k,:));
                 c(k,:)=W(k).P.c(Dcomm(k,:))-W(k).P0.c(Dcomm(k,:));
-                % do not double-count KL terms
-                if(k>1)
+                if(k>1) % do not double-count KL terms
                     W(k).P.KL.lambda(Dcomm)=0;
                 end
         end
