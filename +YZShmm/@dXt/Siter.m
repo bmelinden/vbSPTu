@@ -27,29 +27,13 @@ switch lower(iType)
         Lambda = this.P.c./this.P.n;
         iLambda =1./Lambda;
         lnLambda=log(Lambda);
-        lnL1=this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
-    case 'map'
-        lnp0=log(rowNormalize(this.P.wPi-1));
-        a=rowNormalize(this.P.wa-1);
-        B1=ones(this.numStates,this.numStates)-eye(this.numStates);
-        B=rowNormalize(this.P.wB-B1);
-        A=diag(a(:,2))+diag(a(:,1))*B;
-        lnQ =log(A);
-        Lambda = this.P.c./(this.P.n+1);
-        iLambda =1./Lambda;
-        lnLambda=log(Lambda);
-        
-        % log(prior) terms
-        p0lnPrior=gammaln(sum(this.P0.wPi))-sum(gammaln(this.P0.wPi))+sum(lnp0.*(this.P0.wPi-1)); % p0-log prior
-        walnPrior=sum(gammaln(sum(this.P0.wa,2))-sum(gammaln(this.P0.wa),2)+sum(log(a).*(this.P0.wa-1),2),1);
-        wBlnPrior=sum(gammaln(sum(this.P0.wB,2))-sum(gammaln(this.P0.wB+1-B1),2)+sum(log(B+1-B1).*(this.P0.wB-1),2),1);
-        lalnPrior=sum(this.P0.n.*log(this.P0.c)-gammaln(this.P0.n)-(this.P0.n-1).*log(Lambda)-this.P0.c./Lambda);
-        lnL1=p0lnPrior+walnPrior+wBlnPrior+lalnPrior+vlnPrior...
-            +this.YZ.mean_lnpxz-this.YZ.mean_lnqyz; % + q(Y,Z)-terms
+        lnL1=0;
+    case 'map'               
+        [lnp0,lnQ,iLambda,lnLambda]=YZShmm.MAPlogPar_P0AD(this.P.wPi,this.P.wa,this.P.wB,this.P.c,this.P.n);
+        lnL1=this.P.lnP0.pi+sum(this.P.lnP0.a)+sum(this.P.lnP0.B)+sum(this.P.lnP0.lambda);
     case 'vb'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
-        lnL1=-sum(this.P.KL_a)-sum(this.P.KL_B)-sum(this.P.KL_pi)-sum(this.P.KL_lambda)...
-            +this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
+        lnL1=-sum(this.P.KL.a)-sum(this.P.KL.B)-sum(this.P.KL.pi)-sum(this.P.KL.lambda);
     case 'none'
         return
     otherwise
@@ -64,7 +48,7 @@ switch nargout
     case 3
         [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
 end
-lnL1=lnL1+this.S.lnZ;
+lnL1=lnL1+this.S.lnZ+this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
 dlnLrel=(lnL1-lnL0)*2/abs(lnL1+lnL0);
 this.lnL=lnL1;
 

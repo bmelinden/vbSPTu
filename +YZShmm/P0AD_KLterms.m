@@ -1,9 +1,13 @@
 function [KL_pi,KL_a,KL_B,KL_lambda]=P0AD_KLterms(P,P0)
 % [KL_pi,KL_a,KL_B,KL_lambda]=YZShmm.P0AD_KLterms(P,P0)
-% KL divergence of core parameters (p0, A, lambda) of our diffusive HMM,
-% using the a,B- parameterization of the transition matrix A.
+% KL divergence terms for core parameters (p0, A, lambda) of the
+% YZShmm.YZS0 class, sing the a,B- parameterization of the transition
+% matrix A. 
+% Input: parameter and prior fields P,P0, where the following subfields are
+% used: wPi, wa, wB, n,c. 
+%
+% ML 2017-09-22
 N=numel(P.wPi);
-
 %% KL_pi
 u0Pi=sum(P0.wPi);
 w0Pi=sum(P.wPi );
@@ -66,6 +70,11 @@ KL_lambda= P0.n.*log(P.c./P0.c)...
 %end
 if(~isfinite(sum(KL_lambda)))
     error('vbYZdXt: KL_lambda not finite')
+end
+%% check for non-finite KL terms
+if(~isfinite(sum(KL_a(:))) ||~isfinite(sum(KL_B(:))) || ...
+        ~isfinite(sum(KL_pi(:))) ||~isfinite(sum(KL_lambda(:))))
+    error('non-finte KL terms in P0AD_KLterms') 
 end
 %% KL_d : put in separate file, or activate later if needed
 if(false)

@@ -34,34 +34,19 @@ switch lower(iType)
         % iType dependent contributions to lnL
         lnL1=0;
     case 'map'
-        lnp0=log(rowNormalize(this.P.wPi-1));
-        a=rowNormalize(this.P.wa-1);
-        B1=ones(this.numStates,this.numStates)-eye(this.numStates);
-        B=rowNormalize(this.P.wB-B1);
-        A=diag(a(:,2))+diag(a(:,1))*B;
-        lnQ =log(A);
-        Lambda = this.P.c./(this.P.n+1);
-        iLambda =1./Lambda;
-        lnLambda=log(Lambda);
+        [lnp0,lnQ,iLambda,lnLambda]=YZShmm.MAPlogPar_P0AD(this.P.wPi,this.P.wa,this.P.wB,this.P.c,this.P.n);
         v=this.P.cv./(this.P.nv+1);
         lnV=log(v)*ones(1,this.numStates);
-        iV=1./v*ones(1,this.numStates);
-        % iType dependent contributions to lnL: log-priors in case of MAP
-        % iterations
-        p0lnPrior=gammaln(sum(this.P0.wPi))-sum(gammaln(this.P0.wPi))+sum(lnp0.*(this.P0.wPi-1)); % p0-log prior
-        walnPrior=sum(gammaln(sum(this.P0.wa,2))-sum(gammaln(this.P0.wa),2)+sum(log(a).*(this.P0.wa-1),2),1);
-        wBlnPrior=sum(gammaln(sum(this.P0.wB,2))-sum(gammaln(this.P0.wB+1-B1),2)+sum(log(B+1-B1).*(this.P0.wB-1),2),1);
-        lalnPrior=sum(this.P0.n.*log(this.P0.c)-gammaln(this.P0.n)-(this.P0.n-1).*log(Lambda)-this.P0.c./Lambda);
-        vlnPrior=sum(this.P0.nv.*log(this.P0.cv)-gammaln(this.P0.nv)-(this.P0.nv-1).*log(v)-this.P0.cv./v);
-        lnL1=p0lnPrior+walnPrior+wBlnPrior+lalnPrior+vlnPrior;
+        iV=1./v*ones(1,this.numStates);        
+        % iType dependent contributions to lnL: log-priors in case of MAP        
+        lnL1=this.P.lnP0.pi+sum(this.P.lnP0.a)+sum(this.P.lnP0.B)+sum(this.P.lnP0.lambda)+this.P.lnP0.v;
     case 'vb'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
         % localization variances length variance takes the same variational
-        % distribution as lambda, but with nv,cv statistics instead.
+        % distribution as lambda, but with nv,cv statistics instead:
         [~,~,iV,lnV]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.nv,this.P.cv);
-
         % iType dependent contributions to lnL
-        lnL1=-sum(this.P.KL_a)-sum(this.P.KL_B)-sum(this.P.KL_pi)-sum(this.P.KL_lambda)-sum(this.P.KL_v);
+        lnL1=-sum(this.P.KL.a)-sum(this.P.KL.B)-sum(this.P.KL.pi)-sum(this.P.KL.lambda)-this.P.KL.v;
     case 'none'
         return
     otherwise
@@ -76,9 +61,9 @@ switch nargout
     case 3
         [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnV,iV);
 end
-% add S- and YZ-contributions to lnL: cotribution <ln p(z|x,s,v)> is
+% add S- and YZ-contributions to lnL: contribution <ln p(z|x,s,v)> is
 % included in lnZs when v is a parameter
-lnL1=lnL1+this.S.lnZ-this.YZ.mean_lnqyz;%+this.YZ.mean_lnpxz
+lnL1=lnL1+this.S.lnZ-this.YZ.mean_lnqyz;
 dlnLrel=(lnL1-lnL0)*2/abs(lnL1+lnL0);
 this.lnL=lnL1;
 %[this.S,sMaxP,sVit,funWS]=YZShmm.hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs);
