@@ -93,7 +93,6 @@ classdef YZS0 < handle
             this.P.lnP0.a=zeros(this.numStates,1);
             this.P.lnP0.B=zeros(this.numStates,1);
             this.P.lnP0.lambda=zeros(1,this.numStates);
-            
             %% sampling properties and prior parameters
             if(exist('opt','var'))
                 
