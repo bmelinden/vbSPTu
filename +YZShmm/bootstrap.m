@@ -1,5 +1,5 @@
 function [Pbs,Pmean,Pstd,P0,lnL]=bootstrap(W0,X,iType,Nbs,varargin)
-% [Pbs,Pmean,Pstd,P0,lnL]=bootstrap(W0,X,iType,Nbs,...)
+% [Pbs,Pmean,Pstd,P0,lnL]=YZShmm.bootstrap(W0,X,iType,Nbs,...)
 % Bootstrap estimates of model parameters and log likelihood. 
 %
 % W0    : YZShmm model or cell vector of models (pre-converged)
