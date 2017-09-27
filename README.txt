@@ -26,6 +26,11 @@ mle/vb : maximum likelihood estimate or variational Bayes.
 
 ---
 to do:
+- saving error files only when explicitly asking for it
+
+- a new class with aggregate diffusion constants and possibly
+  forbitten transitions (wBstruct, or interpreting wB=0 as forbidden
+  entries?)
 - compute KL_xxx (VB) or lnPxxx (MAP) during Piter, and clear/remove
   fields from other move types, and use those results to compute lnL
   in Siter. On second thought, the prior terms should probably be
