@@ -1,5 +1,5 @@
-function [sMaxP,sVit]=converge(this,dat,varargin)
-% [sMaxP,sVit]=converge(dat,'iType',iType,'param1',value1,...) 
+function [sMaxP,sVit]=PSYconverge(this,dat,varargin)
+% [sMaxP,sVit]=PSYconverge(dat,'iType',iType,'param1',value1,...) 
 %
 % Run EM iterations of type iType (see below) on the model object with data
 % dat, until convergence. Iterations are performed in order
@@ -16,12 +16,12 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 % dat   : data struct, e.g., from spt.preprocess
 % optional arguments in the form 'name', value
 % iType     : kind of iterations {'mle','map','vb'}. Default: mle
-% SYPwarmup : omit a number of initial S/YZ/P iterations in order to burn
+% PSYwarmup : omit a number of initial S/YZ/P iterations in order to burn
 %             in other variable. Default [0 0 5] (keeps parameters
 %             constant for the first 5 iterations). Note that convergence
 %             is measured against changes in S and P.
-% SYPfixed  : omit S/YZ/P-iterations, i.e., keep one part of the model
-%             fixed. 1/2/3 -> omit S/YZ/P iterations. 0 (default): omit
+% PSYfixed  : omit P/S/YZ-iterations, i.e., keep one part of the model
+%             fixed. 1/2/3 -> omit P/S/YZ iterations. 0 (default): omit
 %             nothing. Convergnce criteria are not applied to
 %             distributions that are not updated. Note that keeping more
 %             than one distribution fixed corresponds to a single iteration
@@ -49,8 +49,8 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 maxIter=this.conv.maxIter;
 lnLTol=this.conv.lnLTol;
 parTol=this.conv.parTol;
-SYPwarmup=[0 0 5];
-SYPfixed=0;
+PSYwarmup=[0 0 0];
+PSYfixed=0;
 minIter=5;
 showConv_lnL=false;
 showExit=true;
@@ -67,10 +67,10 @@ while(nv <= length(varargin))
    pval=varargin{nv+1};
    nv=nv+2;    
    switch lower(pname)
-       case 'sypwarmup'
-           SYPwarmup=pval;
+       case 'psywarmup'
+           PSYwarmup=pval;
        case 'sypfixed'
-           SYPfixed=pval;
+           PSYfixed=pval;
        case 'maxiter'
            maxIter=pval;
        case 'miniter'
@@ -94,7 +94,7 @@ while(nv <= length(varargin))
    end
 end
 % some parameter checks
-SYPwarmup=SYPwarmup-min(SYPwarmup); % no point withholding all
+PSYwarmup=PSYwarmup-min(PSYwarmup); % no point withholding all
 
 % construct convergence report
 EMexit=struct;
@@ -119,17 +119,17 @@ for r=1:+maxIter
 
     % iterate
     try
-        if(r>SYPwarmup(3) && SYPfixed~=3)
+        if(r>PSYwarmup(1) && PSYfixed~=1)
             this.Piter( dat,iType);
         end
-        if(r>SYPwarmup(1)  && SYPfixed~=1)
+        if(r>PSYwarmup(2)  && PSYfixed~=2)
             this.Siter( dat,iType);
         end
-        if(r>SYPwarmup(2)  && SYPfixed~=2)
+        if(r>PSYwarmup(3)  && PSYfixed~=3)
             this.YZiter(dat,iType);
         end
     catch me
-        if(this.conv.saveErr)
+        if(saveErr)
             errFile=[class(this) '_PSYZ_err' int2str(ceil(1e9*rand)) '.mat'];
             save(errFile)
             error(['Error during PSYZ-iteration. Saving workspace to ' errFile])
@@ -152,12 +152,12 @@ for r=1:+maxIter
     
     % check convergence
     [dlnLrel,dPmax,dPmaxName]=this.modelDiff(W1);
-    if( (dPmax<parTol && SYPwarmup(3)<r) || SYPfixed==3 )
+    if( (dPmax<parTol && PSYwarmup(1)<r) || PSYfixed==1 )
         converged_par=converged_par+1;
     else
         converged_par=0;
     end
-    if(dlnLrel<lnLTol  || SYPfixed==1)
+    if(dlnLrel<lnLTol && PSYwarmup(2)<r || PSYfixed==2)
         converged_lnL=converged_lnL+1;
     else
         converged_lnL=0;

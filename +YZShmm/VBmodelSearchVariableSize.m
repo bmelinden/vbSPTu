@@ -138,7 +138,7 @@ if(~isempty(Winit))
     for k=1:numel(Winit)
         try
             w=Winit{k};
-            w.converge( data,'iType','vb','SYPwarmup',[0 0 -1]);
+            w.converge( data,'iType','vb','PSYwarmup',[-1 0 0 ]);
         catch me
             if(this.conv.saveErr)
                 errFile=[class(this) '_Winit_err' int2str(ceil(1e9*rand)) '.mat'];

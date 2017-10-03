@@ -118,6 +118,7 @@ if(restarts<=0)
     convTime=[];
 elseif(restarts>0)
     parfor r=1:restarts
+    %%%for r=1:restarts
         %%%for r=1:restarts
         V0=classFun(N0,opt,data); % model, data, and initial parameter guess
         initMethod{r}={};
@@ -132,7 +133,7 @@ elseif(restarts>0)
             V=V0.clone();
             V.YZ=YZmv{k};
             V.Siter(data,iType);
-            V.converge(data,'displayLevel',displayLevel-2,'SYPwarmup',[0 0 Pwarmup],'minIter',Pwarmup+2,'iType',iType);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
             if(V.lnL>W{r}.lnL)
@@ -152,7 +153,7 @@ elseif(restarts>0)
             V=V0.clone();
             V.YZ=qYZ0{k};
             V.Siter(data,iType);
-            V.converge(data,'displayLevel',displayLevel-2,'SYPwarmup',[0 0 Pwarmup],'minIter',Pwarmup+2,'iType',iType);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
             if(V.lnL>W{r}.lnL)
@@ -171,7 +172,7 @@ elseif(restarts>0)
         V=V0.clone();
         V.YZiter(data,iType);
         try
-            V.converge(data,'displayLevel',displayLevel-2,'SYPwarmup',[0 0 Pwarmup],'minIter',Pwarmup+2,'iType',iType);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
             if(V.lnL>W{r}.lnL)
@@ -192,7 +193,7 @@ elseif(restarts>0)
         initMethod{r}{m}='YZdata';
         V=V0.clone();
         V.Siter(data,iType);
-        V.converge(data,'displayLevel',displayLevel-2,'SYPwarmup',[0 0 Pwarmup],'minIter',Pwarmup+2,'iType',iType);
+        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
         WlnL{r}{m}=V.lnL;
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
@@ -211,7 +212,7 @@ elseif(restarts>0)
         V=V0.clone();
         V.YZ=V1.YZ; % initial guess created from X0 data
         V.Siter(data,iType);
-        V.converge(data,'displayLevel',displayLevel-2,'SYPwarmup',[0 0 Pwarmup],'minIter',Pwarmup+2,'iType',iType);
+        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
         WlnL{r}{m}=V.lnL;
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
@@ -238,7 +239,7 @@ elseif(restarts>0)
         V.P=V1.P;
         V.YZiter(data,iType);
         V.Piter(data,iType);
-        V.converge(data,'displayLevel',displayLevel-2,'SYPwarmup',[0 0 0],'iType',iType);
+        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[0 0 0],'iType',iType);
         WlnL{r}{m}=V.lnL;
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
@@ -257,7 +258,7 @@ elseif(restarts>0)
         V.S=V0.S;
         V.YZiter(data,iType);
         V.Piter(data,iType);
-        V.converge(data,'displayLevel',displayLevel-2,'SYPwarmup',[0 0 0],'iType',iType);
+        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[0 0 0],'iType',iType);
         WlnL{r}{m}=V.lnL;
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)

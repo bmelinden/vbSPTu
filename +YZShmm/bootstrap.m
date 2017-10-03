@@ -62,7 +62,7 @@ parfor iter=1:Nbs
         % start bootstrap convergence with a parameter update, since S,YZ
         % are supposedly already converged. Also makes robust towards
         % iType-switching.
-        Wbs.converge(Xbs,'iType',iType,'SYPwarmup',[0 0 -1],'displayLevel',displayLevel-1,'Dsort',Dsort);
+        Wbs.converge(Xbs,'iType',iType,'PSYwarmup',[-1 0 0 ],'displayLevel',displayLevel-1,'Dsort',Dsort);
         lnLiter{iter}(m)=Wbs.lnL;
         Piter{iter}{m}  =Wbs.getParameters(Xbs,iType);
     end

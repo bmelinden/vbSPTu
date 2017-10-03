@@ -10,7 +10,7 @@ function [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,data,opt,d
 if(~exist('displayLevel','var'))
     displayLevel=1;
 end
-if(~exist('dat','var') || isempty(data))
+if(~exist('data','var') || isempty(data))
     data=spt.preprocess(opt);
 end
 % start by VB-converging the start model
@@ -38,7 +38,7 @@ while(true) % try successive removal of low-occupancy states
             
             % attempt 1: just remove a state and converge
             Wtmp.converge(data,'iType','vb','displayLevel',displayLevel-2,...
-                'SYPwarmup',[0 0 0],...
+                'PSYwarmup',[0 0 0],...
                 'maxIter',opt.conv.maxIter,'lnLTol',opt.conv.lnLTol,'parTol',opt.conv.parTol);
             Wtmp.sortModel();
             lnLsearch(end+1,1)=Wtmp.lnL;
@@ -80,7 +80,7 @@ while(true) % try successive removal of low-occupancy states
                 Wtmp.Siter(data,'vb');
                 
                 Wtmp.converge(data,'iType','vb','displayLevel',displayLevel-2,...
-                    'SYPwarmup',[0 0 0],...
+                    'PSYwarmup',[0 0 0],...
                     'maxIter',opt.conv.maxIter,'lnLTol',opt.conv.lnLTol,'parTol',opt.conv.parTol);
                 
                 Wtmp.sortModel();
