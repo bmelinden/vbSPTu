@@ -21,9 +21,39 @@ if(isfield(X,'v') && ~isempty(X.v))
 else
     v=[];vii=[];vi0=[];
 end
-Xii=spt.preprocess(x(ii),v(vii),[]);
+% split misc 
+misci=[];misc0=[];
+if(isfield(X,'misc'))
+    if(isreal(X.misc)) % then a single array
+        misc=spt.dat2trj(X.i0,X.i1,X.misc);
+        misci=misc(ii);
+        if(doi0)
+            misc0=misc(i0);
+        end
+    elseif(iscell(X.misc)) % then a cell vector of arrays
+        misci=cell();misc0=cell();
+        for k=1:numel(X.misc)
+            misc=spt.dat2trj(X.i0,X.i1,X.misc{k});
+            misci{k}=misc(ii);
+            if(doi0)
+                misc0{k}=misc(i0);
+            end
+        end
+    elseif(isstruct(X.misc)) % then a struct with arrays as fields
+        misci=struct;misc0=struct;
+        fn=fieldnames(X.misc);
+        for k=1:numel(fn)
+            misc=spt.dat2trj(X.i0,X.i1,X.misc.(fn{k}));
+            misci.(fn{k})=misc(ii);
+            if(doi0)
+                misc0.(fn{k})=misc(i0);
+            end
+        end
+    end
+end
+Xii=spt.preprocess(x(ii),v(vii),X.dim,misci,[],false);
 if(doi0)
-    X0=spt.preprocess(x(i0),v(vi0),[]);
+    X0 =spt.preprocess(x(i0),v(vi0),X.dim,misc0,[],false);
 end
 
 % create new models with empty q(S) and q(Y,Z) distributions

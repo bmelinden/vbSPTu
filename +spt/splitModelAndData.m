@@ -1,5 +1,5 @@
 function [Wii,Xii,W0,X0]=splitModelAndData(W,X,ii)
-% [Wii,Xii,W0,X0]=splitModelAndData(W,X,ii)
+% [Wii,Xii,W0,X0]=spt.splitModelAndData(W,X,ii)
 % split model W and data X into two parts, with Wi,Xi containing
 % trajectories with index ii, and W0,X0 containing the remaining parts.
 
@@ -9,17 +9,35 @@ i0=setdiff(1:numel(X.i0),ii);
 % split data
 x=spt.dat2trj(X.i0,X.i1,X.x);
 v=[];vii=[];vi0=[];
-misc=[];mii=[];mi0=[];
+misci=[];misc0=[];
 if(isfield(X,'v'))
     v=spt.dat2trj(X.i0,X.i1,X.v);
     vii=ii;vi0=i0;
 end
-if(isfield(X,'misc'))
-    misc=spt.dat2trj(X.i0,X.i1,X.misc);
-    mii=ii;mi0=i0;
+if(isfield(X,'misc'))    
+    if(isreal(X.misc)) % then a single array
+        misc=spt.dat2trj(X.i0,X.i1,X.misc);
+        misci=misc(ii);
+        misc0=misc(i0);        
+    elseif(iscell(X.misc)) % then a cell vector of arrays
+        misci=cell();misc0=cell();
+        for k=1:numel(X.misc)
+            misc=spt.dat2trj(X.i0,X.i1,X.misc{k});
+            misci{k}=misc(ii);
+            misc0{k}=misc(i0);            
+        end
+    elseif(isstruct(X.misc)) % then a struct with arrays as fields
+        misci=struct;misc0=struct;
+        fn=fieldnames(X.misc);
+        for k=1:numel(fn)
+            misc=spt.dat2trj(X.i0,X.i1,X.misc.(fn{k}));
+            misci.(fn{k})=misc(ii);
+            misc0.(fn{k})=misc(i0);  
+        end
+    end
 end
-Xii=spt.preprocess(x(ii),v(vii),misc(mii));
-X0=spt.preprocess(x(i0),v(vi0),misc(mi0));
+Xii=spt.preprocess(x(ii),v(vii),X.dim,misci,[],false);
+X0 =spt.preprocess(x(i0),v(vi0),X.dim,misc0,[],false);
 
 % create new models
 Wii=mleYZdXt.init_P_dat(W.shutterMean,W.blurCoeff,W.P.lambda/2/W.timestep,W.timestep,W.P.A,W.P.p0,Xii);
