@@ -11,7 +11,7 @@ function H=crossValidate(W0,X,varargin)
 % W0    : YZShmm model or cell vector of models (converged)
 % X     : data
 % further parameter/value pairs:
-% iType : {'mle','map','vbF','vbQ'} sets the type of iterations, as well as the
+% iType : {'mle','map','vb','vbQ'} sets the type of iterations, as well as the
 %         predictive performance measure to estimate. {'mle','map'} gives
 %         point-estimate-based cross-validation, while 'vb' and 'vbQ' give
 %         estimated pseudo-Bayes factors. For 'vb', the bayes factor is

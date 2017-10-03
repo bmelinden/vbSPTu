@@ -69,7 +69,7 @@ while(nv <= length(varargin))
    switch lower(pname)
        case 'psywarmup'
            PSYwarmup=pval;
-       case 'sypfixed'
+       case 'psyfixed'
            PSYfixed=pval;
        case 'maxiter'
            maxIter=pval;
