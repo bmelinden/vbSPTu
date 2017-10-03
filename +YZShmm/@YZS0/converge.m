@@ -56,7 +56,7 @@ showConv_lnL=false;
 showExit=true;
 sortModel=false;
 iType='mle';
-saveErr=false;
+saveErr=this.conv.saveErr;
 % parameter interpretations
 nv=1;
 while(nv <= length(varargin))
