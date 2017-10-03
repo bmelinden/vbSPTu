@@ -89,7 +89,7 @@ parfor iter=1:restarts
         error(['Empty validation set in iteration ' int2str(iter)]);
     end
     % loop over models
-    dispL=1;
+    dispL=displayLevel;
     for m=1:numel(W0)
         [Wv,Xv,Wt,Xt]=W0{m}.splitModelAndData(X,iiVal);
         Tt=sum(Xt.T); % positions in training set
@@ -134,7 +134,10 @@ parfor iter=1:restarts
                 Wv.P0=Wt.P;
                 Wv.converge(Xv,'iType','vb','PSYwarmup',[-1 0 0 ],'displayLevel',dispL);
                 % validation score as lower bound difference
-                Hiter{iter}(m)=(Tt+Tv)/Tv*Wv.lnL;                
+                Hiter{iter}(m)=(Tt+Tv)/Tv*Wv.lnL;  
+                if(displayLevel>0)
+                   disp(['Finished round ' int2str(iter) ' of ' iType '-crosvalidation.'])
+                end
         end
     end
 end
