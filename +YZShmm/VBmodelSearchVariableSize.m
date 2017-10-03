@@ -140,10 +140,14 @@ if(~isempty(Winit))
             w=Winit{k};
             w.converge( data,'iType','vb','SYPwarmup',[0 0 -1]);
         catch me
-            errFile=[class(this) '_Winit_err' int2str(ceil(1e9*rand)) '.mat'];
-            save(errFile)
-            warning(['Error while converging initial model ' int2str(k) '. Skipping that model, but saving workspace to ' errFile])
-            continue
+            if(this.conv.saveErr)
+                errFile=[class(this) '_Winit_err' int2str(ceil(1e9*rand)) '.mat'];
+                save(errFile)
+                warning(['Error while converging initial model ' int2str(k) '. Skipping that model, but saving workspace to ' errFile])
+            else
+                warning(['Error while converging initial model ' int2str(k) '. Skipping that model. Set model field conv.saveErr=true to write debug information to file.'])
+                continue
+            end
         end
         if(w.lnL>Wbest.lnL)
             Wbest=w.clone();
