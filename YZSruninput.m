@@ -58,6 +58,7 @@ init.vrange = [5 50].^2; % interval for localization variance initial value(s), 
 conv.maxIter = 1e4;    % maximum number of VB iterations ([]: use default values).
 conv.lnLTol  = 1e-8;   % convergence criterion for relative change in likelihood bound.
 conv.parTol  = 1e-3;   % convergence criterion for M-step parameters (leave non-strict).
+conv.saveErr = false;  % if true, some errors will will write a workspace dump to file, for debugging
 %% parallellization
 compute.parallelize_config = false; % controls if the parallell_Start and parallell_end commands are executed
 compute.parallel_start = 'theSPTpool=gcp;';  % executed before the parallelizable loop.

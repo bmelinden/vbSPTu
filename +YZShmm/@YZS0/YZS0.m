@@ -40,8 +40,7 @@ classdef YZS0 < handle
             'covYtYtp1',[],'covYtZt',[],'covYtp1Zt',[],...
             'mean_lnqyz',0,'mean_lnpxz',0);        
         sample=struct('dim',0,'timestep',0,'shutterMean',0,'blurCoeff',0);
-        conv=struct('maxIter',1e4,'lnLTol',1e-9,'parTol',1e-3);
-
+        conv=struct('maxIter',1e4,'lnLTol',1e-9,'parTol',1e-3,'saveErr',false);
         numStates=0;
         lnL=0; % log likelohood (lower bound)        
         EMexit=struct;

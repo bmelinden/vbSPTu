@@ -56,6 +56,7 @@ showConv_lnL=false;
 showExit=true;
 sortModel=false;
 iType='mle';
+saveErr=false;
 % parameter interpretations
 nv=1;
 while(nv <= length(varargin))
@@ -65,29 +66,32 @@ while(nv <= length(varargin))
    end
    pval=varargin{nv+1};
    nv=nv+2;    
-   if(strcmp(pname,'sypwarmup'))
-      SYPwarmup=pval;
-   elseif(strcmp(pname,'sypfixed'))
-      SYPfixed=pval;
-   elseif(strcmp(pname,'maxiter'))
-      maxIter=pval;      
-   elseif(strcmp(pname,'miniter'))
-      minIter=pval;      
-   elseif(strcmp(pname,'lnltol'))
-      lnLTol=pval;      
-   elseif(strcmp(pname,'partol'))
-      parTol=pval;      
-   elseif(strcmp(pname,'dsort'))
-      sortModel=pval;    
-   elseif(strcmp(pname,'itype'))
-      iType=pval;    
-   elseif(strcmp(pname,'displaylevel'))
-      n=pval;
-      showExit=(n>=1);
-      showConv_lnL=(n>=2);
-   else
-       error(['Unrecognized option ' pname ])
-   end   
+   switch lower(pname)
+       case 'sypwarmup'
+           SYPwarmup=pval;
+       case 'sypfixed'
+           SYPfixed=pval;
+       case maxiter'
+           maxIter=pval;
+       case 'miniter'
+           minIter=pval;
+       case 'lnltol'
+           lnLTol=pval;
+       case 'partol'
+           parTol=pval;
+       case 'dsort'
+           sortModel=pval;
+       case 'itype'
+           iType=pval;
+       case 'saveerr'
+           saveErr=pval;
+       case 'displaylevel'
+           n=pval;
+           showExit=(n>=1);
+           showConv_lnL=(n>=2);
+       otherwise
+           error(['Unrecognized option ' pname ])
+   end
 end
 % some parameter checks
 SYPwarmup=SYPwarmup-min(SYPwarmup); % no point withholding all
@@ -125,16 +129,25 @@ for r=1:+maxIter
             this.YZiter(dat,iType);
         end
     catch me
-        errFile=[class(this) '_PSYZ_err' int2str(ceil(1e9*rand)) '.mat'];
-        save(errFile)
-        error(['Error during PSYZ-iteration. Saving workspace to ' errFile])        
+        if(this.conv.saveErr)
+            errFile=[class(this) '_PSYZ_err' int2str(ceil(1e9*rand)) '.mat'];
+            save(errFile)
+            error(['Error during PSYZ-iteration. Saving workspace to ' errFile])
+        else
+            me
+            error('Error during PSYZ-iteration. Set model field conv.saveErr=true to save workspace to file.')
+        end
     end
     % additional check for nan/inf in other fields
     if( ~isfinite(this.YZ.mean_lnqyz) || ~isfinite(this.YZ.mean_lnpxz) || ...
             ~isfinite(this.S.lnZ) || ~isfinite(sum(this.S.wA(:))))
-        errFile=[class(this) '_naninf_err' int2str(ceil(1e9*rand)) '.mat'];
-        save(errFile)
-        error(['NaN/Inf in model fields! Saving workspace to ' errFile])
+        if(this.conv.saveErr)
+            errFile=[class(this) '_naninf_err' int2str(ceil(1e9*rand)) '.mat'];
+            save(errFile)
+            error(['NaN/Inf in model fields! Saving workspace to ' errFile])
+        else 
+            error('NaN/Inf in model fields! Set model field conv.saveErr=true to save workspace to file.')
+        end
     end
     
     % check convergence
