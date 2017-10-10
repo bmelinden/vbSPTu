@@ -1,11 +1,17 @@
 function [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,data,opt,displayLevel)
-% [Wbest,WNbest,lnLsearch,Nsearch,Wsearch]=VBgreedyReduce(this,dat,opt,displayLevel)
+% [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel)
 % Perform a greedy search for smaller models with larger VB evidence by
 % systematically pruning the states of the starting object. 
 %
 % dat   : preprocessed data struct
 % opt	: options struct
 % displayLevel : amount of logging information to display (default 1).
+%
+% Wbest     : best model found in the greedy search
+% WNbest    : best model of each size found in the greedy search
+% lnLsearch : lnL for each model in the search (including suboptimal ones)
+% Nsearch   : size of each model in the search 
+% Psearch   : Parameter estimate struct for each nmodel in the search
 
 if(~exist('displayLevel','var'))
     displayLevel=1;

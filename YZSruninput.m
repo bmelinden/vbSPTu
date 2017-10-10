@@ -66,8 +66,9 @@ compute.parallel_end = 'delete(theSPTpool)'; % executed after the parallelizable
 %% model search
 modelSearch.YZww      = 2:6; % range of smoothing windows for running average initialization
 modelSearch.restarts  = 100; % number of independent restarts for model searches
-modelSearch.maxHidden = 20; % maximum model size for multi-model search
-modelSearch.Pwarmup   = 10; % number of warmup iterations without parameter updates
+modelSearch.Pwarmup   = 10; % number of warmup iterations without parameter updates 
+modelSearch.maxHidden = 10; % maximum model size to return from multi-model search
+modelSearch.VBinitHidden= 25; % starting model model size for greedy VB model search
 %% computing and optimization options
 %% cross-validation / pseudo Bayes factors
 %% bootstrap

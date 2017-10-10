@@ -44,8 +44,13 @@ opt=spt.getOptions(opt);
 restarts=opt.modelSearch.restarts;
 classFun=opt.model;
 maxHidden  =opt.modelSearch.maxHidden;
+if(isfield(opt.modelSearch,'VBinitHidden'))
+    initHidden = opt.modelSearch.VBinitHidden;
+else
+   warning('Missing  opt.modelSearch.VBinitHidden, using opt.modelSearch.maxHidden instead.')
+   initHidden=maxHidden;
+end
 YZww=opt.modelSearch.YZww;
-Pwarmup=opt.modelSearch.Pwarmup;
 data=[];
 qYZ0={};
 Winit={};
@@ -69,6 +74,7 @@ uSPTlicense(mfilename)
 disp('----------')
 disp(['Restarts     : ' int2str(opt.modelSearch.restarts )])
 disp(['Max states   : ' int2str(opt.modelSearch.maxHidden)])
+disp(['Init states  : ' int2str(opt.modelSearch.initHidden)])
 if(isempty(data))
     data=spt.preprocess(opt);
     disp(['runinput file: ' opt.runinputfile])
@@ -91,7 +97,7 @@ end
     'data',data,'iType','vb','YZww',YZww,'displayLevel',0,'restarts',1);
 qYZ0=[qYZ0,YZmv];
 %% greedy search 
-Witer  =cell(1,restarts); % best model of each size in each run
+WbestNiter  =cell(1,restarts); % best model of each size in each run
 Niter  =cell(1,restarts); % from all models generated in each run
 lnLiter=cell(1,restarts); % from all models generated in each run
 Piter  =cell(1,restarts); % from all models generated in each run
@@ -102,11 +108,22 @@ parfor iter=1:restarts
     % systematically remove the least occupied statate until things start
     % to get worse.
     titer=tic;
-    W0=YZShmm.modelSearchFixedSize('classFun',classFun,'N0',maxHidden,'opt',opt,...
+    W0=YZShmm.modelSearchFixedSize('classFun',classFun,'N0',initHidden,'opt',opt,...
         'data',data,'iType','vb','qYZ0',qYZ0,'YZww',[],'displayLevel',displayLevel-2,'restarts',1);
-    Witer{iter}={};
-    [WbestIter,Witer{iter},lnLiter{iter},Niter{iter},Piter{iter}]=...
+    WbestNiter{iter}={};
+    % [Wbest,WNbest,lnLsearch,Nsearch,Wsearch]=VBgreedyReduce(this,dat,opt,displayLevel)
+    [WbestIter,WbestNiter{iter},lnLiter{iter},Niter{iter},Piter{iter}]=...
         W0.VBgreedyReduce(data,opt,displayLevel-2);
+    % remove model sizes > maxHidden but <= initHidden
+    WN=zeros(size(WbestNiter{iter}));
+    for wn=1:numel(WN)
+        WN(wn)=WbestNiter{iter}.numStates;
+    end
+    WbestNiter{iter}=WbestNiter{iter}(WN<=maxHidden);
+    % warning if maxHidden is too small
+    if(WbestIter.numState>=maxHidden)
+        warning(['Greedy VB search found ' int2str(WbestIter.numState) ' >= maxHidden. maxHidden = ' int2str(maxHidden) ' probably too small.'])
+    end
     
     if(displayLevel>=2)
         disp(['VBmodelSearch iter ' int2str(iter) ' finished in '  ...
@@ -138,7 +155,7 @@ if(~isempty(Winit))
     for k=1:numel(Winit)
         try
             w=Winit{k};
-            w.converge( data,'iType','vb','PSYwarmup',[-1 0 0 ]);
+            w.converge( data,'iType','vb','PSYwarmup',[-1 0 0 ],'displayLevel',displayLevel-1);
         catch me
             if(this.conv.saveErr)
                 errFile=[class(this) '_Winit_err' int2str(ceil(1e9*rand)) '.mat'];
@@ -156,11 +173,12 @@ if(~isempty(Winit))
     end
 
 end
+% some history of all models encountered during search
 for iter=1:restarts
     INlnL=[INlnL; iter*ones(size(Niter{iter})) Niter{iter} lnLiter{iter}];
     P    =[P; Piter{iter}];
-    for k=1:length(Witer{iter})
-        w=Witer{iter}{k}; % remember: models < handle class
+    for k=1:length(WbestNiter{iter})
+        w=WbestNiter{iter}{k}; % remember: models < handle class
         if(~isempty(w))
             w.sortModel();
             if(isempty(P))

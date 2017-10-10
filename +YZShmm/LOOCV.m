@@ -1,8 +1,8 @@
-function H=crossValidate(W0,X,varargin)
-% H=YZShmm.crossValidate(W0,X,varargin)
-% Estimate predictive performance using point-estiamted crossvalidation or
-% variational pseudo-Bayes factors. In particular, a set of validation and
-% training data sets xv(i),xt(i), i=1,...,K is generated, and for each set
+function H=LOOCV(W0,X,varargin)
+% H=YZShmm.LOOCV(W0,X,varargin)
+% Estimate predictive performance using leave-one-out cross-validation with
+% either point-estimated parameters or variational pseudo-Bayes factors.
+% Individual trajectories are used as validation sets, and for each set
 % and each model W0{m}, the predictive log-likelihood is computed
 % H(i,m) = N/Nv(i)*log(P(xv(i)|xt(i),W0(m)),
 % where N,Nv(i) are the number of positions in the total and validation
@@ -20,22 +20,20 @@ function H=crossValidate(W0,X,varargin)
 %         principled, but close to actual predictive practice, and avoids a
 %         possible cancellations between large training and full datya
 %         sets).
-% Ktrj/Kpos : size of validation data set. Ktrj specifies the number of
-%             trajectories to include, while Kpos specifies the minimum
-%             number of positions (including missing positions) to
-%             include.
-% restarts  : number of performance estimates to perform, each one using
-%             randomly selected validation data sets, to evaluate. Default:
-%             number of trajectories.
+% maxTrj: limit the number of validation sets. Default = number of
+%         trajectories. The validation sets are done in random order, so
+%         setting maxTrj<number of trajectories is not repeatable.
+%         maxTrj>number of trajectories is interpreted as = number of
+%         trajectories.
 % displayLevel : amount of computational details to write to the command
 %                line. 0: none (default). >0: increasingly more
 
 tStart=tic;
 displayLevel=0;
-restarts=numel(X.i0);
+maxTrj=numel(X.i0);
 
 % additional input parameters
-parNames={'iType','Ktrj','Kpos','displayLevel','restarts'};
+parNames={'iType','maxTrj','displayLevel'};
 for k=1:2:numel(varargin)
     if(isempty(find(strcmp(varargin{k},parNames),1)))
         error(['Parameter ' varargin{k} ' not recognized.'])
@@ -43,21 +41,8 @@ for k=1:2:numel(varargin)
     eval([varargin{k} '=varargin{ ' int2str(k+1) '};'])
 end
 % check partition parameters
-if( exist('Ktrj','var') && ~exist('Kpos','var'))
-    doKtrj=true;
-    Ktrj=Ktrj;Kpos=[];
-    if(Ktrj<1 || Ktrj>=numel(X.T))
-        error('Need 1 <= Ktrj < number of trajectories.')
-    end
-elseif( ~exist('Ktrj','var') && exist('Kpos','var'))
-    doKtrj=false;
-    Ktrj=[];Kpos=Kpos;
-    if( Kpos <1 || Kpos > sum(X.T)-max(X.T))
-       error('Need 1 <= Kpos <= total number of positions < max(trjLength).') 
-    end
-else
-    error('Must one (and only one) of Ktrj or Kpos.')
-end
+maxTrj=min(numel(X.i0),maxTrj); % avoid duplicate validation sets
+iType=iType;% dirty fix to make parfor remember iType (is this a parfor bug?).
 
 % put W0 in cell vector if not already 
 if(~iscell(W0) )
@@ -71,25 +56,16 @@ if(~iscell(W0) )
     clear Winput;
 end
 % set up Hiter
-Hiter=cell(1,restarts);
-% dirty fix to make parfor remember iType (is this a parfor bug?).
-iType=iType;
+Hiter=cell(1,maxTrj);
 
 % loop over data partitions
-parfor iter=1:restarts
-%%%for iter=1:restarts
+iiLOV=sort(randperm(numel(X.i0),maxTrj)); % validation in random order
+
+parfor iter=1:maxTrj
+%%%for iter=1:maxTrj
     Hiter{iter}=zeros(1,numel(W0));
     % partition data set and models
-    if(doKtrj)
-        iiVal=randperm(numel(X.i0),Ktrj);
-    else
-        iiVal= randperm(numel(X.i0));
-        Tii=cumsum(X.T(iiVal));
-        iiVal=iiVal(1:find(Tii>=Kpos,1));
-    end
-    if(isempty(iiVal))
-        error(['Empty validation set in iteration ' int2str(iter)]);
-    end
+    iiVal=iiLOV(iter);
     % loop over models
     dispL=displayLevel-2;
     for m=1:numel(W0)
@@ -144,11 +120,11 @@ parfor iter=1:restarts
         end
     end
     if(displayLevel>1)
-        disp(['Finished round ' int2str(iter) ' of ' iType '-crossvalidation.'])
+        disp(['Finished round ' int2str(iter) ' of ' iType '-LOOCV.'])
     end
 end
 % read off Hiter entries
-for iter=1:restarts
+for iter=1:maxTrj
     for m=1:numel(W0)
         H(iter,m)=Hiter{iter}(m);
     end
@@ -156,6 +132,6 @@ end
 if(displayLevel>=1)
     HH=H-max(H,[],2)*ones(1,size(H,2)); % subtract off correlated variance
     [~,Nmax]=max(mean(HH,1));
-    disp([datestr(now) ' : ' iType ' crossvalidation ended with ' int2str(Nmax) ...
+    disp([datestr(now) ' : ' iType ' LOOCV ended with ' int2str(Nmax) ...
         ' states. Total run time ' num2str(toc(tStart)/60,2) ' min.'])
 end
