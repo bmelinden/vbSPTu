@@ -85,5 +85,5 @@ clear X0
 % save data
 
 disp(['saving to ' savefile  ' ...'])
-save(savefile)
+save(savefile,'D','A','p0','dt','tE','Roeff','tau','x','v','ve','s','pst','y','z')
 disp('... done')
