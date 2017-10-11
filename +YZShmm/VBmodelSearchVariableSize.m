@@ -45,10 +45,10 @@ restarts=opt.modelSearch.restarts;
 classFun=opt.model;
 maxHidden  =opt.modelSearch.maxHidden;
 if(isfield(opt.modelSearch,'VBinitHidden'))
-    initHidden = opt.modelSearch.VBinitHidden;
+    VBinitHidden = opt.modelSearch.VBinitHidden;
 else
    warning('Missing  opt.modelSearch.VBinitHidden, using opt.modelSearch.maxHidden instead.')
-   initHidden=maxHidden;
+   VBinitHidden=maxHidden;
 end
 YZww=opt.modelSearch.YZww;
 data=[];
@@ -72,9 +72,9 @@ tstart=tic;
 % display some starting information
 uSPTlicense(mfilename)
 disp('----------')
-disp(['Restarts     : ' int2str(opt.modelSearch.restarts )])
-disp(['Max states   : ' int2str(opt.modelSearch.maxHidden)])
-disp(['Init states  : ' int2str(opt.modelSearch.initHidden)])
+disp(['Restarts     : ' int2str(restarts )])
+disp(['Max states   : ' int2str(maxHidden)])
+disp(['Init states  : ' int2str(VBinitHidden)])
 if(isempty(data))
     data=spt.preprocess(opt);
     disp(['runinput file: ' opt.runinputfile])
@@ -108,20 +108,22 @@ parfor iter=1:restarts
     % systematically remove the least occupied statate until things start
     % to get worse.
     titer=tic;
-    W0=YZShmm.modelSearchFixedSize('classFun',classFun,'N0',initHidden,'opt',opt,...
+    W0=YZShmm.modelSearchFixedSize('classFun',classFun,'N0',VBinitHidden,'opt',opt,...
         'data',data,'iType','vb','qYZ0',qYZ0,'YZww',[],'displayLevel',displayLevel-2,'restarts',1);
     WbestNiter{iter}={};
     % [Wbest,WNbest,lnLsearch,Nsearch,Wsearch]=VBgreedyReduce(this,dat,opt,displayLevel)
     [WbestIter,WbestNiter{iter},lnLiter{iter},Niter{iter},Piter{iter}]=...
         W0.VBgreedyReduce(data,opt,displayLevel-2);
     % remove model sizes > maxHidden but <= initHidden
-    WN=zeros(size(WbestNiter{iter}));
+    WN=inf(size(WbestNiter{iter}));
     for wn=1:numel(WN)
-        WN(wn)=WbestNiter{iter}.numStates;
+        if(~isempty(WbestNiter{iter}{wn}))
+            WN(wn)=WbestNiter{iter}{wn}.numStates;
+        end
     end
     WbestNiter{iter}=WbestNiter{iter}(WN<=maxHidden);
     % warning if maxHidden is too small
-    if(WbestIter.numState>=maxHidden)
+    if(WbestIter.numStates>=maxHidden)
         warning(['Greedy VB search found ' int2str(WbestIter.numState) ' >= maxHidden. maxHidden = ' int2str(maxHidden) ' probably too small.'])
     end
     
