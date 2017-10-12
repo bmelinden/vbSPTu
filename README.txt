@@ -26,6 +26,7 @@ mle/vb : maximum likelihood estimate or variational Bayes.
 
 ---
 to do:
+- initial W.P from priors: check P.wB?
 - saving error files only when explicitly asking for it
 - a new class with aggregate diffusion constants and possibly
   forbitten transitions (wBstruct, or interpreting wB=0 as forbidden
