@@ -123,4 +123,10 @@ end
 %% write results to file
 clear ans 
 save(opt.output.outputFile);
-res=load(opt.output.outputFile);
+% save output to struct
+vv=whos;
+opt=struct;
+for m=1:length(vv)
+    opt.(vv(m).name)=eval(vv(m).name);    
+end
+
