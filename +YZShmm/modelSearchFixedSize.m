@@ -42,7 +42,7 @@ opt=spt.getOptions(opt);
 N0=[];
 iType=[];
 % defaults
-classFun=opt.model;
+classFun=eval(['@' opt.model]);
 data=[];
 YZww=opt.modelSearch.YZww;
 qYZ0={};

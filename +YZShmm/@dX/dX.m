@@ -6,9 +6,9 @@ classdef dX < YZShmm.YZS0
     methods
         function this=dX(varargin)
             % dXt(N,opt,dat,p0_init,D_init,A_init,v_init)
-            % same syntax as for the YZShmm.YZS0 constructor, except
-            % that the data struct dat is expected to contain estimated
-            % position variances.
+            % same syntax as for the YZShmm.YZS0 constructor. The data
+            % struct dat is expected to not contain estimated position
+            % variances.
             this=this@YZShmm.YZS0(varargin{:});
             
             parName={'N','opt','dat','p0_init','A_init','D_init','v_init'};

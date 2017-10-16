@@ -42,7 +42,7 @@ opt=varargin{kOpt};
 opt=spt.getOptions(opt);
 % default values
 restarts=opt.modelSearch.restarts;
-classFun=opt.model;
+classFun=eval(['@' opt.model]);
 maxHidden  =opt.modelSearch.maxHidden;
 if(isfield(opt.modelSearch,'VBinitHidden'))
     VBinitHidden = opt.modelSearch.VBinitHidden;
@@ -75,11 +75,14 @@ disp('----------')
 disp(['Restarts     : ' int2str(restarts )])
 disp(['Max states   : ' int2str(maxHidden)])
 disp(['Init states  : ' int2str(VBinitHidden)])
+
 if(isempty(data))
     data=spt.preprocess(opt);
     disp(['runinput file: ' opt.runinputfile])
     disp(['input  file  : ' opt.trj.inputfile])
 end
+disp(['Num. trj     : ' int2str(numel(data.T))])
+disp(['Num. steps   : ' int2str(sum(  data.T-1))])
 disp([ datestr(now) ' : Starting VB greedy model search.'])
 disp('----------')
 
@@ -87,11 +90,6 @@ disp('----------')
 W=classFun(maxHidden,opt,data);
 W.YZiter(data,'vb');
 clear W;
-% setup distributed computation toolbox
-if(opt.compute.parallelize_config)
-    delete(gcp('nocreate'))
-    eval(opt.compute.parallel_start)
-end
 % pre-compute moving average initial guesses
 [~,YZmv]=YZShmm.modelSearchFixedSize('classFun',classFun,'N0',1,'opt',opt,...
     'data',data,'iType','vb','YZww',YZww,'displayLevel',0,'restarts',1);

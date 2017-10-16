@@ -40,7 +40,7 @@ RMSstd=0;%[1 1 1]*1E-6;
 % amount of data
 Ttrj=25;
 Tmin=5;
-Ntrj=1e3;
+Ntrj=50;
 dim=2;
 T=Tmin+round(-(Ttrj-Tmin)*log(rand(1,Ntrj))); % exp-distributed trajectory lengths >= 5
 %% SPT trajectories within fixed z interval
@@ -85,5 +85,5 @@ clear X0
 % save data
 
 disp(['saving to ' savefile  ' ...'])
-save(savefile,'D','A','p0','dt','tE','Roeff','tau','x','v','ve','s','pst','y','z')
+save(savefile,'D','A','p0','dt','tE','Rcoeff','tau','x','v','ve','s','pst','y','z')
 disp('... done')

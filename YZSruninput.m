@@ -1,7 +1,5 @@
 % Martin Linden 2017-09-01
 % a reference runinput file for the YZShmm suite of model objects
-
-
 %% Input trajectories and sample properties
 % this section specifies the location and proiperties of the input data to
 % be used in the analysis
@@ -20,7 +18,7 @@ trj.dim = 2;
 trj.Tmin = 5;         % minimum number of positions per trajectory >=2 is 
 clear dt tE
 %% default model type (constructor handle, e.g., @YZShmm.xxx)
-model=@YZShmm.dXt; 
+model='YZShmm.dXt'; 
 %% Prior distributions
 % Diffusion constants
 %prior.diffusionCoeff.type    = 'mean_strength';
@@ -52,7 +50,7 @@ prior.detachment.type='';
 init.Drange = [0.01 10]*1e6;   % interval for diffusion constant initial guess [length^2/time] in same length units as the input data.
 init.Trange = [2 20]*trj.timestep;     % interval for mean dwell time initial guess in [s].
 % It is recommended to keep the initial tD guesses on the lower end of the expected spectrum.
-init.vrange = [5 50].^2; % interval for localization variance initial value(s), in units of length^2
+%init.vrange = [5 50].^2; % interval for localization variance initial value(s), in units of length^2
 
 %% convergence criteria (leave empty to use model defaults)
 conv.maxIter = 1e4;    % maximum number of VB iterations ([]: use default values).
@@ -61,15 +59,15 @@ conv.parTol  = 1e-3;   % convergence criterion for M-step parameters (leave non-
 conv.saveErr = false;  % if true, some errors will will write a workspace dump to file, for debugging
 %% parallellization
 compute.parallelize_config = false; % controls if the parallell_Start and parallell_end commands are executed
-compute.parallel_start = 'theSPTpool=gcp;';  % executed before the parallelizable loop.
-compute.parallel_end = 'delete(theSPTpool)'; % executed after the parallelizable loop.
+compute.parallel_start = 'theUSPTpool=gcp();';  % executed before the parallelizable loop.
+compute.parallel_end = 'delete(theUSPTpool)'; % executed after the parallelizable loop.
 %% model search
 modelSearch.YZww      = 2:6; % range of smoothing windows for running average initialization
 modelSearch.restarts  = 100; % number of independent restarts for model searches
-modelSearch.Pwarmup   = 10; % number of warmup iterations without parameter updates 
+modelSearch.Pwarmup   = 10; % number of warmup iterations with fixed parameters
 modelSearch.maxHidden = 10; % maximum model size to return from multi-model search
 modelSearch.VBinitHidden= 25; % starting model model size for greedy VB model search
-%% computing and optimization options
+modelSearch.VBloocv  =false; % model selection using pseudo-Bayes factors and leave-one-out cross-validation 
 %% cross-validation / pseudo Bayes factors
 %% bootstrap
 %% not-yet used options

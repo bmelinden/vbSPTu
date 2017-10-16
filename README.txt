@@ -26,6 +26,8 @@ mle/vb : maximum likelihood estimate or variational Bayes.
 
 ---
 to do:
+- add and print license texts
+- vbuSPTanalysis: sort models 
 - initial W.P from priors: check P.wB?
 - saving error files only when explicitly asking for it
 - a new class with aggregate diffusion constants and possibly
