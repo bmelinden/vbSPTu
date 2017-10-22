@@ -11,7 +11,7 @@ function [Wbest,YZmv,lnL,initMethod,convTime,initTime]=modelSearchFixedSize(vara
 % Further optional parameters, take precedence over the corresponding
 % options in the opt struct in applicable cases:
 % classFun    : YZhmm model constructor handle (e.g. @YZShmm.dXt).
-%               Default: opt.model
+%               Default: opt.model.class
 % data  : data struct from spt.preprocess.
 %         Default: read from from opt.trj.inputfile
 % YZww  : list of window widths (radii) for q(Y,Z) moving average diffusion
@@ -37,12 +37,12 @@ function [Wbest,YZmv,lnL,initMethod,convTime,initTime]=modelSearchFixedSize(vara
 % get options
 kOpt=2*find(strcmp('opt',varargin(1:2:end)),1);
 opt=varargin{kOpt};
-opt=spt.getOptions(opt);
+opt=spt.readRuninputFile(opt);
 % two parameters without default values
 N0=[];
 iType=[];
 % defaults
-classFun=eval(['@' opt.model]);
+classFun=eval(['@' opt.modelSearch.model]);
 data=[];
 YZww=opt.modelSearch.YZww;
 qYZ0={};

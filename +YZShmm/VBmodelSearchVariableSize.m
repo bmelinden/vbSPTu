@@ -7,7 +7,7 @@ function [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(varargin)
 % optional additional arguments, take precedence over the corresponding
 % options in the opt struct in applicable cases:
 % classFun    : YZhmm model constructor handle (e.g. @YZShmm.dXt).
-%               Default: opt.model
+%               Default: opt.model.class
 % data  : data struct from spt.preprocess.
 %         Default: read from from opt.trj.inputfile
 % YZww  : list of window widths (radii) for q(Y,Z) moving average diffusion
@@ -39,10 +39,10 @@ function [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(varargin)
 % get options first
 kOpt=2*find(strcmp('opt',varargin(1:2:end)),1);
 opt=varargin{kOpt};
-opt=spt.getOptions(opt);
+opt=spt.readRuninputFile(opt);
 % default values
 restarts=opt.modelSearch.restarts;
-classFun=eval(['@' opt.model]);
+classFun=eval(['@' opt.model.class]);
 maxHidden  =opt.modelSearch.maxHidden;
 if(isfield(opt.modelSearch,'VBinitHidden'))
     VBinitHidden = opt.modelSearch.VBinitHidden;

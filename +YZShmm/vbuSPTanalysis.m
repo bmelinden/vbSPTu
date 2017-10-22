@@ -35,7 +35,7 @@ function res=vbuSPTanalysis(runinput)
 %                 set size. 
 %   PBF_dlnL    : Mean PBF over all cross-validation instances, and offset
 %                 relative to the best model
-%   PpBF_dlnLstdErr: standard error (standard deviation / sqrt(number of
+%   PBF_dlnLstdErr: standard error (standard deviation / sqrt(number of
 %                 cross-validations) ) for PBF_dlnL.
 % --- bootstrap parameters: bootstrap resampling is done by at the
 %                 trajectory level so that the resampled data sets have the
@@ -63,13 +63,15 @@ function res=vbuSPTanalysis(runinput)
 % ML 2017-10-16
 
 %% print copyright message
+warning('need to print license information here!')
 
+tAnalysis=tic;
 %% get options
-opt=spt.getOptions(runinput);
+opt=spt.readRuninputFile(runinput);
 %% read data
 X=spt.preprocess(opt);
 %% test model object
-classFun=eval(['@' opt.model]);
+classFun=eval(['@' opt.model.class]);
 W=classFun(2,opt,X);
 W.Siter(X,'vb');
 clear W classFun;
@@ -82,13 +84,12 @@ Nbest=Wbest.numStates;
 save(opt.output.outputFile);
 %% pseudo-Bayes factor model selection
 if(opt.modelSearch.PBF)
-    disp('starting pseudo-Bayes factor cross-validation...')
+    disp('starting pseudo-Bayes factor cross-validation.')
     PBF_H=YZShmm.LOOCV(VBbestN,X,'iType','vbq','displayLevel',1);
     [~,Nbest]=max(mean(PBF_H,1));
     PBF_dlnL=mean(PBF_H-PBF_H(:,Nbest)*ones(1,size(PBF_H,2)),1);
-    PpBF_dlnLstdErr=std(PBF_H-PBF_H(:,Nbest)*ones(1,size(PBF_H,2)),[],1)/sqrt(size(PBF_H,1));
+    PBF_dlnLstdErr=std(PBF_H-PBF_H(:,Nbest)*ones(1,size(PBF_H,2)),[],1)/sqrt(size(PBF_H,1));
     Wbest=VBbestN{Nbest}.clone();
-    disp('... done.')
     save(opt.output.outputFile);
 end
 %% MLE parameters for best model
@@ -117,16 +118,25 @@ if(opt.bootstrap.modelSelection)
     end
     % bootstrap VB model selection
     [~,~,~,~,VB_lnLbs]=YZShmm.bootstrap(VBbestN,X,'vb',opt.bootstrap.bootstrapNum,'Dsort',true,'displayLevel',1);
-    %%% got this far!!!
     [~,NVBbs]=max(VB_lnLbs,[],2);
 end
 %% write results to file
-clear ans 
+fprintf('vbuSPTanalysis finished in %.1f min, with N=%d ',toc(tAnalysis)/60,Nbest)
+if(opt.modelSearch.PBF)
+    [~,NVB]=max(VB_dlnL);
+    fprintf(' (PBF, VB gave N=%d).\n',NVB);
+    clear NVB;
+else
+    fprintf(' (VB).\n');    
+end
+clear ans tAnalysis
 save(opt.output.outputFile);
+disp(['Wrote analysis results to ' opt.output.outputFile]);
+
 % save output to struct
 vv=whos;
-opt=struct;
+res=struct;
 for m=1:length(vv)
-    opt.(vv(m).name)=eval(vv(m).name);    
+    res.(vv(m).name)=eval(vv(m).name);    
 end
 

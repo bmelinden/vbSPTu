@@ -95,7 +95,7 @@ classdef YZS0 < handle
             %% sampling properties and prior parameters
             if(exist('opt','var'))
                 
-                opt=spt.getOptions(opt); % in case optt is a runinput file
+                opt=spt.readRuninputFile(opt); % in case optt is a runinput file
                 
                 % sampling parameters
                 this.sample.dim=opt.trj.dim;                

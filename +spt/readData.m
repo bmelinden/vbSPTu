@@ -9,7 +9,7 @@ if(isstruct(opt))
 elseif(ischar(opt))
     runinputfile = opt;
     if (exist(opt, 'file')==2)
-        opt=spt.getOptions(runinputfile);
+        opt=spt.readRuninputFile(runinputfile);
         disp(['Read runinput file ' runinputfile])
     else
         error(['File not found: ' opt])

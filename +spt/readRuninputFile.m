@@ -1,4 +1,4 @@
-% opt=spt.getOptions(runinputfile)
+% opt=spt.readRuninputFile(runinputfile)
 %
 % convert SMeagol runinput parameters from a runinput file into an options
 % structure opt. All variables created by the command eval(runinputfile)
@@ -17,7 +17,7 @@
 
 %% copyright notice
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% spt.getOptions.m, read runinout parameters in the mesoSM package
+% spt.readRuninputFile.m, read runinout parameters in the mesoSM package
 % derived from corresponding files in the vbTPM package.
 % =========================================================================
 % 
@@ -60,7 +60,7 @@ end
 % if input is a struct, then just return it
 if(isstruct(runinputfile))
     opt=runinputfile;
-    %disp('spt.getOptions got a struct input, returns struct as is.')
+    %disp('spt.readRuninputFile got a struct input, returns struct as is.')
     return
 end
 
@@ -71,13 +71,13 @@ if(isempty(ext_tmp)) % then add in the .m extension
     [path_tmp, name_tmp, ext_tmp] = fileparts(runinputfile);
 end
 %if(~strcmp(ext_tmp,'.m') && ~isempty(ext_tmp)) % %% good new feature?
-%    error('spt.getOptions: ruininput file must be a Matlab .m file')
+%    error('spt.readRuninputFile: ruininput file must be a Matlab .m file')
 %end
 
 
 % test to see if the runinput file exists
 if(~exist(runinputfile,'file'))
-    error(['spt.getOptions: runinput file not found: ' runinputfile ' .'])        
+    error(['spt.readRuninputFile: runinput file not found: ' runinputfile ' .'])        
 end
 if(isempty(path_tmp)) % no path given, interpreted as relative path
     path_tmp='';
@@ -90,7 +90,7 @@ if(isRelPath)
     path_tmp=fullfile(pwd,path_tmp);
 end
 clear isRelPath
-disp('spt.getOptions looking for runinput file : ')
+disp('spt.readRuninputFile looking for runinput file : ')
 disp(fullfile(path_tmp,[name_tmp ext_tmp]));
 %% evaluate runinput file and store all variables to opt structure
 oldFolder = cd(path_tmp); % oldFolder is path from which spt.getOption was called
@@ -99,7 +99,7 @@ abspathfile=fullfile(path_tmp,[name_tmp ext_tmp]);
 if(exist(abspathfile,'file'))
     eval(name_tmp)
 else
-    error(['spt.getOptions: runinput file not found: ' abspathfile ' .'])    
+    error(['spt.readRuninputFile: runinput file not found: ' abspathfile ' .'])    
 end
 cd(oldFolder);
 clear oldFolder abspathfile; % forget what folder the options file happend to be called from

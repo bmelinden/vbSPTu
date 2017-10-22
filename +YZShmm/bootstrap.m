@@ -60,8 +60,8 @@ lnLiter=cell(Nbs,1);
 Piter  =cell(Nbs,1);
 Ntrj=numel(X.i0); % number of trajectories
 % loop over data partitions
-%%%parfor iter=1:Nbs
-for iter=1:Nbs
+parfor iter=1:Nbs
+%%%for iter=1:Nbs
     lnLiter{iter}=-inf(1,numel(W0));
     Piter{iter}=cell(1,numel(W0));
     % partition data set and models

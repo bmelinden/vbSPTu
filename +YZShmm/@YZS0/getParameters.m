@@ -50,4 +50,5 @@ P.pT  =rowNormalize(sum(this.S.pst(this.YZ.i1-1,:),1));
 P.dwellTime=dwellSteps*this.sample.timestep;
 % put dwellSteps last
 P.dwellSteps=dwellSteps;
+P.iType=iType;
 end
