@@ -1,7 +1,14 @@
+% options that cannot be changed by the GUI
+opt.trj.miscfield={};
+opt.prior.initialState.type = 'flat';
+opt.modelSearch.Pwarmup=10;
 
+% other default values/recommendations
 trj.Tmin = 5;
+
 prior.diffusionCoeff.type    = 'median_strength';
 prior.diffusionCoeff.strength= 2;
+
 
 prior.transitionMatrix.type  = 'dwell_Bweight';
 prior.transitionMatrix.Bweight  =1; % 1: flat, <1: favors sparse jump matrix, >1: favors dense jump matrix

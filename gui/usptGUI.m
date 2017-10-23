@@ -22,7 +22,7 @@ function varargout = usptGUI(varargin)
 
 % Edit the above text to modify the response to help usptGUI
 
-% Last Modified by GUIDE v2.5 23-Oct-2017 14:20:15
+% Last Modified by GUIDE v2.5 23-Oct-2017 22:07:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -798,7 +798,11 @@ function close_button_Callback(hObject, eventdata, handles)
 % hObject    handle to close_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-warning('close the GUI')
+ans=questdlg('Really close the GUI?');
+if(strcmp(ans,'Yes'))
+    figure1_CloseRequestFcn(data.figure1,eventdata,handles)
+end
+
 
 % --- Executes on button press in show_results_button.
 function show_results_button_Callback(hObject, eventdata, handles)
@@ -1362,3 +1366,13 @@ else
    errordlg('Must specify a finite timestep before computing blur coefficients from the exposure time.',...
         'No timestep');
 end
+
+
+% --- Executes when user attempts to close figure1.
+function figure1_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: delete(hObject) closes the figure
+delete(hObject);

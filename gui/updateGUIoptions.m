@@ -71,6 +71,12 @@ if( isfield(newOpt,'trj') && isfield(newOpt.trj,'uncertaintyfield') )
     opt.trj.uncertaintyfield=uncVar;
 end
 
+% misc variables, cannot be changed in the GUI
+if( isfield(newOpt,'trj') && isfield(newOpt.trj,'miscfield') )
+    opt.trj.miscfield=newOpt.trj.miscfield;
+end
+
+
 % dimensions 
 if( isfield(newOpt,'trj') && isfield(newOpt.trj,'dim') )
     opt.trj.dim=newOpt.trj.dim;
@@ -144,6 +150,10 @@ if( isfield(newOpt,'conv') && isfield(newOpt.conv,'saveErr') )
     set(data.saveErr_box,'Value',opt.conv.saveErr);
 end
 %% VB search parameters
+% number of fixed-parameter warmup iterations in model search
+if( isfield(newOpt,'modelSearch') && isfield(newOpt.modelSearch,'Pwarmup') )
+    opt.modelSearch.Pwarmup=newOpt.modelSearch.Pwarmup;
+end
 % VB search number of restarts
 if( isfield(newOpt,'modelSearch') && isfield(newOpt.modelSearch,'restarts') )
     opt.modelSearch.restarts=newOpt.modelSearch.restarts;
@@ -209,6 +219,11 @@ if( isfield(newOpt,'model') && isfield(newOpt.model,'class') )
     set(data.model_class_menu,'Value',modInd);
 end
 %% prior
+% initial state prior (cannot be changed in the GUI)
+if( isfield(newOpt,'prior')  && isfield(newOpt.prior,'initialState')  ...
+        && isfield(newOpt.prior.initialState,'type'))
+    opt.prior.initialState.type=newOpt.prior.initialState.type;
+end
 % diffusion prior
 if( isfield(newOpt,'prior')  && isfield(newOpt.prior,'diffusionCoeff')  ...
         && isfield(newOpt.prior.diffusionCoeff,'type'))
