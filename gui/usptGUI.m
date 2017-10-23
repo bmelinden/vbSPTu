@@ -22,7 +22,7 @@ function varargout = usptGUI(varargin)
 
 % Edit the above text to modify the response to help usptGUI
 
-% Last Modified by GUIDE v2.5 21-Oct-2017 00:44:10
+% Last Modified by GUIDE v2.5 23-Oct-2017 14:20:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -43,7 +43,6 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-
 % --- Executes just before usptGUI is made visible.
 function usptGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -58,8 +57,15 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 data=guidata(hObject);
+
 data.opt=struct;
 guidata(hObject,data);
+
+% set some default options
+[d0,~]=fileparts(mfilename('fullpath'));
+opt=spt.readRuninputFile(fullfile(d0,'usptGUI_defaultOptions.m'));
+updateGUIoptions(hObject,opt);
+
 
 % UIWAIT makes usptGUI wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
@@ -93,14 +99,22 @@ if(filterindex>0 && exist(fullfile(pathname,filename),'file') )
     updateGUIoptions(hObject,data.opt);
 end
 
-
-
 % --- Executes on button press in output_file_button.
 function output_file_button_Callback(hObject, eventdata, handles)
 % hObject    handle to output_file_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+[filename, pathname, filterindex] = uiputfile( ...
+    {'*.mat','(*.mat)'}, ...
+    'Select output file', '');
+if(filterindex>0 )% && exist(fullfile(pathname,filename),'file') )
+    % read external runinput file
+    outFile=fullfile(pathname,filename);
+    % update internal options struct with newOpt
+    data=guidata(hObject);
+    data.opt.output.outputFile=outFile;    
+    updateGUIoptions(hObject,data.opt);
+end
 
 % --- Executes on selection change in trajectory_popup.
 function trajectory_popup_Callback(hObject, eventdata, handles)
@@ -110,13 +124,15 @@ function trajectory_popup_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns trajectory_popup contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from trajectory_popup
-warning('make the dropdown list look for variable names when clicked on?')
+
+%warning('make the dropdown list look for variable names when clicked on?')
+%ML: no, better to update the list when the input file is selected
 
 contents = cellstr(get(hObject,'String'));
 trjVar=contents{get(hObject,'Value')};
 data=guidata(hObject);
 data.opt.trj.trajectoryfield=trjVar;
-guidata(hObject,data);
+updateGUIoptions(hObject,data.opt);
 
 % --- Executes during object creation, after setting all properties.
 function trajectory_popup_CreateFcn(hObject, eventdata, handles)
@@ -130,7 +146,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 % --- Executes on selection change in uncertainty_popup.
 function uncertainty_popup_Callback(hObject, eventdata, handles)
 % hObject    handle to uncertainty_popup (see GCBO)
@@ -143,8 +158,7 @@ contents = cellstr(get(hObject,'String'));
 uncVar=contents{get(hObject,'Value')};
 data=guidata(hObject);
 data.opt.trj.uncertaintyfield=uncVar;
-guidata(hObject,data);
-
+updateGUIoptions(hObject,data.opt);
 
 % --- Executes during object creation, after setting all properties.
 function uncertainty_popup_CreateFcn(hObject, eventdata, handles)
@@ -158,16 +172,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-% start of internal functions:
-
-% load runinput file
-
-% change GUI settings from a given oipt struct
-
-% 
-
-
-
 function timestep_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to timestep_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -176,7 +180,16 @@ function timestep_edit_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of timestep_edit as text
 %        str2double(get(hObject,'String')) returns contents of timestep_edit as a double
 
-
+num=str2double(get(hObject,'String'));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and positive number is given    
+        data.opt.trj.timestep=num;
+    else
+        errordlg('Timestep must be positive and finite.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function timestep_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to timestep_edit (see GCBO)
@@ -189,8 +202,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function R_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to R_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -198,8 +209,16 @@ function R_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of R_edit as text
 %        str2double(get(hObject,'String')) returns contents of R_edit as a double
-
-
+num=str2double(get(hObject,'String'));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0 && num<=1/6)     % ... and within the correct range
+        data.opt.trj.blurCoeff=num;
+    else
+        errordlg('Blur coefficient must be in (0,1/6].')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function R_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to R_edit (see GCBO)
@@ -213,30 +232,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-
-function blur_coeff_edit_Callback(hObject, eventdata, handles)
-% hObject    handle to blur_coeff_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of blur_coeff_edit as text
-%        str2double(get(hObject,'String')) returns contents of blur_coeff_edit as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function blur_coeff_edit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to blur_coeff_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
 function shutter_mean_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to shutter_mean_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -244,8 +239,16 @@ function shutter_mean_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of shutter_mean_edit as text
 %        str2double(get(hObject,'String')) returns contents of shutter_mean_edit as a double
-
-
+num=str2double(get(hObject,'String'));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0 && num<=1/2)     % ... and within the correct range
+        data.opt.trj.shutterMean=num;
+    else
+        errordlg('Shutter mean must be in (0,1)')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function shutter_mean_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to shutter_mean_edit (see GCBO)
@@ -258,8 +261,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function trj_min_length_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to trj_min_length_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -267,8 +268,15 @@ function trj_min_length_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of trj_min_length_edit as text
 %        str2double(get(hObject,'String')) returns contents of trj_min_length_edit as a double
-
-
+num=round(str2double(get(hObject,'String')));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num<0)     % ... and within the correct range
+        num=0;
+    end
+    data.opt.trj.Tmin=num;
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function trj_min_length_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to trj_min_length_edit (see GCBO)
@@ -280,9 +288,6 @@ function trj_min_length_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
 function dim_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to dim_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -290,8 +295,16 @@ function dim_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of dim_edit as text
 %        str2double(get(hObject,'String')) returns contents of dim_edit as a double
-
-
+num=round(str2double(get(hObject,'String')));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and within the correct range
+        data.opt.trj.dim=num;
+    else
+        errordlg('Dim must be integer >0.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function dim_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to dim_edit (see GCBO)
@@ -313,7 +326,12 @@ function model_class_menu_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns model_class_menu contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from model_class_menu
+contents = cellstr(get(hObject,'String'));
+M=contents{get(hObject,'Value')};
 
+opt=struct;
+opt.model.class=M;
+updateGUIoptions(hObject,opt);
 
 % --- Executes during object creation, after setting all properties.
 function model_class_menu_CreateFcn(hObject, eventdata, handles)
@@ -326,7 +344,10 @@ function model_class_menu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
+% set default options for model classes
+Mstr={'','YZShmm.dXt','YZShmm.dX'};
+set(hObject,'String',Mstr);
+set(hObject,'Value',1);
 
 
 function Dprior_median_edit_Callback(hObject, eventdata, handles)
@@ -336,6 +357,17 @@ function Dprior_median_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of Dprior_median_edit as text
 %        str2double(get(hObject,'String')) returns contents of Dprior_median_edit as a double
+num=str2double(get(hObject,'String'));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and within the correct range
+        data.opt.prior.diffusionCoeff.D=num;
+        data.opt.prior.diffusionCoeff.type='median_strength';
+    else
+        errordlg('D prior median must be >0.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -359,6 +391,17 @@ function Dprior_strength_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of Dprior_strength_edit as text
 %        str2double(get(hObject,'String')) returns contents of Dprior_strength_edit as a double
+num=str2double(get(hObject,'String'));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and within the correct range
+        data.opt.prior.diffusionCoeff.strength=num;
+        data.opt.prior.diffusionCoeff.type='median_strength';
+    else
+        errordlg('D prior strength must be >0.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -373,8 +416,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function Tprior_mean_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to Tprior_mean_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -382,7 +423,22 @@ function Tprior_mean_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of Tprior_mean_edit as text
 %        str2double(get(hObject,'String')) returns contents of Tprior_mean_edit as a double
-
+num=str2double(get(hObject,'String'));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    try
+        dt=data.opt.trj.timestep;
+        if(num>=dt)     % ... and within the correct range
+            data.opt.prior.transitionMatrix.dwellMean=num;
+            data.opt.prior.transitionMatrix.type= 'dwell_Bweight';
+        else
+            errordlg('Prior mean dwell time must be > timestep.')
+        end
+    catch
+        errordlg('Input timestep first.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 
 % --- Executes during object creation, after setting all properties.
 function Tprior_mean_edit_CreateFcn(hObject, eventdata, handles)
@@ -396,8 +452,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function Tprior_std_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to Tprior_std_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -405,7 +459,17 @@ function Tprior_std_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of Tprior_std_edit as text
 %        str2double(get(hObject,'String')) returns contents of Tprior_std_edit as a double
-
+num=str2double(get(hObject,'String'));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and within the correct range
+        data.opt.prior.transitionMatrix.dwellStd=num;
+        data.opt.prior.transitionMatrix.type= 'dwell_Bweight';
+    else
+        errordlg('Prior mean dwell std. time must be > 0.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 
 % --- Executes during object creation, after setting all properties.
 function Tprior_std_edit_CreateFcn(hObject, eventdata, handles)
@@ -419,27 +483,26 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-% --- Executes on button press in prior_misc_button.
-function prior_misc_button_Callback(hObject, eventdata, handles)
-% hObject    handle to prior_misc_button (see GCBO)
+function Dinit_range_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to Dinit_range_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-
-
-function Dinit_lower_edit_Callback(hObject, eventdata, handles)
-% hObject    handle to Dinit_lower_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of Dinit_lower_edit as text
-%        str2double(get(hObject,'String')) returns contents of Dinit_lower_edit as a double
-
+% Hints: get(hObject,'String') returns contents of Dinit_range_edit as text
+%        str2double(get(hObject,'String')) returns contents of Dinit_range_edit as a double
+num=str2num(get(hObject,'String'));
+data=guidata(hObject);
+% update if legitimate entry
+if(numel(num)==2 && prod(isfinite(num))==1 &&  0<num(1) && num(1)<num(2) )
+    data.opt.init.Drange=num;
+else
+    errordlg('D range should be two numbers satisfying 0 < D_low < D_high < inf.')
+end
+updateGUIoptions(hObject,data.opt);
 
 % --- Executes during object creation, after setting all properties.
-function Dinit_lower_edit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Dinit_lower_edit (see GCBO)
+function Dinit_range_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Dinit_range_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -531,6 +594,28 @@ function runinput_name_button_Callback(hObject, eventdata, handles)
 % hObject    handle to runinput_name_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+[filename, pathname, filterindex] = uiputfile( ...
+    {'*.m','(*.m)'}, ...
+    'Select runinput file', '');
+if(filterindex>0 )% && exist(fullfile(pathname,filename),'file') )
+    % read external runinput file
+    runinputFile=fullfile(pathname,filename);
+    % update internal options struct with newOpt
+    data=guidata(hObject);
+    data.runinputFile=runinputFile;
+    % NOTE: the localtion of the runinput file is not an options field. The
+    % approach taken here is thus to store only absolute paths in the GUI,
+    % and then convert to relative paths when the runinput file is written
+    % to disk.
+    if(numel(runinputFile)>80)
+        runinputStr=['...' runinputFile(end-80:end)];
+    else
+        runinputStr=runinputFile;
+    end
+    guidata(hObject,data);
+    set(data.runinput_name_text,'string',runinputStr);
+    
+end
 
 
 % --- Executes on button press in runinput_load_button.
@@ -557,7 +642,23 @@ function runinput_save_button_Callback(hObject, eventdata, handles)
 % hObject    handle to runinput_save_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+data=guidata(hObject);
+opt=data.opt;
+if(~isfield(data,'runinputFile'))
+   errordlg('Specify runinput file to save to.') 
+else
+    % name etc of the target runinput file
+    [RIroot,RIfile,RIext]=fileparts(data.runinputFile);
+    % specify input and output files relative to the runinput file
+    opt.trj.inputfile=SM_relative_path_to_file(RIroot,opt.trj.inputfile);
+    opt.output.outputFile=SM_relative_path_to_file(RIroot,opt.output.outputFile);
+    flag=spt.writeRuninputFile(opt,fullfile(RIroot,[RIfile RIext]) ,true);
+    if(flag<0)
+       error(['Failed to write runinput file ' fullfile(RIroot,[RIfile RIext])])
+    end
+end
+    
+    
 
 % --- Executes on button press in save_and_run_button.
 function save_and_run_button_Callback(hObject, eventdata, handles)
@@ -565,7 +666,15 @@ function save_and_run_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% first save:
+runinput_save_button_Callback(hObject, eventdata, handles);
 
+% then run
+ans=questdlg('Start vbuSPT analysis?');
+if(strcmp(ans,'Yes'))
+    data=guidata(hObject);
+    YZShmm.vbuSPTanalysis(data.runinputFile);
+end
 % --- Executes on button press in PBF_model_select_button.
 function PBF_model_select_button_Callback(hObject, eventdata, handles)
 % hObject    handle to PBF_model_select_button (see GCBO)
@@ -573,35 +682,20 @@ function PBF_model_select_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of PBF_model_select_button
-
-
+num=get(hObject,'Value');
+data=guidata(hObject);
+data.opt.modelSearch.PBF=num;
+updateGUIoptions(hObject,data.opt);
 % --- Executes on button press in MLE_parameters_button.
 function MLE_parameters_button_Callback(hObject, eventdata, handles)
 % hObject    handle to MLE_parameters_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
 % Hint: get(hObject,'Value') returns toggle state of MLE_parameters_button
-
-
-% --- Executes on button press in bootstrap_param_button.
-function bootstrap_param_button_Callback(hObject, eventdata, handles)
-% hObject    handle to bootstrap_param_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of bootstrap_param_button
-
-
-% --- Executes on button press in bootstrap_model_button.
-function bootstrap_model_button_Callback(hObject, eventdata, handles)
-% hObject    handle to bootstrap_model_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of bootstrap_model_button
-
-
+num=get(hObject,'Value');
+data=guidata(hObject);
+data.opt.modelSearch.MLEparam=num;
+updateGUIoptions(hObject,data.opt);
 
 function maxHidden_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to maxHidden_edit (see GCBO)
@@ -610,6 +704,16 @@ function maxHidden_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of maxHidden_edit as text
 %        str2double(get(hObject,'String')) returns contents of maxHidden_edit as a double
+num=round(str2double(get(hObject,'String')));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and positive number is given    
+        data.opt.modelSearch.maxHidden=num;
+    else
+        errordlg('Maximum number of states must be positive.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -633,6 +737,16 @@ function VBinitStates_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of VBinitStates_edit as text
 %        str2double(get(hObject,'String')) returns contents of VBinitStates_edit as a double
+num=round(str2double(get(hObject,'String')));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and positive number is given    
+        data.opt.modelSearch.VBinitHidden=num;
+    else
+        errordlg('Initial numer of states for model search must be positive.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -656,8 +770,16 @@ function restarts_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of restarts_edit as text
 %        str2double(get(hObject,'String')) returns contents of restarts_edit as a double
-
-
+num=round(str2double(get(hObject,'String')));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and positive number is given    
+        data.opt.modelSearch.restarts=num;
+    else
+        errordlg('Number of restarts must be positive.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function restarts_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to restarts_edit (see GCBO)
@@ -693,8 +815,16 @@ function YZww_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of YZww_edit as text
 %        str2double(get(hObject,'String')) returns contents of YZww_edit as a double
-
-
+num=round(str2num(get(hObject,'String')));
+data=guidata(hObject);
+if(prod(isfinite(num))==1) % only update if a real ...
+    if(prod(num>0)==1)     % ... and all positive numbers are given    
+        data.opt.modelSearch.YZww=num;
+    else
+        errordlg('YZ smoothing radii must be positive.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function YZww_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to YZww_edit (see GCBO)
@@ -717,17 +847,17 @@ function about_button_Callback(hObject, eventdata, handles)
 
 
 function Dinit_lower_Callback(hObject, eventdata, handles)
-% hObject    handle to Dinit_lower (see GCBO)
+% hObject    handle to Dinit_range_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of Dinit_lower as text
-%        str2double(get(hObject,'String')) returns contents of Dinit_lower as a double
+% Hints: get(hObject,'String') returns contents of Dinit_range_edit as text
+%        str2double(get(hObject,'String')) returns contents of Dinit_range_edit as a double
 
 
 % --- Executes during object creation, after setting all properties.
 function Dinit_lower_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Dinit_lower (see GCBO)
+% hObject    handle to Dinit_range_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -762,18 +892,32 @@ end
 
 
 
-function Tinit_lower_Callback(hObject, eventdata, handles)
-% hObject    handle to Tinit_lower (see GCBO)
+function Tinit_range_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to Tinit_range_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of Tinit_lower as text
-%        str2double(get(hObject,'String')) returns contents of Tinit_lower as a double
+% Hints: get(hObject,'String') returns contents of Tinit_range_edit as text
+%        str2double(get(hObject,'String')) returns contents of Tinit_range_edit as a double
+num=str2num(get(hObject,'String'));
+data=guidata(hObject);
+dt=0;
+try
+    dt=data.opt.trj.timestep;
+catch
+end
+% update if legitimate entry
+if(numel(num)==2 && prod(isfinite(num))==1 &&  dt<num(1) && num(1)<num(2) )
+    data.opt.init.Trange=num;
+else
+    errordlg('Dwell time range should be two numbers satisfying timestep < T_low < T_high < inf.')
+end
+updateGUIoptions(hObject,data.opt);
 
 
 % --- Executes during object creation, after setting all properties.
-function Tinit_lower_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Tinit_lower (see GCBO)
+function Tinit_range_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Tinit_range_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -785,18 +929,18 @@ end
 
 
 
-function Tinit_upper_Callback(hObject, eventdata, handles)
-% hObject    handle to Tinit_upper (see GCBO)
+function Tinit_upper_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to Tinit_upper_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of Tinit_upper as text
-%        str2double(get(hObject,'String')) returns contents of Tinit_upper as a double
+% Hints: get(hObject,'String') returns contents of Tinit_upper_edit as text
+%        str2double(get(hObject,'String')) returns contents of Tinit_upper_edit as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function Tinit_upper_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Tinit_upper (see GCBO)
+function Tinit_upper_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Tinit_upper_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -838,7 +982,6 @@ function Vprior_Vmean_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of Vprior_Vmean_edit as text
 %        str2double(get(hObject,'String')) returns contents of Vprior_Vmean_edit as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function Vprior_Vmean_edit_CreateFcn(hObject, eventdata, handles)
@@ -899,7 +1042,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-
 function bootstrap_samples_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to bootstrap_samples_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -908,7 +1050,16 @@ function bootstrap_samples_edit_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of bootstrap_samples_edit as text
 %        str2double(get(hObject,'String')) returns contents of bootstrap_samples_edit as a double
 
-
+num=round(str2double(get(hObject,'String')));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and positive number is given    
+        data.opt.bootstrap.bootstrapNum=num;
+    else
+        errordlg('Number of bootstrap samples must be positive.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function bootstrap_samples_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to bootstrap_samples_edit (see GCBO)
@@ -930,8 +1081,20 @@ function Vprior_strength_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of Vprior_strength_edit as text
 %        str2double(get(hObject,'String')) returns contents of Vprior_strength_edit as a double
-
-
+num=str2num(get(hObject,'String'));
+data=guidata(hObject);
+% update if legitimate entry
+if(numel(num)==1 && isfinite(num) &&  0<num )
+    data.opt.prior.positionVariance.strength= num;
+    data.opt.prior.positionVariance.type= 'median_strength';
+elseif(isempty(num))
+    % guess that the user wants to remove the entry
+    data.opt.prior.positionVariance.strength   =[];
+    data.opt.prior.positionVariance.type= 'median_strength';
+else
+    errordlg('Localization variance strength needs to be a positive number (or leave empty).');
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function Vprior_strength_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to Vprior_strength_edit (see GCBO)
@@ -944,8 +1107,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function Vprior_median_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to Vprior_median_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -953,8 +1114,21 @@ function Vprior_median_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of Vprior_median_edit as text
 %        str2double(get(hObject,'String')) returns contents of Vprior_median_edit as a double
-
-
+num=str2num(get(hObject,'String'));
+data=guidata(hObject);
+% update if legitimate entry
+if(numel(num)==1 && isfinite(num) &&  0<num )
+    % legitimate new value
+    data.opt.prior.positionVariance.v   =num;
+    data.opt.prior.positionVariance.type= 'median_strength';
+elseif(isempty(num))
+    % guess that the user wants to remove the entry
+    data.opt.prior.positionVariance.v   =[];
+    data.opt.prior.positionVariance.type= 'median_strength';
+else
+    errordlg('Localization variance needs to be a positive number (or empty entry).');
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function Vprior_median_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to Vprior_median_edit (see GCBO)
@@ -967,8 +1141,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function Bprior_weight_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to Bprior_weight_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -976,7 +1148,17 @@ function Bprior_weight_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of Bprior_weight_edit as text
 %        str2double(get(hObject,'String')) returns contents of Bprior_weight_edit as a double
-
+num =str2num(get(hObject,'String'));
+data=guidata(hObject);
+% update if legitimate entry
+if(numel(num)==1 && isfinite(num) &&  0<num )
+    data.opt.prior.transitionMatrix.Bweight = num;
+    data.opt.prior.transitionMatrix.type    = 'dwell_Bweight';
+	% 1: flat, <1: favors sparse jump matrix, >1: favors dense jump matrix
+else
+    errordlg('Localization variance needs to be a positive number.');
+end
+updateGUIoptions(hObject,data.opt);
 
 % --- Executes during object creation, after setting all properties.
 function Bprior_weight_edit_CreateFcn(hObject, eventdata, handles)
@@ -989,8 +1171,6 @@ function Bprior_weight_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function edit47_Callback(hObject, eventdata, handles)
 % hObject    handle to Tprior_std_edit (see GCBO)
@@ -1042,18 +1222,20 @@ function bootstrap_param_box_Callback(hObject, eventdata, handles)
 % hObject    handle to bootstrap_param_box (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of bootstrap_param_box
-
+num=get(hObject,'Value');
+data=guidata(hObject);
+data.opt.bootstrap.bestParam=num;
+updateGUIoptions(hObject,data.opt);
 
 % --- Executes on button press in bootstrap_model_box.
 function bootstrap_model_box_Callback(hObject, eventdata, handles)
 % hObject    handle to bootstrap_model_box (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of bootstrap_model_box
-
+num=get(hObject,'Value');
+data=guidata(hObject);
+data.opt.bootstrap.modelSelection=num;
+updateGUIoptions(hObject,data.opt);
 
 % --- Executes on button press in saveErr_box.
 function saveErr_box_Callback(hObject, eventdata, handles)
@@ -1062,8 +1244,10 @@ function saveErr_box_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of saveErr_box
-
-
+num=get(hObject,'Value');
+data=guidata(hObject);
+data.opt.conv.saveErr=num;
+updateGUIoptions(hObject,data.opt);
 
 function parTol_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to parTol_edit (see GCBO)
@@ -1072,8 +1256,16 @@ function parTol_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of parTol_edit as text
 %        str2double(get(hObject,'String')) returns contents of parTol_edit as a double
-
-
+num=str2double(get(hObject,'String'));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and positive number is given    
+        data.opt.conv.parTol=num;
+    else
+        errordlg('Parameter tolerance must be positive.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function parTol_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to parTol_edit (see GCBO)
@@ -1086,8 +1278,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function lnLTol_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to lnLTol_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1095,8 +1285,16 @@ function lnLTol_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of lnLTol_edit as text
 %        str2double(get(hObject,'String')) returns contents of lnLTol_edit as a double
-
-
+num=str2double(get(hObject,'String'));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and positive number is given    
+        data.opt.conv.lnLTol=num;
+    else
+        errordlg('lnL tolerance must be positive.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function lnLTol_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to lnLTol_edit (see GCBO)
@@ -1109,8 +1307,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function maxIter_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to maxIter_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1118,8 +1314,16 @@ function maxIter_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of maxIter_edit as text
 %        str2double(get(hObject,'String')) returns contents of maxIter_edit as a double
-
-
+num=round(str2double(get(hObject,'String')));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and positive number is given    
+        data.opt.conv.maxIter=num;
+    else
+        errordlg('Maximum number of iterations must be positive.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
 function maxIter_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to maxIter_edit (see GCBO)
@@ -1130,4 +1334,31 @@ function maxIter_edit_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes on button press in exposure_time_button.
+function exposure_time_button_Callback(hObject, eventdata, handles)
+% hObject    handle to exposure_time_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+data=guidata(hObject);
+opt=data.opt;
+
+if(isfield(opt,'trj') && isfield(opt.trj,'timestep') ...
+        && ~isempty(opt.trj.timestep) && isreal(opt.trj.timestep) )
+    dt=opt.trj.timestep;
+    answer=inputdlg('Enter exposure time (<timestep):','exposure time');
+    tE=str2double(answer{1});
+    if(~isempty(tE) )
+        if(tE>=dt)
+            errordlg('Exposure time must be smaller than the timestep.','');
+        else
+           opt.trj.shutterMean=tE/dt/2;
+           opt.trj.blurCoeff  = tE/dt/6;
+           updateGUIoptions(hObject,opt);
+        end
+    end
+else
+   errordlg('Must specify a finite timestep before computing blur coefficients from the exposure time.',...
+        'No timestep');
 end

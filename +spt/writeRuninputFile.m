@@ -13,7 +13,7 @@
 % S     : cell vector of strings, one for every line written
 % flag  : 0 = file written OK (possibly overwriting existing file) 
 %        -1 = no file written
-%        >0 = file written, olf file moved to [file '.' flag]
+%        >0 = file written, old file moved to [file '.' flag]
 % ML 2015-03-02
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

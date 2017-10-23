@@ -42,7 +42,7 @@ opt=spt.readRuninputFile(opt);
 N0=[];
 iType=[];
 % defaults
-classFun=eval(['@' opt.modelSearch.model]);
+classFun=eval(['@' opt.model.class]);
 data=[];
 YZww=opt.modelSearch.YZww;
 qYZ0={};

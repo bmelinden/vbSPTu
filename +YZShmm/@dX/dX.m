@@ -27,6 +27,8 @@ classdef dX < YZShmm.YZS0
                         [this.P0.nv,this.P0.cv]=spt.prior_inverse_gamma_mode_strength(1,P0v.v,P0v.strength);
                         %case 'inv_mean_strength'
                         %    [this.P0.nv,this.P0.cv]=spt.prior_inverse_gamma_invmean_strength(N,P0v.v,P0v.strength);
+                    case 'median_strength'
+                        [this.P0.nv,this.P0.cv]=spt.prior_inverse_gamma_median_strength(1,P0v.v,P0v.strength);
                     otherwise
                         error(['YZShmm prior.localizationVariance.type : ' P0v.type ' not recognized.'])
                 end

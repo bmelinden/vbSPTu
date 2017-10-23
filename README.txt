@@ -26,6 +26,12 @@ mle/vb : maximum likelihood estimate or variational Bayes.
 
 ---
 to do:
+
+- hard-code Pwarmup into the greedy search?
+- fill out '-' for missing opt struct fields
+- unknown prior types to updateGUIoptions: load them and write empty
+  GUI text fields?
+- make sure to update prior.XXX.type when editing priors in GUI
 - add and print license texts
 - vbuSPTanalysis: sort models 
 - initial W.P from priors: check P.wB?
