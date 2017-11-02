@@ -22,7 +22,7 @@ function varargout = usptGUI(varargin)
 
 % Edit the above text to modify the response to help usptGUI
 
-% Last Modified by GUIDE v2.5 02-Nov-2017 11:14:39
+% Last Modified by GUIDE v2.5 02-Nov-2017 16:07:43
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -823,11 +823,11 @@ function YZww_edit_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of YZww_edit as a double
 num=round(str2num(get(hObject,'String')));
 data=guidata(hObject);
-if(prod(isfinite(num))==1) % only update if a real ...
-    if(prod(num>0)==1)     % ... and all positive numbers are given    
+if(prod(isfinite(num))==1) % only update if a real ...    
+    if(prod(num>1)==1)     % ... and all positive numbers are given    
         data.opt.modelSearch.YZww=num;
     else
-        errordlg('YZ smoothing radii must be positive.')
+        errordlg('YZ smoothing radii must be >1. Try again.')
     end
 end
 updateGUIoptions(hObject,data.opt);
@@ -1439,4 +1439,41 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-%%% TBA
+% --- Executes on button press in trj_length_button.
+function trj_length_button_Callback(hObject, eventdata, handles)
+% hObject    handle to trj_length_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+data=guidata(hObject);
+opt=data.opt;
+% input files are specified with absolute path, but the runinputroot
+% field is still needed
+opt.runinputroot='';
+spt.trjLength_hist(opt,101);
+
+% --- Executes on button press in RMSE_button.
+function RMSE_button_Callback(hObject, eventdata, handles)
+% hObject    handle to RMSE_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+data=guidata(hObject);
+opt=data.opt;
+% input files are specified with absolute path, but the runinputroot
+% field is still needed
+opt.runinputroot='';
+spt.RMSE_hist(opt,102);
+
+
+% --- Executes on button press in D_filter_button.
+function D_filter_button_Callback(hObject, eventdata, handles)
+% hObject    handle to D_filter_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+data=guidata(hObject);
+opt=data.opt;
+% input files are specified with absolute path within the GUI, but the
+% runinputroot field is still needed
+opt.runinputroot='';
+
+spt.D_lin_log_hist(opt,103);

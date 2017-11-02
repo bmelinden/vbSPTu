@@ -25,12 +25,12 @@ for n=1:numel(X.i0)
         x0=X;
     end
     x0.x=X.x(ind(iyz),:);
-    x0.v=X.v(ind(iyz),:);
+    %x0.v=X.v(ind(iyz),:);
     x0.i0=1;
     x0.i1=ix(end);
     x0.T=x0.i1(end);
     x0.x(end,:)=nan;
-    x0.v(end,:)=nan;
+    %x0.v(end,:)=nan;
 
     % small model (created from W, in case of too many NaN in x0)
     w=rmfield(W,'EMexit');
@@ -63,9 +63,9 @@ for n=1:numel(X.i0)
             %x0=spt.preprocess({X.x(ind(ix),:)},{X.v(ind(ix),:)},dim);
             % shift x0 and w0 model by 1
             x0.x=X.x(ind(iyz),:);
-            x0.v=X.v(ind(iyz),:);
+            %%%x0.v=X.v(ind(iyz),:);
             x0.x(end,:)=nan;
-            x0.v(end,:)=nan;
+            %%%x0.v(end,:)=nan;
             
             if(sum(isfinite(x0.x(:,1)))>1) % then something can meaningfully be estimated
                 % moving average estimate

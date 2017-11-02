@@ -86,8 +86,13 @@ elseif(isreal(YZww)) % then compute moving average initializations
     YZmv=cell(size(YZww));
     initTime={};
     parfor k=1:numel(YZww)
+    %for k=1:numel(YZww)
         tic
-        YZmv{k}=mleYZdXt.YZinitMovingAverage(data,YZww(k),3e-2,opt.trj.shutterMean,opt.trj.blurCoeff,dt);
+        if(isfield(data,'v'))
+            YZmv{k}=mleYZdXt.YZinitMovingAverage(data,YZww(k),3e-2,opt.trj.shutterMean,opt.trj.blurCoeff,dt);
+        else
+            YZmv{k}=mleYZdXs.YZinitMovingAverage(data,YZww(k),3e-2,opt.trj.shutterMean,opt.trj.blurCoeff,dt);
+        end
         initTime{k}=toc;
     end
     initTime=[initTime{:}];

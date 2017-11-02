@@ -122,7 +122,7 @@ parfor iter=1:restarts
     WbestNiter{iter}=WbestNiter{iter}(WN<=maxHidden);
     % warning if maxHidden is too small
     if(WbestIter.numStates>=maxHidden)
-        warning(['Greedy VB search found ' int2str(WbestIter.numState) ' >= maxHidden. maxHidden = ' int2str(maxHidden) ' probably too small.'])
+        warning(['Greedy VB search found ' int2str(WbestIter.numStates) ' >= maxHidden. maxHidden = ' int2str(maxHidden) ' probably too small.'])
     end
     
     if(displayLevel>=2)
