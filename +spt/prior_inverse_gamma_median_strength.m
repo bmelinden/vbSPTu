@@ -18,8 +18,12 @@ n=strength*ones(1,N);
 c=median*(n+1); 
 
 mmFun=@(cc)(gaminv(0.5,n,cc));
+fOpt=optimset('fsolve','Display','none');
 disp('Computing inverse gamma parameters for given median value:')
-c=fsolve(@(x)(mmFun(x)-median),c);
+[c,exitFlag]=fsolve(@(x)(mmFun(x)-median),c,fOpt);
+if(exitFlag<=0)
+   error('Something wnet wrong in computing the prior median value. Check prior parameters.')
+end
 disp('---')
 
 end

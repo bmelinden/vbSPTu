@@ -85,7 +85,8 @@ save(opt.output.outputFile);
 %% pseudo-Bayes factor model selection
 if(opt.modelSearch.PBF)
     disp('starting pseudo-Bayes factor cross-validation.')
-    PBF_H=YZShmm.LOOCV(VBbestN,X,'iType','vbq','displayLevel',1);
+    %PBF_H=YZShmm.LOOCV(VBbestN,X,'iType','vbq','displayLevel',1);
+    PBF_H=YZShmm.crossValidate(VBbestN,X,'iType','vbq','Kpos',opt.modelSearch.PBFnumPos,'restarts',opt.modelSearch.PBFrestarts,'displayLevel',1);
     [~,Nbest]=max(mean(PBF_H,1));
     PBF_dlnL=mean(PBF_H-PBF_H(:,Nbest)*ones(1,size(PBF_H,2)),1);
     PBF_dlnLstdErr=std(PBF_H-PBF_H(:,Nbest)*ones(1,size(PBF_H,2)),[],1)/sqrt(size(PBF_H,1));

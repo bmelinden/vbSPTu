@@ -179,6 +179,17 @@ if( isfield(newOpt,'modelSearch') && isfield(newOpt.modelSearch,'PBF') )
     opt.modelSearch.PBF=newOpt.modelSearch.PBF;
     set(data.PBF_model_select_button,'Value',opt.modelSearch.PBF);
 end
+% number of positions in PBF validation data set
+if( isfield(newOpt,'modelSearch') && isfield(newOpt.modelSearch,'PBFnumPos') )
+    opt.modelSearch.PBFnumPos=newOpt.modelSearch.PBFnumPos;
+    set(data.PBF_numPos_edit,'string',int2str(opt.modelSearch.PBFnumPos));
+end
+% number of CV restarts in PBF cross-validation
+if( isfield(newOpt,'modelSearch') && isfield(newOpt.modelSearch,'PBFrestarts') )
+    opt.modelSearch.PBFrestarts=newOpt.modelSearch.PBFrestarts;
+    set(data.PBF_restarts_edit,'string',int2str(opt.modelSearch.PBFrestarts));
+end
+
 % compute maximum likelihood estimate (MLE) of best model parameters
 if( isfield(newOpt,'modelSearch') && isfield(newOpt.modelSearch,'MLEparam') )
     opt.modelSearch.MLEparam=newOpt.modelSearch.MLEparam;

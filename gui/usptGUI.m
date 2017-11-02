@@ -22,7 +22,7 @@ function varargout = usptGUI(varargin)
 
 % Edit the above text to modify the response to help usptGUI
 
-% Last Modified by GUIDE v2.5 23-Oct-2017 22:07:25
+% Last Modified by GUIDE v2.5 02-Nov-2017 11:14:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1376,3 +1376,63 @@ function figure1_CloseRequestFcn(hObject, eventdata, handles)
 
 % Hint: delete(hObject) closes the figure
 delete(hObject);
+
+
+
+function PBF_numPos_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to PBF_numPos_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of PBF_numPos_edit as text
+%        str2double(get(hObject,'String')) returns contents of PBF_numPos_edit as a double
+
+
+
+% --- Executes during object creation, after setting all properties.
+function PBF_numPos_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to PBF_numPos_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function PBF_restarts_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to PBF_restarts_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of PBF_restarts_edit as text
+%        str2double(get(hObject,'String')) returns contents of PBF_restarts_edit as a double
+
+num=round(str2double(get(hObject,'String')));
+data=guidata(hObject);
+if(isfinite(num) && num>0 && num==round(num) ) % only update if a real ...
+    if(num>0)     % ... and positive number is given    
+        data.opt.modelSearch.PBFnumPos=num;
+    else
+        errordlg('Number of positions must be a positive integer.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
+
+
+% --- Executes during object creation, after setting all properties.
+function PBF_restarts_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to PBF_restarts_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+%%% TBA
