@@ -800,6 +800,7 @@ function close_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 ans=questdlg('Really close the GUI?');
 if(strcmp(ans,'Yes'))
+    data=guidata(hObject);
     figure1_CloseRequestFcn(data.figure1,eventdata,handles)
 end
 
@@ -810,6 +811,7 @@ function show_results_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+warning('Functionality not implemented yet!')
 
 
 function YZww_edit_Callback(hObject, eventdata, handles)
@@ -847,7 +849,7 @@ function about_button_Callback(hObject, eventdata, handles)
 % hObject    handle to about_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+uSPTlicense('usptGUI');
 
 
 function Dinit_lower_Callback(hObject, eventdata, handles)
