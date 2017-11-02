@@ -1379,8 +1379,6 @@ function figure1_CloseRequestFcn(hObject, eventdata, handles)
 % Hint: delete(hObject) closes the figure
 delete(hObject);
 
-
-
 function PBF_numPos_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to PBF_numPos_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1389,7 +1387,14 @@ function PBF_numPos_edit_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of PBF_numPos_edit as text
 %        str2double(get(hObject,'String')) returns contents of PBF_numPos_edit as a double
 
-
+num=round(str2double(get(hObject,'String')));
+data=guidata(hObject);
+if(isfinite(num) && num>0 && num==round(num) ) % only update if a real ...
+    data.opt.modelSearch.PBFnumPos=num;
+else
+    errordlg('Size of validation data set must be a positive integer.')
+end
+updateGUIoptions(hObject,data.opt);
 
 % --- Executes during object creation, after setting all properties.
 function PBF_numPos_edit_CreateFcn(hObject, eventdata, handles)
@@ -1416,14 +1421,11 @@ function PBF_restarts_edit_Callback(hObject, eventdata, handles)
 num=round(str2double(get(hObject,'String')));
 data=guidata(hObject);
 if(isfinite(num) && num>0 && num==round(num) ) % only update if a real ...
-    if(num>0)     % ... and positive number is given    
-        data.opt.modelSearch.PBFnumPos=num;
-    else
-        errordlg('Number of positions must be a positive integer.')
-    end
+    data.opt.modelSearch.PBFrestarts=num;
+else
+    errordlg('Number of restarts must be a positive integer.')
 end
 updateGUIoptions(hObject,data.opt);
-
 
 % --- Executes during object creation, after setting all properties.
 function PBF_restarts_edit_CreateFcn(hObject, eventdata, handles)
