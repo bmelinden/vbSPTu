@@ -1,4 +1,4 @@
-function [sMaxP,sVit]=PSYconverge(this,dat,varargin)
+function [sMaxP,sVit]=converge(this,dat,varargin)
 % [sMaxP,sVit]=PSYconverge(dat,'iType',iType,'param1',value1,...) 
 %
 % Run EM iterations of type iType (see below) on the model object with data
@@ -110,7 +110,7 @@ converged_par=0;
 dPmax=inf;
 dlnLrel=inf;
 W1=this.clone();
-for r=1:+maxIter
+for r=1:maxIter
     W2=W1.clone();W1=this.clone(); % save some old steps
     if(sortModel)
         % sort in order of increasing diffusion constant
@@ -177,6 +177,7 @@ for r=1:+maxIter
         break 
     end
     EMexit.stopcondition='maxIter';
+    warning(['Maximum number of iterations reached ( ' int2str(maxIter) ' ). Consider increasing it.'])
 end
 EMexit.time=toc(EMtimer);
 % add convergence report to model struct
