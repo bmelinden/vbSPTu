@@ -89,6 +89,12 @@ if( isfield(newOpt,'trj') && isfield(newOpt.trj,'Tmin') )
     set(data.trj_min_length_edit,'String',int2str(opt.trj.Tmin));
 end
 
+% upper variance threshold
+if( isfield(newOpt,'trj') && isfield(newOpt.trj,'maxRMSE') )
+    opt.trj.maxRMSE=newOpt.trj.maxRMSE;
+    set(data.maxRMSE_edit,'String',int2str(opt.trj.maxRMSE));
+end
+
 % timestep
 if( isfield(newOpt,'trj') && isfield(newOpt.trj,'timestep') )
     opt.trj.timestep=newOpt.trj.timestep;

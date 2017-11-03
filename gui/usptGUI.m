@@ -22,7 +22,7 @@ function varargout = usptGUI(varargin)
 
 % Edit the above text to modify the response to help usptGUI
 
-% Last Modified by GUIDE v2.5 02-Nov-2017 16:07:43
+% Last Modified by GUIDE v2.5 03-Nov-2017 08:54:50
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1477,3 +1477,34 @@ opt=data.opt;
 opt.runinputroot='';
 
 spt.D_lin_log_hist(opt,103);
+
+
+
+function maxRMSE_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to maxRMSE_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of maxRMSE_edit as text
+%        str2double(get(hObject,'String')) returns contents of maxRMSE_edit as a double
+
+num=round(str2double(get(hObject,'String')));
+data=guidata(hObject);
+if( num>0 ) % positive or inf is OK
+    data.opt.trj.maxRMSE=num;
+else
+    errordlg('RMSE upper threshold must be positive number, or inf.')
+end
+updateGUIoptions(hObject,data.opt);
+
+% --- Executes during object creation, after setting all properties.
+function maxRMSE_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to maxRMSE_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

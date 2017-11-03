@@ -16,6 +16,8 @@ trj.shutterMean=tE/dt/2; % shutter mean, tau
 trj.blurCoeff  =tE/dt/6; % Berglund blur coefficient R
 trj.dim = 2;
 trj.Tmin = 5;         % minimum number of positions per trajectory >=2 is 
+trj.maxRMSE=inf;      % upper threshold on position uncertainty : only keep
+                      % data where all variances are <= trj.maxRMSE^2.
 clear dt tE
 %% model
 model.class     ='YZShmm.dXt';

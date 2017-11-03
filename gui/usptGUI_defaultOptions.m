@@ -5,6 +5,7 @@ opt.modelSearch.Pwarmup=10;
 
 % other default values/recommendations
 trj.Tmin = 5;
+trj.maxRMSE=inf;
 
 prior.diffusionCoeff.type    = 'median_strength';
 prior.diffusionCoeff.strength= 2;
@@ -28,6 +29,8 @@ modelSearch.maxHidden   = 10;
 modelSearch.VBinitHidden= 30;
 
 opt.modelSearch.PBF=false;
+modelSearch.PBFrestarts=300;
+
 opt.modelSearch.MLEparam=true;
 
 opt.bootstrap.bestParam=false;

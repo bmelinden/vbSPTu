@@ -1,12 +1,14 @@
-function [dat,X,varX,misc]=preprocess(X,varX,dim,misc,Tmin,warn)
-% [dat,X,varX,misc]=spt.preprocess(X,varX,dim,misc,Tmin,warn)
+function [dat,X,varX,misc]=preprocess(X,varX,dim,misc,Tmin,warn,maxRMSE)
+% [dat,X,varX,misc]=spt.preprocess(X,varX,dim,misc,Tmin,warn,maxRMSE)
 % [dat,X,varX,misc]=spt.preprocess(opt)
 % [dat,X,varX,misc]=spt.preprocess(runinputfile)
 %
 % Assemble single particle diffusion data for diffusive HMM analysis.
 % Input (*optional):
-% opt       : a uSPT options struct
+% opt          : a uSPT options struct
 % runinputfile : path to a uSPT runinput file 
+% In these cases the following 
+% 
 % With input of this kind, warn=true (see below), while varX,dim,misc,Tmin
 % are ignored. 
 % --
@@ -19,10 +21,16 @@ function [dat,X,varX,misc]=preprocess(X,varX,dim,misc,Tmin,warn)
 % *dim      : number of data dimensions (x,y,z,...). Default=size(X{1},2);
 % *misc     : cell vector of some other field one would like to keep track
 %             of. The row elements of each cell element are organized in
-%             the same way as the positions, for easy comparison.
+%             the same way as the positions, for easy comparison. Default
+%             [], or as specified in opt.trj.miscfield
+% *Tmin     : minimum trajectory length (x) to include. Default 2, or
+%             opt.trj.Tmin
+% *maxRMSE  : upper threshold on estimated errors. If 
+%             max(varX{k}(t,:))>maxRMSE^2, then X{k}(t,:) are treated as a
+%             missing position (default inf, or opt.trj.maxRMSE). maxRMSE
+%             is only used in explicit variance input is given.
 % *warn     : if true, display some output when trajectory data is
 %             truncated. (default true).
-% *Tmin     : minimum trajectory length (x) to include. Default 1 (all).
 %
 % output: a struct dat, with fields
 % dim       : data dimensionality (number of columns in X, varX)
@@ -35,13 +43,16 @@ function [dat,X,varX,misc]=preprocess(X,varX,dim,misc,Tmin,warn)
 %       Missing data points are indicated by NaNs in the x field, and Inf
 %       in the v field. Data outside of measured trajectories (t=T+1) are
 %       NaN. 
-% misc      : misc data array
+% misc      : struct, array, or cell vector of misc data, arranged in a
+%             format that matches X and varX, so that postprocessing
+%             comparisons can be made.
 %  
 % 
-% ML 2017-07-03
+% ML 2017-11-03
 
 % v1 : maintains missing data with an arra isPos
 % v2 : missing data indicated by NaN in positions and variances
+% v3 : including an upper threshold maxRMSE for position uncertainty 2017-11-03
 
 %% copyright notice
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,9 +84,10 @@ function [dat,X,varX,misc]=preprocess(X,varX,dim,misc,Tmin,warn)
 % first, handle the 1-input cases
 if(isstruct(X) || ischar(X))
     opt=X;
-    [X,varX,misc,dim,Tmin]=spt.readData(opt);
+    [X,varX,misc,dim,Tmin,maxRMSE]=spt.readData(opt);
 end
-
+% then put position and variance data in cell vector if not already in that
+% form
 if(isreal(X))
     X={X};
 end
@@ -87,16 +99,22 @@ if(exist('varX','var')&&~isempty(varX))
 else
     hasVarX=false;
 end
+% 
 if(~exist('dim','var')||isempty(dim))
     dim=size(X{1},2);
 end
+if(~exist('Tmin','var')||isempty(Tmin)|| Tmin<2)
+    Tmin=2;
+end
+if(~exist('maxRMSE','var')||isempty(maxRMSE))
+    maxRMSE=inf;
+end
+maxV=maxRMSE^2;
 
 if(~exist('warn','var')||isempty(warn))
     warn=true;
 end
-if(~exist('Tmin','var')||isempty(Tmin)|| Tmin<1)
-    Tmin=2;
-end
+
 
 % deal with various ways of specifing misc. variables
 if(~exist('misc','var') || isempty(misc))
@@ -153,12 +171,15 @@ for k=1:length(X)
     x=X{k};
     if(hasVarX)
         v=varX{k};
+        v(v>maxV)=inf;
+        x(v>maxV)=nan;
+        
         ip=isfinite(sum([x v],2)) & prod(v>=0,2); % check for existing data points
     else
         ip=isfinite(sum(x,2));   % check for existing data points
     end    
     % sanity check 1: remove missing data in the beginning or end of trj
-    while( ~ip(1))
+    while( ~isempty(ip) && ~ip(1) )
         hadToPrune=true;
         prunedTrjs(end+1)=k;
         x = x(2:end,:);
@@ -170,7 +191,7 @@ for k=1:length(X)
             misc{k}=misc{k}(2:end,:);
         end
     end
-    while( ~ip(end))
+    while( ~isempty(ip) &&  ~ip(end))
         hadToPrune=true;
         prunedTrjs(end+1)=k;
         x = x(1:end-1,:);
