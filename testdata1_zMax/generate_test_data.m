@@ -70,7 +70,7 @@ end
 disp('z errors complete')
 %% plot RMS histogram
 mim=struct;mim.s=s;
-X0=spt.preprocess(x,v,2,mim,5,false);
+X0=spt.preprocess(x,v,2,mim,5,false,inf);
 clear mim
 figure(1)
 clf

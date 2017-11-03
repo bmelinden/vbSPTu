@@ -132,14 +132,14 @@ elseif(isstruct(misc))
     Omisc=struct;
     for m=1:numel(miscField)
         try
-            Odat=spt.preprocess(X,varX,dim,misc.(miscField{m}),Tmin,false);
+            Odat=spt.preprocess(X,varX,dim,misc.(miscField{m}),Tmin,false,maxRMSE);
             Omisc.(miscField{m})=Odat.misc;
         catch me
             me
             error(['Could not preprocess misc field '  miscField{m} ])
         end
     end
-    [dat,X,varX]=spt.preprocess(X,varX,dim,[],Tmin,warn);
+	  [dat,X,varX]=spt.preprocess(X,varX,dim,[],Tmin,warn,maxRMSE);
     dat.misc=Omisc;
     return
 elseif(iscell(misc) && iscell(misc{1}))
@@ -148,13 +148,13 @@ elseif(iscell(misc) && iscell(misc{1}))
     Omisc=cell(size(misc));
     for m=1:numel(misc)
         try
-            Odat=spt.preprocess(X,varX,dim,misc{m},Tmin,false);
+            Odat=spt.preprocess(X,varX,dim,misc{m},Tmin,false,maxRMSE);
             Omisc{m}=Odat.misc;
         catch me
            error(['Could not preprocess misc{'  int2str(m) '}'])
         end
     end
-    [dat,X,varX]=spt.preprocess(X,varX,dim,[],Tmin,warn);
+	  [dat,X,varX]=spt.preprocess(X,varX,dim,[],Tmin,warn,maxRMSE);
     dat.misc=Omisc;
     return
 
