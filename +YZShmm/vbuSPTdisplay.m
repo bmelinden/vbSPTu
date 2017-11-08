@@ -1,7 +1,18 @@
-function [R,opt,dat]=vbuSPTdisplay(runinput)
-% [R,opt,dat]=YZShmm.vbuSPTdisplay(runinput)
+function [R,opt,dat]=vbuSPTdisplay(runinput,varargin)
+% [R,opt,dat]=YZShmm.vbuSPTdisplay(runinput,p1,v1,p2,v2,...)
 %
 % Display the results of YZShmm.vbuSPTanalysis in a standardized way
+% 
+% runinput : 1) name of runinput file, or
+%            2) options struct, or
+%            3) [] (in which case a runinput GUI asks for a runinput file)
+% p1,v1,p2,v2,...
+% Optional parameter-value pairs passed on to the displayStruct function,
+% as applied to the estimated model parameters. 
+% 
+% Example: convert D from nm^"/S to um^2/s, and display units of D, RMNerr
+% and dwellTime:
+% ...,'scale',{'D',1e-6},'units',{'D','um2/s','RMSerr','nm','dwellTime','s'}) 
 
 % get a runinput file is not given
 if(~exist('runinput','var') || isempty(runinput))
@@ -44,11 +55,9 @@ vars=fieldnames(Pest);
 vars=setdiff(vars,'dwellSteps');
 if(isfield(R,'PbestBSstd'))
     dPest=R.PbestBSstd;
-    displayStruct(Pest,'dP',dPest,'scale',{'D',1e-6},... %,'units',{'D','um2/s','RMS','nm','dwellTime','s'},...
-        'fieldName',vars,'numFormat','6.2f')
+    displayStruct(Pest,'dP',dPest,'fieldName',vars,'numFormat','6.2f',varargin{:})
 else
-    displayStruct(Pest,'scale',{'D',1e-6},... %,'units',{'D','um2/s','RMS','nm','dwellTime','s'},...
-        'fieldName',vars,'numFormat','6.2f')
+    displayStruct(Pest,'scale','fieldName',vars,'numFormat','6.2f',varargin{:})
 end
 disp('------------------------------------------------------------')
     

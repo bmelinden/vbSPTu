@@ -16,7 +16,7 @@ function P=getParameters(this,dat,iType)
 
 P=getParameters@YZShmm.YZS0(this,dat,iType);
 
-if( exist('data','var'))
+if( exist('dat','var'))
     % estimate state-wise uncertainty
     P.RMSerr=zeros(this.sample.dim,this.numStates);
     for s=1:this.numStates

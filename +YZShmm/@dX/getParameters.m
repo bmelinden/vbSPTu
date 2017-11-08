@@ -24,7 +24,7 @@ switch lower(iType)
     case 'vb'
         v=this.P.cv/(this.P.nv-1);        
     otherwise
-        error(['iType= ' iType ' not known. Use {mle,map,vb,none}.'] )
+        error(['iType= ' iType ' not known. Use {mle,map,vb}.'] )
 end
 P.RMSerr=sqrt(v)*ones(1,this.numStates);
 P.v=v;

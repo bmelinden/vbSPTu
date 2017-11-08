@@ -811,7 +811,25 @@ function show_results_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-YZShmm.vbuSPTdisplay();
+% if a runinput file exist, suggest that as default
+data=guidata(hObject);
+if(isfield(data,'runinputFile'))
+    RIdefault=data.runinputFile;
+else
+    RIdefault='runinput.m';
+end
+
+[filename, pathname, filterindex] = uigetfile( ...
+    {'*.m','(*.m)'}, ...
+    'Pick a runinput file', RIdefault);
+if(filterindex<=0 && ~exist(fullfile(pathname,filename),'file') )
+    disp('Runinput file not found, or no runinput file selected.')
+    return
+end
+runinput=fullfile(pathname,filename);
+
+% by default, we rescale the diffusion constant and add an exponent as unit
+YZShmm.vbuSPTdisplay(runinput,'scale',{'D',1e-6},'units',{'D','x 1e6'});
 
 function YZww_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to YZww_edit (see GCBO)
