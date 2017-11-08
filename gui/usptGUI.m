@@ -811,8 +811,7 @@ function show_results_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-warning('Functionality not implemented yet!')
-
+YZShmm.vbuSPTdisplay();
 
 function YZww_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to YZww_edit (see GCBO)
