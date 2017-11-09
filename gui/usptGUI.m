@@ -673,7 +673,7 @@ runinput_save_button_Callback(hObject, eventdata, handles);
 ans=questdlg('Start vbuSPT analysis?');
 if(strcmp(ans,'Yes'))
     data=guidata(hObject);
-    YZShmm.vbuSPTanalysis(data.runinputFile);
+    YZShmm.runAnalysis(data.runinputFile);
 end
 % --- Executes on button press in PBF_model_select_button.
 function PBF_model_select_button_Callback(hObject, eventdata, handles)
@@ -829,7 +829,7 @@ end
 runinput=fullfile(pathname,filename);
 
 % by default, we rescale the diffusion constant and add an exponent as unit
-YZShmm.vbuSPTdisplay(runinput,'scale',{'D',1e-6},'units',{'D','x 1e6'});
+YZShmm.displayResults(runinput,'scale',{'D',1e-6},'units',{'D','x 1e6'});
 
 function YZww_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to YZww_edit (see GCBO)

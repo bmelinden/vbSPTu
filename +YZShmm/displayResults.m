@@ -1,7 +1,7 @@
-function [R,opt,dat]=vbuSPTdisplay(runinput,varargin)
-% [R,opt,dat]=YZShmm.vbuSPTdisplay(runinput,p1,v1,p2,v2,...)
+function [R,opt,dat]=displayResults(runinput,varargin)
+% [R,opt,dat]=YZShmm.displayResults(runinput,p1,v1,p2,v2,...)
 %
-% Display the results of YZShmm.vbuSPTanalysis in a standardized way
+% Display the results of YZShmm.runAnalysis in a standardized way
 % 
 % runinput : 1) name of runinput file, or
 %            2) options struct, or
@@ -31,7 +31,7 @@ end
 opt=spt.readRuninputFile(runinput);        
         
 % read analysis results
-R=spt.readResult(opt);
+R=YZShmm.readResult(opt);
 
 % read data
 dat=spt.preprocess(runinput);
@@ -61,8 +61,8 @@ else
 end
 disp('------------------------------------------------------------')
     
-    % plot model selection
-    
+% plot model selection
+warning('Model selection plot TBA!')    
     
     
     1;

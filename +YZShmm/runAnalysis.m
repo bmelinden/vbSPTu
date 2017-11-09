@@ -1,5 +1,5 @@
-function res=vbuSPTanalysis(runinput)
-% res=YZShmm.vbuSPTanalysis(runinput)
+function res=runAnalysis(runinput)
+% res=YZShmm.runAnalysis(runinput)
 % Run an uSPT HMM analysis pipeline based on options struct parameters or
 % runinput file.
 %
@@ -122,7 +122,7 @@ if(opt.bootstrap.modelSelection)
     [~,NVBbs]=max(VB_lnLbs,[],2);
 end
 %% write results to file
-fprintf('vbuSPTanalysis finished in %.1f min, with N=%d ',toc(tAnalysis)/60,Nbest)
+fprintf('YZShmm.runAnalysis finished in %.1f min, with N=%d ',toc(tAnalysis)/60,Nbest)
 if(opt.modelSearch.PBF)
     [~,NVB]=max(VB_dlnL);
     fprintf(' (PBF, VB gave N=%d).\n',NVB);
