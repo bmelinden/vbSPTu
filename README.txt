@@ -26,7 +26,7 @@ mle/vb : maximum likelihood estimate or variational Bayes.
 
 ---
 to do:
-
+- change analysis/display method names from vbuSPTxxx -> uSPTxxx
 - create an abstract superclass to list all common core methods and
   syntax in one place?
 - hard-code Pwarmup=10 into the greedy search?
