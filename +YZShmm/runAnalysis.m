@@ -50,7 +50,7 @@ function res=runAnalysis(runinput)
 % --- bootstrap model selection
 %	VB_lnLbs    : relative VB log evidence lower bound for the VBbestN
 %                 models for each bootstrap sample.
-%   VB_lnLbsStd : standard deviation of relative VB log evidence
+%  VB_dlnLstdErr: bootstrap standard error of relative VB log evidence
 %   NVBbs       : VB-selected number of states for each bootstrap sample.
 %
 %   PBF_Hbs     : rescaled PBF. Here, bootstrapping is instead done
@@ -122,7 +122,7 @@ if(opt.bootstrap.modelSelection)
     [~,~,~,~,VB_lnLbs]=YZShmm.bootstrap(VBbestN,X,'vb',opt.bootstrap.bootstrapNum,'Dsort',true,'displayLevel',1);
     [~,NVBbs]=max(VB_lnLbs,[],2);
     VB_dlnLbs=VB_lnLbs-VB_lnLbs(:,Nbest)*ones(1,opt.modelSearch.maxHidden);
-    VB_lnLbsStd=std(VB_dlnLbs,[],1);
+    VB_dlnLstdErr=std(VB_dlnLbs,[],1);
 end
 %% write results to file
 fprintf('YZShmm.runAnalysis finished in %.1f min, with N=%d ',toc(tAnalysis)/60,Nbest)

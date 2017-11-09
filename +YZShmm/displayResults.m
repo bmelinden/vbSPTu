@@ -72,7 +72,7 @@ leg{1}='VB';
 
 if(R.opt.bootstrap.modelSelection)
     subplot(2,1,1)
-    h(1)=errorbar(NN,R.VB_dlnL,R.VB_lnLbsStd,'-k.');
+    h(1)=errorbar(NN,R.VB_dlnL,R.VB_dlnLstdErr,'-k.');
 else
     h(1)=plot(NN,R.VB_dlnL,'.k-');
 end

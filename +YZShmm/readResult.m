@@ -9,8 +9,7 @@ resultFile=fullfile(opt.runinputroot,opt.output.outputFile);
 if(exist(resultFile,'file'))
     R=load(resultFile);
 else
-    warning(['output.outputFile not found: ' opt.output.outputFile])
-    R=struct;
+    error(['output.outputFile not found: ' opt.output.outputFile])
 end
 
 
