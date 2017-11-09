@@ -33,7 +33,7 @@ opt=spt.readRuninputFile(runinput);
 % read analysis results
 R=YZShmm.readResult(opt);
 
-% read data
+%% read data
 dat=spt.preprocess(runinput);
 
 % display rough analysis and data parameters
@@ -44,7 +44,7 @@ disp(['runinput : ' opt.runinputfile ' in ' opt.runinputroot])
 disp(['results  : ' opt.output.outputFile ' in ' opt.runinputroot])
 disp('------------------------------------------------------------')
 
-% display model parameters
+%% display model parameters
 if(opt.modelSearch.MLEparam)
     disp('MLE parameters : ')
 else
@@ -60,9 +60,14 @@ else
     displayStruct(Pest,'scale','fieldName',vars,'numFormat','6.2f',varargin{:})
 end
 disp('------------------------------------------------------------')
-
+%% plot transition rates
+A0=R.Pbest.A-diag(diag(R.Pbest.A)); % transition matrix, off-diagonal part
+G=digraph(A0);
+LW=G.Edges.Weight;
+figure(201)
+plot(G,'linewidth',10*LW/max(LW),'edgelabel',LW,'nodelabel',R.Pbest.D)
+title('diffusive states and transition probabilities')
 %% plot model selection
-warning('Model selection plot TBA!')
 NN=1:R.opt.modelSearch.maxHidden;
 leg={};
 h=[];
@@ -79,7 +84,7 @@ end
 hold on
 if(R.opt.modelSearch.PBF)
     leg{2}='PBF';
-    h(2)=errorbar(NN,R.PBF_dlnL,R.PBF_dlnLstdErr,'bs-')
+    h(2)=errorbar(NN,R.PBF_dlnL,R.PBF_dlnLstdErr,'bs-');
 end
 xlabel('states')
 ylabel('\DeltalnL')
@@ -99,7 +104,7 @@ if(R.opt.bootstrap.modelSelection)
     xlabel('states')
     ylabel('freq.')
     legend(leg)
-    title('bootstrapped \#states')
+    title('bootstrapped #states')
     box on
 end
     

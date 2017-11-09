@@ -829,7 +829,7 @@ end
 runinput=fullfile(pathname,filename);
 
 % by default, we rescale the diffusion constant and add an exponent as unit
-YZShmm.displayResults(runinput,'scale',{'D',1e-6},'units',{'D','x 1e6'});
+YZShmm.displayResults(runinput);%,'scale',{'D',1e-6},'units',{'D','x 1e6'});
 
 function YZww_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to YZww_edit (see GCBO)
