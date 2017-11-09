@@ -3,7 +3,7 @@ function [R,opt]=readResult(runinput)
 % load uSPTanalysis restuls, in the .mat file out.output.outputFile
 
 % read runinput
-opt=YZShmm.readRuninputFile(runinput);
+opt=spt.readRuninputFile(runinput);
 resultFile=fullfile(opt.runinputroot,opt.output.outputFile);
 % look for output
 if(exist(resultFile,'file'))

@@ -30,7 +30,7 @@ function res=runAnalysis(runinput)
 %   VB_INlnL    : Iteration-, model size, and lnL- value for each model
 %                 encountered during the greedy search. 
 %   VB_P        : Model parameters for each entry in VB_INlnL
-% --- Pseuao-Bayes factor (PBF) results
+% --- Pseudo-Bayes factor (PBF) results
 %   PBF_H       : raw PBF from cross-validation, rescaled to the whole data
 %                 set size. 
 %   PBF_dlnL    : Mean PBF over all cross-validation instances, and offset
@@ -50,6 +50,7 @@ function res=runAnalysis(runinput)
 % --- bootstrap model selection
 %	VB_lnLbs    : relative VB log evidence lower bound for the VBbestN
 %                 models for each bootstrap sample.
+%   VB_lnLbsStd : standard deviation of relative VB log evidence
 %   NVBbs       : VB-selected number of states for each bootstrap sample.
 %
 %   PBF_Hbs     : rescaled PBF. Here, bootstrapping is instead done
@@ -120,6 +121,8 @@ if(opt.bootstrap.modelSelection)
     % bootstrap VB model selection
     [~,~,~,~,VB_lnLbs]=YZShmm.bootstrap(VBbestN,X,'vb',opt.bootstrap.bootstrapNum,'Dsort',true,'displayLevel',1);
     [~,NVBbs]=max(VB_lnLbs,[],2);
+    VB_dlnLbs=VB_lnLbs-VB_lnLbs(:,Nbest)*ones(1,opt.modelSearch.maxHidden);
+    VB_lnLbsStd=std(VB_dlnLbs,[],1);
 end
 %% write results to file
 fprintf('YZShmm.runAnalysis finished in %.1f min, with N=%d ',toc(tAnalysis)/60,Nbest)
