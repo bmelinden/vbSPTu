@@ -88,7 +88,7 @@ for r=1:N
         end
     end
 end
-
+axis off
 %% plot model selection
 NN=1:R.opt.modelSearch.maxHidden;
 leg={};
