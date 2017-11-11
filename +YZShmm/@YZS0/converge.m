@@ -176,8 +176,10 @@ for r=1:maxIter
         end
         break 
     end
-    EMexit.stopcondition='maxIter';
-    warning(['Maximum number of iterations reached ( ' int2str(maxIter) ' ). Consider increasing it.'])
+    if(r>=maxIter)
+        EMexit.stopcondition='maxIter';
+        warning(['Maximum number of iterations reached ( ' int2str(maxIter) ' ). Consider increasing it.'])
+    end
 end
 EMexit.time=toc(EMtimer);
 % add convergence report to model struct
