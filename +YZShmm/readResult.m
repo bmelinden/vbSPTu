@@ -1,5 +1,5 @@
 function [R,opt]=readResult(runinput)
-% [R,opt]=spt.readResult(runinput)
+% [R,opt]=YZShmm.readResult(runinput)
 % load uSPTanalysis restuls, in the .mat file out.output.outputFile
 
 % read runinput
@@ -9,8 +9,7 @@ resultFile=fullfile(opt.runinputroot,opt.output.outputFile);
 if(exist(resultFile,'file'))
     R=load(resultFile);
 else
-    warning(['runinput file not found: ' opt.output.outputFile])
-    R=struct;
+    error(['output.outputFile not found: ' opt.output.outputFile])
 end
 
 
