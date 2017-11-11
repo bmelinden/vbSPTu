@@ -67,13 +67,28 @@ LW=G.Edges.Weight;
 
 % reduce number of significant digits in transition weights and diffusion
 % constants
-nd=3; % number of digits in the labels
-trLabel=10.^(-nd+ceil(log10(LW))).*round(10.^(nd-ceil(log10(LW))).*LW);
-Dlabel =10.^(-nd+ceil(log10(R.Pbest.D))).*round(10.^(nd-ceil(log10(R.Pbest.D))).*R.Pbest.D);
 figure(201)
-plot(G,'linewidth',10*LW/max(LW),'edgelabel',trLabel,...
-    'nodelabel',Dlabel)
+GP=plot(G,'linewidth',10*LW/max(LW),'edgelabel',LW,...
+    'nodelabel',R.Pbest.D);
 title('diffusive states and transition probabilities')
+% improve some lables
+N=size(A0,1);
+nd=3; % number of digits in the labels
+for k=1:N
+   GP.NodeLabel{k}=['D' int2str(k) '=' num2str(R.Pbest.D(k),nd)];
+end
+
+ne=0;
+for r=1:N
+    for c=1:N
+        if(A0(r,c)>0) % then a node exists
+            ne=ne+1;
+            GP.EdgeLabel{ne}=num2str(A0(r,c),nd);
+        
+        end
+    end
+end
+
 %% plot model selection
 NN=1:R.opt.modelSearch.maxHidden;
 leg={};
