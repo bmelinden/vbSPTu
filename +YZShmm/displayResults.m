@@ -64,8 +64,15 @@ disp('------------------------------------------------------------')
 A0=R.Pbest.A-diag(diag(R.Pbest.A)); % transition matrix, off-diagonal part
 G=digraph(A0);
 LW=G.Edges.Weight;
+
+% reduce number of significant digits in transition weights and diffusion
+% constants
+nd=3; % number of digits in the labels
+trLabel=10.^(-nd+ceil(log10(LW))).*round(10.^(nd-ceil(log10(LW))).*LW);
+Dlabel =10.^(-nd+ceil(log10(R.Pbest.D))).*round(10.^(nd-ceil(log10(R.Pbest.D))).*R.Pbest.D);
 figure(201)
-plot(G,'linewidth',10*LW/max(LW),'edgelabel',LW,'nodelabel',R.Pbest.D)
+plot(G,'linewidth',10*LW/max(LW),'edgelabel',trLabel,...
+    'nodelabel',Dlabel)
 title('diffusive states and transition probabilities')
 %% plot model selection
 NN=1:R.opt.modelSearch.maxHidden;
