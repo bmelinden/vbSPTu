@@ -63,26 +63,34 @@ end
 nameFormat=['%' int2str(nameWidth) 's']; % format string for field names
 
 for f=1:numel(fieldName)
-    for r=1:size(P.(fieldName{f}),1)
-       % first column: field names
-       if(r==1)
-           fprintf([nameFormat ' : '],fieldName{f})
-       else
-           fprintf([nameFormat ' : '],'')
-       end
-       % actual numbers
-       if(~hasdP)
-           fprintf(['%' numFormat ' '],P.(fieldName{f})(r,:));
-       else
-          for c=1:size( P.(fieldName{f}),2)
-              fprintf(['%' numFormat ' +- ' '%-' numFormat ' '],P.(fieldName{f})(r,c),dP.(fieldName{f})(r,c));
-          end
-       end
-       
-       % units (if any)
-       fprintf(' %s',fieldUnit.(fieldName{f}))
-       % new line
-       fprintf('\n')
+    if(isnumeric(P.(fieldName{f})))
+        for r=1:size(P.(fieldName{f}),1)
+            % first column: field names
+            if(r==1)
+                fprintf([nameFormat ' : '],fieldName{f})
+            else
+                fprintf([nameFormat ' : '],'')
+            end
+            % actual entries
+            if(~hasdP)
+                fprintf(['%' numFormat ' '],P.(fieldName{f})(r,:));
+            else
+                for c=1:size( P.(fieldName{f}),2)
+                    fprintf(['%' numFormat ' +- ' '%-' numFormat ' '],P.(fieldName{f})(r,c),dP.(fieldName{f})(r,c));
+                end
+            end
+            
+            % units (if any)
+            fprintf(' %s',fieldUnit.(fieldName{f}))
+            % new line
+            fprintf('\n')
+        end
+    elseif(ischar(P.(fieldName{f})))
+        try
+           fprintf([nameFormat ' : %s\n'],fieldName{f},P.(fieldName{f}))
+        catch me
+           fprintf([nameFormat ' : ---\n'],fieldName{f})
+        end
     end
 end
 
