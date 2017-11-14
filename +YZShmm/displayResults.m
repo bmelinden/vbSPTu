@@ -121,10 +121,10 @@ end
 hold on
 if(R.opt.modelSearch.PBF)
     leg{2}='PBF';
-    h(2)=errorbar(NN,R.PBF.dlnL,R.PBF.bootstrap.dlnLstdErr,'bs-');
+    h(2)=errorbar(NN,R.PBF.dlnL,R.PBF.bootstrap.dlnLstdErr,'rs-','markerface','r');
 end
 xlabel('states')
-ylabel('\DeltalnL')
+ylabel('lnL-lnL_{best}')
 legend(leg)
 grid on
 title('model selection score')
@@ -136,7 +136,7 @@ if(R.opt.bootstrap.modelSelection)
     bar(NN,a/sum(a),1,'edgecol','none','facecol','k')
     if(R.opt.modelSearch.PBF)
         [a,~]=hist(R.PBF.bootstrap.numStates,NN);
-        bar(NN,a/sum(a),0.7,'edgecol','none','facecol','b')
+        bar(NN,a/sum(a),0.7,'edgecol','none','facecol','r')
     end
     xlabel('states')
     ylabel('freq.')
