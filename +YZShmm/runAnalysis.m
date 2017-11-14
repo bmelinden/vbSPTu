@@ -23,12 +23,12 @@ function R=runAnalysis(runinput)
 %   N       : number of states in W.
 % 	P       : estimated parameters in W (VB or MLE).
 % --- VB model search results from YZShmm.VBmodelSearchVariableSize
-%   R.VB.WN     : The best VB models of all sized encountered during the VB
+%   R.VB.model     : The best VB models of all sized encountered during the VB
 %                 model search, up to opt.modelSearch.maxHidden
-%   R.VB.lnL     : log evidence lower bounds of R.VB.WN.
-%   R.VB.INlnL    : Iteration-, model size, and lnL- value for each model
+%   R.VB.lnL     : log evidence lower bounds of R.VB.model.
+%   R.VB.search.INlnL    : Iteration-, model size, and lnL- value for each model
 %                 encountered during the greedy search. 
-%   R.VB.P        : Model parameters for each entry in R.VB.INlnL
+%   R.VB.search.param        : Model parameters for each entry in R.VB.search.INlnL
 % --- Pseudo-Bayes factor (PBF) results
 %   R.PBF.H       : raw PBF from cross-validation, rescaled to the whole data
 %                 set size. 
@@ -47,7 +47,7 @@ function R=runAnalysis(runinput)
 %   PBSstd  : bootstrap standard deviation of the estimated parameters,
 %                 can be used as an estimate of parameter standard error.
 % --- bootstrap model selection
-%	VB_lnLbs    : relative VB log evidence lower bound for the R.VB.WN
+%	VB_lnLbs    : relative VB log evidence lower bound for the R.VB.model
 %                 models for each bootstrap sample.
 %  VB_dlnLstdErr: bootstrap standard error of relative VB log evidence
 %   NVBbs       : VB-selected number of states for each bootstrap sample.
@@ -74,75 +74,79 @@ R.opt=opt;
 %% read data
 X=spt.preprocess(opt);
 %% test model object
-classFun=eval(['@' opt.model.class]);
+classFun=eval(['@' R.opt.model.class]);
 W=classFun(2,opt,X);
 W.Siter(X,'vb');
 clear W classFun;
-save(opt.output.outputFile,'-struct','R');
+save(R.opt.output.outputFile,'-struct','R');
 %% VB model search
 R.VB=struct;
-[R.W,R.VB.WN,R.VB.lnL,R.VB.search.INlnL,R.VB.search.P]=YZShmm.VBmodelSearchVariableSize('opt',opt,'data',X,'displayLevel',2);
-% note: by definition, R.VB.WN{k}.numStates==k.
+[R.model,R.VB.model,R.VB.lnL,R.VB.search.INlnL,R.VB.search.param]=YZShmm.VBmodelSearchVariableSize('opt',opt,'data',X,'displayLevel',2);
+% note: by definition, R.VB.model{k}.numStates==k.
 % display result of VB model selection
 R.VB.dlnL=R.VB.lnL-max(R.VB.lnL);
-R.VB.N=R.W.numStates;
-R.P=R.W.getParameters(X,'vb');
-R.N=R.W.numStates;
-save(opt.output.outputFile,'-struct','R');
+R.VB.numStates=R.model.numStates;
+R.VB.param=R.model.getParameters(X,'vb');
+R.param=R.model.getParameters(X,'vb');
+R.numStates=R.model.numStates;
+save(R.opt.output.outputFile,'-struct','R');
 %% pseudo-Bayes factor model selection
-if(opt.modelSearch.PBF)
+if(R.opt.modelSearch.PBF)
     R.PBF=struct; %%% need to be followed up
     disp('starting pseudo-Bayes factor cross-validation.')
-    %R.PBF.H=YZShmm.LOOCV(R.VB.WN,X,'iType','vbq','displayLevel',1);
-    R.PBF.H=YZShmm.crossValidate(R.VB.WN,X,'iType','vbq','numPos',opt.modelSearch.PBFnumPos,'restarts',opt.modelSearch.PBFrestarts,'displayLevel',1);
-    [~,R.PBF.N]=max(mean(R.PBF.H,1));
-    R.PBF.dlnL=mean(R.PBF.H-R.PBF.H(:,R.PBF.N)*ones(1,size(R.PBF.H,2)),1);
-    R.PBF.dlnLstdErr=std(R.PBF.H-R.PBF.H(:,R.PBF.N)*ones(1,size(R.PBF.H,2)),[],1)/sqrt(size(R.PBF.H,1));
-    W=R.VB.WN{R.PBF.N}.clone();
-    R.P=R.W.getParameters(X,'vb');
-    R.N=R.W.numStates;
-    save(opt.output.outputFile,'-struct','R');
+    %R.PBF.H=YZShmm.LOOCV(R.VB.model,X,'iType','vbq','displayLevel',1);
+    R.PBF.H=YZShmm.crossValidate(R.VB.model,X,'iType','vbq','numPos',R.opt.modelSearch.PBFnumPos,'restarts',R.opt.modelSearch.PBFrestarts,'displayLevel',1);
+    [~,R.PBF.numStates]=max(mean(R.PBF.H,1));
+    R.PBF.dlnL=mean(R.PBF.H-R.PBF.H(:,R.PBF.numStates)*ones(1,size(R.PBF.H,2)),1);
+    R.PBF.dlnLstdErr=std(R.PBF.H-R.PBF.H(:,R.PBF.numStates)*ones(1,size(R.PBF.H,2)),[],1)/sqrt(size(R.PBF.H,1));
+    W=R.VB.model{R.PBF.numStates}.clone();
+    R.param=R.model.getParameters(X,'vb');
+    R.numStates=R.model.numStates;
+    save(R.opt.output.outputFile,'-struct','R');
 end
 %% (MLE parameters for best model
-if(opt.modelSearch.MLEparam)
-    R.W.converge(X,'iType','mle');
-    R.P=R.W.getParameters(X,'mle');
-    R.W.comment=[R.W.comment '; MLE converged.'];
+if(R.opt.modelSearch.MLEparam)
+    disp('converging maximum likelihood estimates')
+    R.model.converge(X,'iType','mle');
+    R.param=R.model.getParameters(X,'mle');
+    R.model.comment=[R.model.comment '; MLE converged.'];
 end
-save(opt.output.outputFile,'-struct','R');
+save(R.opt.output.outputFile,'-struct','R');
 %% bootstrap model parameters in the best model
-if(opt.bootstrap.bestParam)
-    if(opt.modelSearch.MLEparam)
-        [R.bootstrap.P,R.bootstrap.Pmean,R.bootstrap.PstdErr]=YZShmm.bootstrap(R.W,X,'mle',opt.bootstrap.bootstrapNum);
-    elseif(opt.modelSearch.PBF)
-        [R.bootstrap.P,~,R.bootstrap.PstdErr]=YZShmm.bootstrap(R.W,X,'vb',opt.bootstrap.bootstrapNum);
+if(R.opt.bootstrap.bestParam)
+    if(R.opt.modelSearch.MLEparam)
+        [R.bootstrap.param,R.bootstrap.paramMean,R.bootstrap.paramStdErr]=YZShmm.bootstrap(R.model,X,'mle',R.opt.bootstrap.bootstrapNum);
+    elseif(R.opt.modelSearch.PBF)
+        [R.bootstrap.param,~,R.bootstrap.paramStdErr]=YZShmm.bootstrap(R.model,X,'vb',R.opt.bootstrap.bootstrapNum);
     else
-        [R.bootstrap.P,~,R.bootstrap.PstdErr]=YZShmm.bootstrap(R.W,X,'vb',opt.bootstrap.bootstrapNum);
+        [R.bootstrap.param,~,R.bootstrap.paramStdErr]=YZShmm.bootstrap(R.model,X,'vb',R.opt.bootstrap.bootstrapNum);
     end
 end
-save(opt.output.outputFile,'-struct','R');
+save(R.opt.output.outputFile,'-struct','R');
 %% bootstrap model selection
-if(opt.bootstrap.modelSelection)
-    if(opt.modelSearch.PBF)
+if(R.opt.bootstrap.modelSelection)
+    if(R.opt.modelSearch.PBF)
         % simple bootstrap of cross-validation max-mean values
-        R.PBF.bootstrap.H=bootstrp(opt.bootstrap.bootstrapNum,@(x)(mean(x,1)),R.PBF.H);
-        [~,R.PBF.bootstrap.N]=max(R.PBF.bootstrap.H,[],2);
+        lnLbs=bootstrp(R.opt.bootstrap.bootstrapNum,@(x)(mean(x,1)),R.PBF.H);
+        [~,R.PBF.bootstrap.numStates]=max(lnLbs,[],2);
+        R.PBF.bootstrap.dlnL=lnLbs-lnLbs(:,R.PBF.numStates)*ones(1,size(lnLbs,2));
+        R.PBF.bootstrap.dlnLstdErr=std(R.PBF.bootstrap.dlnL,[],1);
     end
     % bootstrap VB model selection
     disp('Bootstrapping VB model selection')
-    [R.VB.bootstrap.P,R.VB.bootstrap.Pmean,R.VB.bootstrap.PstdErr,~,R.VB.bootstrap.lnL]=YZShmm.bootstrap(R.VB.WN,X,'vb',opt.bootstrap.bootstrapNum,'Dsort',true,'displayLevel',1);
-    [~,R.VB.bootstrap.N]=max(R.VB.bootstrap.lnL,[],2);
-    dlnLbs=R.VB.bootstrap.lnL-R.VB.bootstrap.lnL(:,R.VB.N)*ones(1,opt.modelSearch.maxHidden);
-    R.VB.bootstrap.dlnLstdErr=std(dlnLbs,[],1);
+    [R.VB.bootstrap.param,R.VB.bootstrap.paramMean,R.VB.bootstrap.paramStdErr,~,R.VB.bootstrap.lnL]=YZShmm.bootstrap(R.VB.model,X,'vb',R.opt.bootstrap.bootstrapNum,'Dsort',true,'displayLevel',1);
+    [~,R.VB.bootstrap.numStates]=max(R.VB.bootstrap.lnL,[],2);
+    R.VB.bootstrap.dlnL=R.VB.bootstrap.lnL-R.VB.bootstrap.lnL(:,R.VB.numStates)*ones(1,R.opt.modelSearch.maxHidden);
+    R.VB.bootstrap.dlnLstdErr=std(R.VB.bootstrap.dlnL,[],1);
 end
 %% write results to file
-fprintf('YZShmm.runAnalysis finished in %.1f min, with N=%d ',toc(tAnalysis)/60,R.N)
-if(opt.modelSearch.PBF)
-    fprintf(' (PBF, N(VB)=%d).\n',R.VB.N);
+fprintf('YZShmm.runAnalysis finished in %.1f min, with N=%d ',toc(tAnalysis)/60,R.numStates)
+if(R.opt.modelSearch.PBF)
+    fprintf(' (PBF, N_VB=%d).\n',R.VB.numStates);
 else
     fprintf(' (VB).\n');    
 end
 clear ans tAnalysis
-save(opt.output.outputFile,'-struct','R');
-disp(['Wrote analysis results to ' opt.output.outputFile]);
+save(R.opt.output.outputFile,'-struct','R');
+disp(['Wrote analysis results to ' R.opt.output.outputFile]);
 
