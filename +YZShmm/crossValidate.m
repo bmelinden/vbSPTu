@@ -20,10 +20,13 @@ function H=crossValidate(W0,X,varargin)
 %         principled, but close to actual predictive practice, and avoids a
 %         possible cancellations between large training and full datya
 %         sets).
-% Ktrj/Kpos : size of validation data set. Ktrj specifies the number of
-%             trajectories to include, while Kpos specifies the minimum
-%             number of positions (including missing positions) to
-%             include.
+% numTrj/numPos/fracPos : size of validation data set. numTrj specifies the
+%         number of trajectories to include, numPos specifies the number of
+%         positions (including missing positions) to include, and numFrac
+%         specifies the fraction of positions (including missing data) to
+%         include. The validation sets are always in whoel trajectories.
+%         For numPos/fracPos, trajectories are drawn without replacement
+%         until the validation set size is >= than the specification.
 % restarts  : number of performance estimates to perform, each one using
 %             randomly selected validation data sets, to evaluate. Default:
 %             number of trajectories.
@@ -35,7 +38,7 @@ displayLevel=0;
 restarts=numel(X.i0);
 
 % additional input parameters
-parNames={'iType','Ktrj','Kpos','displayLevel','restarts'};
+parNames={'iType','numTrj','numPos','fracPos','displayLevel','restarts'};
 for k=1:2:numel(varargin)
     if(isempty(find(strcmp(varargin{k},parNames),1)))
         error(['Parameter ' varargin{k} ' not recognized.'])
@@ -43,20 +46,19 @@ for k=1:2:numel(varargin)
     eval([varargin{k} '=varargin{ ' int2str(k+1) '};'])
 end
 % check partition parameters
-if( exist('Ktrj','var') && ~exist('Kpos','var'))
-    doKtrj=true;
-    Ktrj=Ktrj;Kpos=[];
-    if(Ktrj<1 || Ktrj>=numel(X.T))
-        error('Need 1 <= Ktrj < number of trajectories.')
+if( exist('numTrj','var') && ~exist('numPos','var') && ~exist('fracPos','var'))
+    numTrj=numTrj;numPos=[];fracPos=[];
+    if(numTrj<1 || numTrj>=numel(X.T))
+        error('Need 1 <= numTrj < number of trajectories.')
     end
-elseif( ~exist('Ktrj','var') && exist('Kpos','var'))
-    doKtrj=false;
-    Ktrj=[];Kpos=Kpos;
-    if( Kpos <1 || Kpos > sum(X.T)-max(X.T))
-       error('Need 1 <= Kpos <= total number of positions < max(trjLength).') 
+elseif( ~exist('numTrj','var') && exist('numPos','var') && ~exist('fracPos','var'))
+    doNumTrj=false;
+    numTrj=[];numPos=numPos;fracPos=[];
+    if( numPos <1 || numPos > sum(X.T)-max(X.T))
+       error('Need 1 <= numPos <= total number of positions < max(trjLength).') 
     end
 else
-    error('Must one (and only one) of Ktrj or Kpos.')
+    error('Must one (and only one) of numTrj or numPos.')
 end
 
 % put W0 in cell vector if not already 
@@ -74,18 +76,24 @@ end
 Hiter=cell(1,restarts);
 % dirty fix to make parfor remember iType (is this a parfor bug?).
 iType=iType;
-
 % loop over data partitions
 parfor iter=1:restarts
 %%%for iter=1:restarts
     Hiter{iter}=zeros(1,numel(W0));
+    iiVal=[];
     % partition data set and models
-    if(doKtrj)
-        iiVal=randperm(numel(X.i0),Ktrj);
-    else
+    if(~isempty(numTrj))
+        iiVal=randperm(numel(X.i0),numTrj);
+    elseif(~isempty(numPos))
         iiVal= randperm(numel(X.i0));
         Tii=cumsum(X.T(iiVal));
-        iiVal=iiVal(1:find(Tii>=Kpos,1));
+        iiVal=iiVal(1:find(Tii>=numPos,1));
+    elseif(~isempty(fracPos))
+        iiVal= randperm(numel(X.i0));
+        Tii=cumsum(X.T(iiVal));
+        iiVal=iiVal(1:find( Tii/Tii(end)>=fracPos,1));        
+    else
+        error('Size of validation set (numTrj/numPos/fracPos) not specified.')
     end
     if(isempty(iiVal))
         error(['Empty validation set in iteration ' int2str(iter)]);

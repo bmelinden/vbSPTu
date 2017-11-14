@@ -1,5 +1,5 @@
-function [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(varargin)
-% [Wbest,WbestN,dlnL,INlnL,P,YZmv]=YZShmm.VBmodelSearchVariableSize('P1',P1,...)
+function [Wbest,WbestN,lnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(varargin)
+% [Wbest,WbestN,lnL,INlnL,P,YZmv]=YZShmm.VBmodelSearchVariableSize('P1',P1,...)
 %
 % Input parameters are given as parameter-value pairs on the form
 % 'parameter',parameter (case sensitive):
@@ -26,8 +26,7 @@ function [Wbest,WbestN,dlnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(varargin)
 % Wbest : the best converged model
 % WbestN: best converged models of each size ( or a struct with field
 %         lnL=-inf, if the search did not get to small enough model sizes).
-% dlnL  : The highest lnL-values for each model size, relative to the
-%         overall best value. dlnL=nan for model sizes not encountered.
+% lnL   : The highest lnL-values for each model size.
 % INlnL : Iteration-, model size, and lnL- value for each model encountered
 %         during the greedy search. 
 % P     : Parameter struct (using the getParameters method) for each model
@@ -136,7 +135,7 @@ INlnL=[];
 P=[];
 Wbest=struct('lnL',-inf);
 WbestN=cell(1,maxHidden);
-dlnL=nan(1,maxHidden);
+lnL=nan(1,maxHidden);
 for k=1:maxHidden
     WbestN{k}=struct('lnL',-inf);
 end
@@ -192,12 +191,12 @@ for iter=1:restarts
             end
             if(isempty(WbestN{w.numStates}) || w.lnL>WbestN{w.numStates}.lnL)
                 WbestN{w.numStates}=w.clone();
-                dlnL(w.numStates)=w.lnL;
+                lnL(w.numStates)=w.lnL;
             end
         end
     end
 end
-dlnL=dlnL-max(dlnL);
+%dlnL=dlnL-max(dlnL);
 if(displayLevel>=1)
     if(bestIter>0)
         disp([datestr(now) ' : VBmodelSearch converged with ' int2str(Wbest.numStates) ' states, from iter ' int2str(bestIter) '. Total run time ' num2str(toc(tstart)/60,2) ' min.'])

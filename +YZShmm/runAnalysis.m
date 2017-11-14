@@ -1,5 +1,5 @@
-function res=runAnalysis(runinput)
-% res=YZShmm.runAnalysis(runinput)
+function R=runAnalysis(runinput)
+% R=YZShmm.runAnalysis(runinput)
 % Run an uSPT HMM analysis pipeline based on options struct parameters or
 % runinput file.
 %
@@ -15,48 +15,48 @@ function res=runAnalysis(runinput)
 % 	opt         : the options struct produced by runinput
 %   X           : preprocessed data
 % --- selected model 
-%   Wbest       : selected model, by the variational Bayes (VB) or
+%   W       : selected model, by the variational Bayes (VB) or
 %                 pseudo-Bayes factor (PBF) criterion, depending on
 %                 opt.modelSearch.PBF. If opt.modelSearch.MLEparam=true,
-%                 Wbest is a converged maximum likelihood estimate
+%                 W is a converged maximum likelihood estimate
 %                 (otherwise variational Bayes).
-%   Nbest       : number of states in Wbest.
-% 	Pbest       : estimated parameters in Wbest (VB or MLE).
+%   N       : number of states in W.
+% 	P       : estimated parameters in W (VB or MLE).
 % --- VB model search results from YZShmm.VBmodelSearchVariableSize
-%   VBbestN     : The best VB models of all sized encountered during the VB
+%   R.VB.WN     : The best VB models of all sized encountered during the VB
 %                 model search, up to opt.modelSearch.maxHidden
-%   VB_dlnL     : log evidence lower bounds of VBbestN, relative to the
-%                 best model
-%   VB_INlnL    : Iteration-, model size, and lnL- value for each model
+%   R.VB.lnL     : log evidence lower bounds of R.VB.WN.
+%   R.VB.INlnL    : Iteration-, model size, and lnL- value for each model
 %                 encountered during the greedy search. 
-%   VB_P        : Model parameters for each entry in VB_INlnL
+%   R.VB.P        : Model parameters for each entry in R.VB.INlnL
 % --- Pseudo-Bayes factor (PBF) results
-%   PBF_H       : raw PBF from cross-validation, rescaled to the whole data
+%   R.PBF.H       : raw PBF from cross-validation, rescaled to the whole data
 %                 set size. 
-%   PBF_dlnL    : Mean PBF over all cross-validation instances, and offset
+%   R.PBF.dlnL    : Mean PBF over all cross-validation instances, and offset
 %                 relative to the best model
-%   PBF_dlnLstdErr: standard error (standard deviation / sqrt(number of
-%                 cross-validations) ) for PBF_dlnL.
+%   R.PBF.dlnLstdErr: standard error (standard deviation / sqrt(number of
+%                 cross-validations) ) for R.PBF.dlnL.
 % --- bootstrap parameters: bootstrap resampling is done by at the
 %                 trajectory level so that the resampled data sets have the
 %                 same number of trajectories (but not necessarily the
 %                 exact same number of positions) as the original data X.
-%   PbestBS     : bootstrap parameters for Wbest (VB or MLE, depending on
+%   PBS     : bootstrap parameters for W (VB or MLE, depending on
 %                 opt.modelSearch.MLEparam), organized so that
-%                 PbestBS.XXX(:,:,j) is the estimated parameters from
+%                 PBS.XXX(:,:,j) is the estimated parameters from
 %                 bootstrap sample j.
-%   PbestBSstd  : bootstrap standard deviation of the estimated parameters,
+%   PBSstd  : bootstrap standard deviation of the estimated parameters,
 %                 can be used as an estimate of parameter standard error.
 % --- bootstrap model selection
-%	VB_lnLbs    : relative VB log evidence lower bound for the VBbestN
+%	VB_lnLbs    : relative VB log evidence lower bound for the R.VB.WN
 %                 models for each bootstrap sample.
 %  VB_dlnLstdErr: bootstrap standard error of relative VB log evidence
 %   NVBbs       : VB-selected number of states for each bootstrap sample.
 %
-%   PBF_Hbs     : rescaled PBF. Here, bootstrapping is instead done
-%                 directly on PBF_H without reconverging any model on
+%   R.PBF.Hbs     : rescaled PBF. Here, bootstrapping is instead done
+%                 directly on R.PBF.H without reconverging any model on
 %                 bootstrapped trajectories.
-%   NPBFbs      : number of states selected by the cross-validated PBF.
+%   R.PBF.Nbs      : number of states selected by the bootstrapped PBF (max
+%                    N on each row of R.PBF.Hbs).
 %
 % The distributions of NVBbs and NPBFbs can be used to estimated the
 % statistical uncertainty in the model selection.
@@ -67,8 +67,10 @@ function res=runAnalysis(runinput)
 warning('need to print license information here!')
 
 tAnalysis=tic;
-%% get options
+%% get options and initiate results
 opt=spt.readRuninputFile(runinput);
+R=struct;
+R.opt=opt;
 %% read data
 X=spt.preprocess(opt);
 %% test model object
@@ -76,71 +78,71 @@ classFun=eval(['@' opt.model.class]);
 W=classFun(2,opt,X);
 W.Siter(X,'vb');
 clear W classFun;
-save(opt.output.outputFile);
+save(opt.output.outputFile,'-struct','R');
 %% VB model search
-[Wbest,VBbestN,VB_dlnL,VB_INlnL,VB_P]=YZShmm.VBmodelSearchVariableSize('opt',opt,'data',X,'displayLevel',2);
-% note: by definition, VBbestN{k}.numStates==k.
+R.VB=struct;
+[R.W,R.VB.WN,R.VB.lnL,R.VB.search.INlnL,R.VB.search.P]=YZShmm.VBmodelSearchVariableSize('opt',opt,'data',X,'displayLevel',2);
+% note: by definition, R.VB.WN{k}.numStates==k.
 % display result of VB model selection
-Nbest=Wbest.numStates;
-save(opt.output.outputFile);
+R.VB.dlnL=R.VB.lnL-max(R.VB.lnL);
+R.VB.N=R.W.numStates;
+R.P=R.W.getParameters(X,'vb');
+R.N=R.W.numStates;
+save(opt.output.outputFile,'-struct','R');
 %% pseudo-Bayes factor model selection
 if(opt.modelSearch.PBF)
+    R.PBF=struct; %%% need to be followed up
     disp('starting pseudo-Bayes factor cross-validation.')
-    %PBF_H=YZShmm.LOOCV(VBbestN,X,'iType','vbq','displayLevel',1);
-    PBF_H=YZShmm.crossValidate(VBbestN,X,'iType','vbq','Kpos',opt.modelSearch.PBFnumPos,'restarts',opt.modelSearch.PBFrestarts,'displayLevel',1);
-    [~,Nbest]=max(mean(PBF_H,1));
-    PBF_dlnL=mean(PBF_H-PBF_H(:,Nbest)*ones(1,size(PBF_H,2)),1);
-    PBF_dlnLstdErr=std(PBF_H-PBF_H(:,Nbest)*ones(1,size(PBF_H,2)),[],1)/sqrt(size(PBF_H,1));
-    Wbest=VBbestN{Nbest}.clone();
-    save(opt.output.outputFile);
+    %R.PBF.H=YZShmm.LOOCV(R.VB.WN,X,'iType','vbq','displayLevel',1);
+    R.PBF.H=YZShmm.crossValidate(R.VB.WN,X,'iType','vbq','numPos',opt.modelSearch.PBFnumPos,'restarts',opt.modelSearch.PBFrestarts,'displayLevel',1);
+    [~,R.PBF.N]=max(mean(R.PBF.H,1));
+    R.PBF.dlnL=mean(R.PBF.H-R.PBF.H(:,R.PBF.N)*ones(1,size(R.PBF.H,2)),1);
+    R.PBF.dlnLstdErr=std(R.PBF.H-R.PBF.H(:,R.PBF.N)*ones(1,size(R.PBF.H,2)),[],1)/sqrt(size(R.PBF.H,1));
+    W=R.VB.WN{R.PBF.N}.clone();
+    R.P=R.W.getParameters(X,'vb');
+    R.N=R.W.numStates;
+    save(opt.output.outputFile,'-struct','R');
 end
-%% MLE parameters for best model
+%% (MLE parameters for best model
 if(opt.modelSearch.MLEparam)
-    Wbest.converge(X,'iType','mle');    
-    Pbest=Wbest.getParameters(X,'mle');
-else
-    Pbest=Wbest.getParameters(X,'iType','vb');
+    R.W.converge(X,'iType','mle');
+    R.P=R.W.getParameters(X,'mle');
+    R.W.comment=[R.W.comment '; MLE converged.'];
 end
-save(opt.output.outputFile);
+save(opt.output.outputFile,'-struct','R');
 %% bootstrap model parameters in the best model
 if(opt.bootstrap.bestParam)
     if(opt.modelSearch.MLEparam)
-        [PbestBS,~,PbestBSstd]=YZShmm.bootstrap(Wbest,X,'mle',opt.bootstrap.bootstrapNum);
-    else        
-        [PbestBS,~,PbestBSstd]=YZShmm.bootstrap(Wbest,X,'vb',opt.bootstrap.bootstrapNum);
-    end    
+        [R.bootstrap.P,R.bootstrap.Pmean,R.bootstrap.PstdErr]=YZShmm.bootstrap(R.W,X,'mle',opt.bootstrap.bootstrapNum);
+    elseif(opt.modelSearch.PBF)
+        [R.bootstrap.P,~,R.bootstrap.PstdErr]=YZShmm.bootstrap(R.W,X,'vb',opt.bootstrap.bootstrapNum);
+    else
+        [R.bootstrap.P,~,R.bootstrap.PstdErr]=YZShmm.bootstrap(R.W,X,'vb',opt.bootstrap.bootstrapNum);
+    end
 end
-save(opt.output.outputFile);
+save(opt.output.outputFile,'-struct','R');
 %% bootstrap model selection
 if(opt.bootstrap.modelSelection)
     if(opt.modelSearch.PBF)
         % simple bootstrap of cross-validation max-mean values
-        PBF_Hbs=bootstrp(opt.bootstrap.bootstrapNum,@(x)(mean(x,1)),PBF_H);
-        [~,NPBFbs]=max(PBF_Hbs,[],2);
+        R.PBF.bootstrap.H=bootstrp(opt.bootstrap.bootstrapNum,@(x)(mean(x,1)),R.PBF.H);
+        [~,R.PBF.bootstrap.N]=max(R.PBF.bootstrap.H,[],2);
     end
     % bootstrap VB model selection
-    [~,~,~,~,VB_lnLbs]=YZShmm.bootstrap(VBbestN,X,'vb',opt.bootstrap.bootstrapNum,'Dsort',true,'displayLevel',1);
-    [~,NVBbs]=max(VB_lnLbs,[],2);
-    VB_dlnLbs=VB_lnLbs-VB_lnLbs(:,Nbest)*ones(1,opt.modelSearch.maxHidden);
-    VB_dlnLstdErr=std(VB_dlnLbs,[],1);
+    disp('Bootstrapping VB model selection')
+    [R.VB.bootstrap.P,R.VB.bootstrap.Pmean,R.VB.bootstrap.PstdErr,~,R.VB.bootstrap.lnL]=YZShmm.bootstrap(R.VB.WN,X,'vb',opt.bootstrap.bootstrapNum,'Dsort',true,'displayLevel',1);
+    [~,R.VB.bootstrap.N]=max(R.VB.bootstrap.lnL,[],2);
+    dlnLbs=R.VB.bootstrap.lnL-R.VB.bootstrap.lnL(:,R.VB.N)*ones(1,opt.modelSearch.maxHidden);
+    R.VB.bootstrap.dlnLstdErr=std(dlnLbs,[],1);
 end
 %% write results to file
-fprintf('YZShmm.runAnalysis finished in %.1f min, with N=%d ',toc(tAnalysis)/60,Nbest)
+fprintf('YZShmm.runAnalysis finished in %.1f min, with N=%d ',toc(tAnalysis)/60,R.N)
 if(opt.modelSearch.PBF)
-    [~,NVB]=max(VB_dlnL);
-    fprintf(' (PBF, VB gave N=%d).\n',NVB);
-    clear NVB;
+    fprintf(' (PBF, N(VB)=%d).\n',R.VB.N);
 else
     fprintf(' (VB).\n');    
 end
 clear ans tAnalysis
-save(opt.output.outputFile);
+save(opt.output.outputFile,'-struct','R');
 disp(['Wrote analysis results to ' opt.output.outputFile]);
-
-% save output to struct
-vv=whos;
-res=struct;
-for m=1:length(vv)
-    res.(vv(m).name)=eval(vv(m).name);    
-end
 
