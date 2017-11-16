@@ -22,7 +22,7 @@ function varargout = usptGUI(varargin)
 
 % Edit the above text to modify the response to help usptGUI
 
-% Last Modified by GUIDE v2.5 03-Nov-2017 08:54:50
+% Last Modified by GUIDE v2.5 15-Nov-2017 13:57:54
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1396,26 +1396,26 @@ function figure1_CloseRequestFcn(hObject, eventdata, handles)
 % Hint: delete(hObject) closes the figure
 delete(hObject);
 
-function PBF_numPos_edit_Callback(hObject, eventdata, handles)
-% hObject    handle to PBF_numPos_edit (see GCBO)
+function PBF_fracPos_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to PBF_fracPos_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of PBF_numPos_edit as text
-%        str2double(get(hObject,'String')) returns contents of PBF_numPos_edit as a double
+% Hints: get(hObject,'String') returns contents of PBF_fracPos_edit as text
+%        str2double(get(hObject,'String')) returns contents of PBF_fracPos_edit as a double
 
-num=round(str2double(get(hObject,'String')));
+num=str2double(get(hObject,'String'));
 data=guidata(hObject);
-if(isfinite(num) && num>0 && num==round(num) ) % only update if a real ...
-    data.opt.modelSearch.PBFnumPos=num;
+if(isfinite(num) && num>0 && num<1 ) % only update if a real ...
+    data.opt.modelSearch.PBFfracPos=num;
 else
-    errordlg('Size of validation data set must be a positive integer.')
+    errordlg('Relative size of validation data set must be between 0 and 1.')
 end
 updateGUIoptions(hObject,data.opt);
 
 % --- Executes during object creation, after setting all properties.
-function PBF_numPos_edit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to PBF_numPos_edit (see GCBO)
+function PBF_fracPos_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to PBF_fracPos_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1525,3 +1525,48 @@ function maxRMSE_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in Vprior_plot_button.
+function Vprior_plot_button_Callback(hObject, eventdata, handles)
+% hObject    handle to Vprior_plot_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in Tprior_push_button.
+function Tprior_push_button_Callback(hObject, eventdata, handles)
+% hObject    handle to Tprior_push_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in Bprior_plot_button.
+function Bprior_plot_button_Callback(hObject, eventdata, handles)
+% hObject    handle to Bprior_plot_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in Dprior_plot_button.
+function Dprior_plot_button_Callback(hObject, eventdata, handles)
+% hObject    handle to Dprior_plot_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+data=guidata(hObject);
+Dprior=data.opt.prior.diffusionCoeff;
+dt=data.opt.trj.timestep;
+if(   isfield(Dprior,'D')        && ~isempty(Dprior.D) ...
+   && isfield(Dprior,'strength') && ~isempty(Dprior.strength))
+    [n,c]=spt.prior_inverse_gamma_median_strength(1,2*Dprior.D*dt,Dprior.strength);
+    cD=c/2/dt;
+    Dmode=cD/(n+1); % prior mode value
+    lnp0=@(x)(n*log(cD)-gammaln(n)-(n+1)*log(x)-cD./x);
+    %D1=fsolve(@(dd)(lnp0(dd)+10),Dmode);
+    DD=logspace(-3*log10(Dmode),log10(D1),1000);
+    DD=Dmode*logspace(-3,3,1000);    
+    
+    
+    
+end
+    

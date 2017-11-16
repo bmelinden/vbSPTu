@@ -57,8 +57,14 @@ elseif( ~exist('numTrj','var') && exist('numPos','var') && ~exist('fracPos','var
     if( numPos <1 || numPos > sum(X.T)-max(X.T))
        error('Need 1 <= numPos <= total number of positions < max(trjLength).') 
     end
+    elseif( ~exist('numTrj','var') && ~exist('numPos','var') && exist('fracPos','var'))
+    doNumTrj=false;
+    numTrj=[];numPos=[];fracPos=fracPos;
+    if( fracPos <=0 || fracPos >= 1)
+       error('Need 0 < fracPos < 1.') 
+    end
 else
-    error('Must one (and only one) of numTrj or numPos.')
+    error('Must have one (and only one) of numTrj/numPos/fracPos.')
 end
 
 % put W0 in cell vector if not already 

@@ -34,10 +34,15 @@ prior.initialState.type = 'flat';
 %prior.initialState.type = 'natmet13';
 %prior.initialState.strength = 10;
 
-prior.transitionMatrix.type  = 'dwell_Bweight';
+prior.transitionMatrix.type  = 'dwellRelStd_Bweight';
 prior.transitionMatrix.dwellMean= 10*trj.timestep;
-prior.transitionMatrix.dwellStd =100*trj.timestep;
+prior.transitionMatrix.dwellRelStd=10;
 prior.transitionMatrix.Bweight  =1; % 1: flat, <1: favors sparse jump matrix, >1: favors dense jump matrix
+
+%prior.transitionMatrix.type  = 'dwell_Bweight';
+%prior.transitionMatrix.dwellMean= 10*trj.timestep;
+%prior.transitionMatrix.dwellStd =100*trj.timestep;
+%prior.transitionMatrix.Bweight  =1; % 1: flat, <1: favors sparse jump matrix, >1: favors dense jump matrix
 %prior.transitionMatrix.type  = 'dwell_Bflat';
 %prior.transitionMatrix.dwellMean = 10*trj.timestep;   % prior dwell time in [s]. Must be greater than timestep (recommended > 2*timestep)
 %prior.transitionMatrix.dwellStd  = 100*trj.timestep;  % standard deviation of prior dwell times [s]. 

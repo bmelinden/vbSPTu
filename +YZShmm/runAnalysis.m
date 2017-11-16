@@ -95,7 +95,8 @@ if(R.opt.modelSearch.PBF)
     R.PBF=struct; %%% need to be followed up
     disp('starting pseudo-Bayes factor cross-validation.')
     %R.PBF.H=YZShmm.LOOCV(R.VB.model,X,'iType','vbq','displayLevel',1);
-    R.PBF.H=YZShmm.crossValidate(R.VB.model,X,'iType','vbq','numPos',R.opt.modelSearch.PBFnumPos,'restarts',R.opt.modelSearch.PBFrestarts,'displayLevel',1);
+    %R.PBF.H=YZShmm.crossValidate(R.VB.model,X,'iType','vbq','numPos',R.opt.modelSearch.PBFnumPos,'restarts',R.opt.modelSearch.PBFrestarts,'displayLevel',1);
+    R.PBF.H=YZShmm.crossValidate(R.VB.model,X,'iType','vbq','fracPos',R.opt.modelSearch.PBFfracPos,'restarts',R.opt.modelSearch.PBFrestarts,'displayLevel',1);
     [~,R.PBF.numStates]=max(mean(R.PBF.H,1));
     R.PBF.dlnL=mean(R.PBF.H-R.PBF.H(:,R.PBF.numStates)*ones(1,size(R.PBF.H,2)),1);
     R.PBF.dlnLstdErr=std(R.PBF.H-R.PBF.H(:,R.PBF.numStates)*ones(1,size(R.PBF.H,2)),[],1)/sqrt(size(R.PBF.H,1));

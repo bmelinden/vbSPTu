@@ -186,9 +186,9 @@ if( isfield(newOpt,'modelSearch') && isfield(newOpt.modelSearch,'PBF') )
     set(data.PBF_model_select_button,'Value',opt.modelSearch.PBF);
 end
 % number of positions in PBF validation data set
-if( isfield(newOpt,'modelSearch') && isfield(newOpt.modelSearch,'PBFnumPos') )
-    opt.modelSearch.PBFnumPos=newOpt.modelSearch.PBFnumPos;
-    set(data.PBF_numPos_edit,'string',int2str(opt.modelSearch.PBFnumPos));
+if( isfield(newOpt,'modelSearch') && isfield(newOpt.modelSearch,'PBFfracPos') )
+    opt.modelSearch.PBFfracPos=newOpt.modelSearch.PBFfracPos;
+    set(data.PBF_fracPos_edit,'string',num2str(opt.modelSearch.PBFfracPos));
 end
 % number of CV restarts in PBF cross-validation
 if( isfield(newOpt,'modelSearch') && isfield(newOpt.modelSearch,'PBFrestarts') )
@@ -264,21 +264,25 @@ if( isfield(newOpt,'prior')  && isfield(newOpt.prior,'diffusionCoeff')  ...
     end
 end
 % mean dwell time prior
+prior.transitionMatrix.type  = 'dwellRelStd_Bweight';
+prior.transitionMatrix.dwellRelStd=10;
+prior.transitionMatrix.Bweight  =1; % 1: flat, <1: favors sparse jump matrix, >1: favors dense jump matrix
+
 if( isfield(newOpt,'prior')  && isfield(newOpt.prior,'transitionMatrix')  ...
         && isfield(newOpt.prior.transitionMatrix,'type'))
-    if(~strcmp(newOpt.prior.transitionMatrix.type,'dwell_Bweight') )
+    if(~strcmp(newOpt.prior.transitionMatrix.type,'dwellRelStd_Bweight') )
         warning(['GUI cannot handle prior.transitionMatrix.type = ' newOpt.prior.transitionMatrix.type '. Ignoring.'])
     else
-        opt.prior.transitionMatrix.type='dwell_Bweight';
+        opt.prior.transitionMatrix.type='dwellRelStd_Bweight';
         % mean dwell time mean
         if( isfield(newOpt.prior.transitionMatrix,'dwellMean') )
             opt.prior.transitionMatrix.dwellMean=newOpt.prior.transitionMatrix.dwellMean;
             set(data.Tprior_mean_edit,'String',num2str(opt.prior.transitionMatrix.dwellMean));
         end
-        % mean dwell time std
-        if( isfield(newOpt.prior.transitionMatrix,'dwellStd') )
-            opt.prior.transitionMatrix.dwellStd=newOpt.prior.transitionMatrix.dwellStd;
-            set(data.Tprior_std_edit,'String',num2str(opt.prior.transitionMatrix.dwellStd));
+        % mean dwell time std in units of the mean value
+        if( isfield(newOpt.prior.transitionMatrix,'dwellRelStd') )
+            opt.prior.transitionMatrix.dwellRelStd=newOpt.prior.transitionMatrix.dwellRelStd;
+            set(data.Tprior_std_edit,'String',num2str(opt.prior.transitionMatrix.dwellRelStd));
         end
         % B-weight
         if( isfield(newOpt.prior.transitionMatrix,'Bweight') )
