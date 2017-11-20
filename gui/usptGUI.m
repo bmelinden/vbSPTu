@@ -22,7 +22,7 @@ function varargout = usptGUI(varargin)
 
 % Edit the above text to modify the response to help usptGUI
 
-% Last Modified by GUIDE v2.5 15-Nov-2017 13:57:54
+% Last Modified by GUIDE v2.5 20-Nov-2017 23:10:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -430,13 +430,14 @@ if(isfinite(num)) % only update if a real ...
         dt=data.opt.trj.timestep;
         if(num>=dt)     % ... and within the correct range
             data.opt.prior.transitionMatrix.dwellMean=num;
-            data.opt.prior.transitionMatrix.type= 'dwell_Bweight';
+            data.opt.prior.transitionMatrix.type= 'dwellRelStd_Bweight';
         else
             errordlg('Prior mean dwell time must be > timestep.')
         end
     catch
+        set(hObject,'String',[]);
         errordlg('Input timestep first.')
-    end
+    end    
 end
 updateGUIoptions(hObject,data.opt);
 
@@ -463,8 +464,8 @@ num=str2double(get(hObject,'String'));
 data=guidata(hObject);
 if(isfinite(num)) % only update if a real ...
     if(num>0)     % ... and within the correct range
-        data.opt.prior.transitionMatrix.dwellStd=num;
-        data.opt.prior.transitionMatrix.type= 'dwell_Bweight';
+        data.opt.prior.transitionMatrix.dwellRelStd=num;
+        data.opt.prior.transitionMatrix.type= 'dwellRelStd_Bweight';%dwell_Bweight';
     else
         errordlg('Prior mean dwell std. time must be > 0.')
     end
@@ -996,30 +997,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function Vprior_Vmean_edit_Callback(hObject, eventdata, handles)
-% hObject    handle to Vprior_Vmean_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of Vprior_Vmean_edit as text
-%        str2double(get(hObject,'String')) returns contents of Vprior_Vmean_edit as a double
-
-% --- Executes during object creation, after setting all properties.
-function Vprior_Vmean_edit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Vprior_Vmean_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
 function Vprior_Vstrength_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to Vprior_Vstrength_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1027,6 +1004,7 @@ function Vprior_Vstrength_edit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of Vprior_Vstrength_edit as text
 %        str2double(get(hObject,'String')) returns contents of Vprior_Vstrength_edit as a double
+warning('TBA')
 
 
 % --- Executes during object creation, after setting all properties.
@@ -1040,30 +1018,6 @@ function Vprior_Vstrength_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function edit41_Callback(hObject, eventdata, handles)
-% hObject    handle to shutter_mean_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of shutter_mean_edit as text
-%        str2double(get(hObject,'String')) returns contents of shutter_mean_edit as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit41_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to shutter_mean_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
 
 function bootstrap_samples_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to bootstrap_samples_edit (see GCBO)
@@ -1109,11 +1063,11 @@ data=guidata(hObject);
 % update if legitimate entry
 if(numel(num)==1 && isfinite(num) &&  0<num )
     data.opt.prior.positionVariance.strength= num;
-    data.opt.prior.positionVariance.type= 'median_strength';
+    data.opt.prior.positionVariance.type='median_strength';
 elseif(isempty(num))
     % guess that the user wants to remove the entry
     data.opt.prior.positionVariance.strength   =[];
-    data.opt.prior.positionVariance.type= 'median_strength';
+    data.opt.prior.positionVariance.type='median_strength';
 else
     errordlg('Localization variance strength needs to be a positive number (or leave empty).');
 end
@@ -1130,31 +1084,31 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function Vprior_median_edit_Callback(hObject, eventdata, handles)
-% hObject    handle to Vprior_median_edit (see GCBO)
+function Vprior_RMSEmedian_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to Vprior_RMSEmedian_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of Vprior_median_edit as text
-%        str2double(get(hObject,'String')) returns contents of Vprior_median_edit as a double
+% Hints: get(hObject,'String') returns contents of Vprior_RMSEmedian_edit as text
+%        str2double(get(hObject,'String')) returns contents of Vprior_RMSEmedian_edit as a double
 num=str2num(get(hObject,'String'));
 data=guidata(hObject);
 % update if legitimate entry
 if(numel(num)==1 && isfinite(num) &&  0<num )
     % legitimate new value
-    data.opt.prior.positionVariance.v   =num;
-    data.opt.prior.positionVariance.type= 'median_strength';
+    data.opt.prior.positionVariance.v   =num^2;
+    data.opt.prior.positionVariance.type='median_strength';
 elseif(isempty(num))
     % guess that the user wants to remove the entry
     data.opt.prior.positionVariance.v   =[];
-    data.opt.prior.positionVariance.type= 'median_strength';
+    data.opt.prior.positionVariance.type='median_strength';
 else
     errordlg('Localization variance needs to be a positive number (or empty entry).');
 end
 updateGUIoptions(hObject,data.opt);
 % --- Executes during object creation, after setting all properties.
-function Vprior_median_edit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Vprior_median_edit (see GCBO)
+function Vprior_RMSEmedian_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Vprior_RMSEmedian_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1526,28 +1480,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-% --- Executes on button press in Vprior_plot_button.
-function Vprior_plot_button_Callback(hObject, eventdata, handles)
-% hObject    handle to Vprior_plot_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in Tprior_push_button.
-function Tprior_push_button_Callback(hObject, eventdata, handles)
-% hObject    handle to Tprior_push_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in Bprior_plot_button.
-function Bprior_plot_button_Callback(hObject, eventdata, handles)
-% hObject    handle to Bprior_plot_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
 % --- Executes on button press in Dprior_plot_button.
 function Dprior_plot_button_Callback(hObject, eventdata, handles)
 % hObject    handle to Dprior_plot_button (see GCBO)
@@ -1555,18 +1487,196 @@ function Dprior_plot_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 data=guidata(hObject);
 Dprior=data.opt.prior.diffusionCoeff;
-dt=data.opt.trj.timestep;
 if(   isfield(Dprior,'D')        && ~isempty(Dprior.D) ...
-   && isfield(Dprior,'strength') && ~isempty(Dprior.strength))
-    [n,c]=spt.prior_inverse_gamma_median_strength(1,2*Dprior.D*dt,Dprior.strength);
-    cD=c/2/dt;
-    Dmode=cD/(n+1); % prior mode value
-    lnp0=@(x)(n*log(cD)-gammaln(n)-(n+1)*log(x)-cD./x);
-    %D1=fsolve(@(dd)(lnp0(dd)+10),Dmode);
-    DD=logspace(-3*log10(Dmode),log10(D1),1000);
-    DD=Dmode*logspace(-3,3,1000);    
+   && isfield(Dprior,'strength') && ~isempty(Dprior.strength) ...
+   &&  isfield(Dprior,'type') && strcmp(Dprior.type,'median_strength')==true )
+
+    [n,c]=spt.prior_inverse_gamma_median_strength(1,Dprior.D,Dprior.strength);    
     
+    lnp0=@(x)(n*log(c)-gammaln(n)-(n+1)*log(x)-c./x);
+    Dmode=c/(n+1); % prior mode value    
+    DD=logspace(log10(Dmode)-3,log10(Dprior.D)+3,1000);
     
+    figure(104)
+    clf
+    subplot(2,1,1)
+    hold on
+    plot(DD,exp(lnp0(DD)            ),'k')
+    plot(Dprior.D,exp(lnp0(Dprior.D)),'mo')
+    set(gca,'xscale','lin')
+    xlabel('D')
+    ylabel('\rho(D)')
+    box on
+    title('diffusion constant prior distribution')    
+    legend('\rho_0(D)','median')
     
+    subplot(2,1,2)
+    Dmode=c/n; % prior mode value    
+    DD=logspace(log10(Dmode)-2,log10(Dprior.D)+4,1000);
+    hold on
+    plot(DD,exp(lnp0(DD)            +log(DD)),'k')
+    plot(Dprior.D,exp(lnp0(Dprior.D)+log(Dprior.D)),'mo')
+
+    set(gca,'xscale','log')
+    xlabel('D')
+    ylabel('\rho(log D)')
+    box on
+    title('log(D) prior ')
+    legend('\rho_0(log D)','median')
+    
+else
+    errordlg(['Diffusion const. prior not completely specified (or of wrong type)'],...
+       'Error plotting D prior.')
+end
+
+% --- Executes on button press in Vprior_plot_button.
+function Vprior_plot_button_Callback(hObject, eventdata, handles)
+% hObject    handle to Vprior_plot_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+data=guidata(hObject);
+Vprior=data.opt.prior.positionVariance;
+if(   isfield(Vprior,'v')        && ~isempty(Vprior.v) ...
+   && isfield(Vprior,'strength') && ~isempty(Vprior.strength) ...
+   && isfield(Vprior,'type') && strcmp(Vprior.type,'median_strength'))
+
+    [nV,cV]=spt.prior_inverse_gamma_median_strength(1,Vprior.v,Vprior.strength);
+    
+    figure(106)
+    clf
+    subplot(2,2,1)
+    hold on
+    % variance prior
+    lnp0=@(x)(nV*log(cV)-gammaln(nV)-(nV+1)*log(x)-cV./x);
+    Vmode=cV/(nV+1);
+    VV=logspace(log10(Vmode)-2,log10(Vprior.v)+2,1000);
+
+    plot(VV,exp(lnp0(VV)),'k')
+    plot(Vprior.v,exp(lnp0(Vprior.v)),'mo')
+
+    set(gca,'xscale','lin')
+    xlabel('position variance v  [length^2]')
+    ylabel('\rho(v)')
+    box on
+    title('position variance (v) prior distribution')
+    axis([VV([1 end]) 0 1.05*exp(lnp0(Vmode))])
+    
+    subplot(2,2,3)
+    hold on
+    Vmode=cV/nV;
+    VV=logspace(log10(Vmode)-1,log10(Vprior.v)+3,1000);
+    
+    plot(VV,exp(lnp0(VV)            +log(VV)),'k')
+    plot(Vprior.v,exp(lnp0(Vprior.v)+log(Vprior.v)),'mo')
+
+    set(gca,'xscale','log')
+    xlabel('position variance v [length^2]')
+    ylabel('\rho(log v)')
+    box on
+    title('log(v) prior ')
+    legend('\rho_0(log v)','median')
+    axis([VV([1 end]) 0 1.05*exp(lnp0(Vmode)+log(Vmode))])
+    
+        
+    % RMSE=sqrt(v) prior
+    RMSEmedian=sqrt(Vprior.v);
+    lnp0=@(x)(nV*log(cV)-gammaln(nV)-(2*nV+1)*log(x)-cV./x.^2);
+    RMSEmode=sqrt(cV/(nV+0.5));
+    VV=logspace(log10(RMSEmode)-2,log10(RMSEmedian)+2,1000);
+
+    subplot(2,2,2)
+    hold on
+    plot(VV,exp(lnp0(VV)),'k')
+    plot(RMSEmedian,exp(lnp0(RMSEmedian)),'mo')
+    xlabel('RMS error r [length]')
+    ylabel('\rho(r)')
+    box on
+    title('RMSE prior distribution')
+    set(gca,'xscale','lin')
+    axis([VV([1 end]) 0 1.05*exp(lnp0(RMSEmode))])
+    
+    subplot(2,2,4)
+    RMSEmode=sqrt(cV/nV);
+    VV=logspace(log10(RMSEmode)-1,log10(RMSEmedian)+3,1000);
+    
+    hold on
+    plot(VV,exp(lnp0(VV)+log(VV)),'k')
+    plot(RMSEmedian,exp(lnp0(RMSEmedian)+log(RMSEmedian)),'mo')
+    xlabel('RMS error r [length]')
+    ylabel('\rho(log r)')
+    box on
+    title('log(RMSE) prior distribution')
+    set(gca,'xscale','log')
+    legend('\rho_0(log RMSE)','median')
+
+    axis([VV([1 end]) 0 1.05*exp(lnp0(RMSEmode)+log(RMSEmode))])
+    
+end
+
+% --- Executes on button press in Tprior_plot_button.
+function Tprior_plot_button_Callback(hObject, eventdata, handles)
+% hObject    handle to Tprior_plot_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+data=guidata(hObject);
+Tprior=data.opt.prior.transitionMatrix;
+if(isfield(Tprior,'dwellMean') && isfield(data.opt.trj,'timestep'))
+    dt=data.opt.trj.timestep;    
+    % set Bweight=1 since it is not used anyway
+    wa=spt.prior_transition_dwellRelStd_Bweight(2,...
+        Tprior.dwellMean/dt,Tprior.dwellRelStd,1);
+    wa1=wa(1,1);
+    wa2=wa(1,2);
+    wa0=wa1+wa2;
+    
+    figure(105)
+    clf
+    subplot(2,1,1)
+    lnp0=@(x)(log(dt)+gammaln(wa1)+gammaln(wa2)-gammaln(wa0)-wa0*log(x/dt)+(wa2-1)*log(x/dt-1));
+    TT=linspace(dt,10*Tprior.dwellMean*Tprior.dwellRelStd,1000);
+    hold on
+    plot(TT,exp(lnp0(TT)))
+    plot(dt*[1 1],[0 max(exp(lnp0(TT)))],'k:')
+    xlabel('mean dwell time \tau [time]')
+    ylabel('\rho_0(\tau)')
+    title('mean dwell time prior')
+    legend('\rho_0(\tau)','\Delta t')
+    
+    subplot(2,1,2)
+    lnp0=@(x)(log(dt)+gammaln(wa1)+gammaln(wa2)-gammaln(wa0)-wa0*log(x/dt)+(wa2-1)*log(x/dt-1)+log(x/dt));
+    TT=logspace(log10(dt*1.001),2+log10(Tprior.dwellMean*Tprior.dwellRelStd),1000);
+    hold on
+    plot(TT,exp(lnp0(TT)))
+    plot(dt*[1 1],[0 max(exp(lnp0(TT)))],'k:')
+    xlabel('mean dwell time \tau [time]')
+    ylabel('\rho_0(log \tau)')
+    title('log(\tau) prior')
+    set(gca,'xscale','log')
+    legend('\rho_0(log \tau)','\Delta t')
+else
+    errordlg('Input time step and mean mean dwell time first.')
+end
+
+% --- Executes on button press in Bprior_plot_button.
+function Bprior_plot_button_Callback(hObject, eventdata, handles)
+% hObject    handle to Bprior_plot_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% --- Executes on button press in class_help_button.
+function class_help_button_Callback(hObject, eventdata, handles)
+% hObject    handle to class_help_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+data=guidata(hObject);
+opt=data.opt;
+
+if(~isfield(opt,'model') || isempty(opt.model.class))
+    errordlg('Select a model class first.')
+else
+    H=help(opt.model.class);
+    helpdlg(H,opt.model.class);
 end
     

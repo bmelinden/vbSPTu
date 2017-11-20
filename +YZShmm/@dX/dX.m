@@ -1,6 +1,7 @@
 classdef dX < YZShmm.YZS0
-    % a hidden diffusive HMM with externally estimated point-wise
-    % localization errors
+    % A hidden diffusive HMM where the localization error (variance, same
+    % for all points) is a fit variable. Point-wise localization variances
+    % in data are not used.
     properties
     end
     methods

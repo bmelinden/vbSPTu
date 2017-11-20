@@ -1,6 +1,6 @@
 classdef dXt < YZShmm.YZS0
     % a hidden diffusive HMM with externally estimated point-wise
-    % localization errors 
+    % localization errors (variances), i.e., in-data is [x(t), v(t)].
     properties
     end
     methods

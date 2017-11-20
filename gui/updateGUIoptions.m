@@ -301,7 +301,7 @@ if( isfield(newOpt,'prior')  && isfield(newOpt.prior,'positionVariance')  ...
         % median value
         if( isfield(newOpt.prior.positionVariance,'v') )
             opt.prior.positionVariance.v=newOpt.prior.positionVariance.v;
-            set(data.Vprior_median_edit,'String',num2str(opt.prior.positionVariance.v));
+            set(data.Vprior_RMSEmedian_edit,'String',num2str(sqrt(opt.prior.positionVariance.v)));
         end
         % strength
         if( isfield(newOpt.prior.positionVariance,'strength') )

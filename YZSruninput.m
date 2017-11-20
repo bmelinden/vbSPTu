@@ -23,11 +23,11 @@ clear dt tE
 model.class     ='YZShmm.dXt';
 %% Prior distributions
 % Diffusion constants
-%prior.diffusionCoeff.type    = 'mean_strength';
-%prior.diffusionCoeff.type    = 'mode_strength';
-prior.diffusionCoeff.type    = 'median_strength';
-prior.diffusionCoeff.D    = 0.1e6;       % prior diffusion constant [length^2/time] in same length units as the input data.
-prior.diffusionCoeff.strength= 2;        % strength of diffusion constant prior, number of pseudocounts (positive).
+%prior.diffusionCoeff.type = 'mean_strength';
+%prior.diffusionCoeff.type = 'mode_strength';
+prior.diffusionCoeff.type  = 'median_strength';
+prior.diffusionCoeff.D     = 0.1e6; % prior diffusion constant [length^2/time] in same length units as the input data.
+prior.diffusionCoeff.strength= 1;   % strength of diffusion constant prior, number of pseudocounts (positive).
 
 % initial state distribution
 prior.initialState.type = 'flat';
