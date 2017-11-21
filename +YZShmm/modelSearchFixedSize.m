@@ -1,5 +1,5 @@
 function [Wbest,YZmv,lnL,initMethod,convTime,initTime]=modelSearchFixedSize(varargin)
-% [Wbest,lnL,initMethod,convTime,initTime,YZmv]=modelSearchFixedSize('P1',P1,...)
+% [Wbest,YZmv,lnL,initMethod,convTime,initTime]=modelSearchFixedSize('P1',P1,...)
 %
 % Input parameters are given as parameter-value pairs on the form
 % 'parameter',parameter (case sensitive). 
@@ -77,6 +77,7 @@ else % use rough SNR instead
     X0.v=1e-6*mean(median(diff(X0.x).^2,'omitnan'))*ones(size(X0.x));
     X0.v(isnan(X0.x))=nan;
 end
+
 % precompute moving average q(Y,Z) distributions
 if(~exist('YZww','var') || isempty(YZww))
     YZww=[];
@@ -122,8 +123,8 @@ if(restarts<=0)
     lnL=[];
     convTime=[];
 elseif(restarts>0)
-    parfor r=1:restarts
-    %%%for r=1:restarts
+    %%%parfor r=1:restarts
+    for r=1:restarts
         %%%for r=1:restarts
         V0=classFun(N0,opt,data); % model, data, and initial parameter guess
         initMethod{r}={};
@@ -161,6 +162,40 @@ elseif(restarts>0)
             V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
+        %% YZnbe2: start w YZdata, no blur or error
+         if(false) % work in progress, buggy!!!
+            m=m+1;tic;
+            initMethod{r}{m}='YZnbe2';
+            % first one conergence round with small errors in the data
+            opt0=opt;
+            opt0.trj.shutterMean=1e-2;
+            opt0.trj.blurCoeff=1e-2/3;
+            V1=classFun(N0,opt0,X0);
+            %V1.sample.shutterMean=0;
+            %V1.sample.blurCoeff=0;
+            V1.YZ.varZ=zeros(size(V1.YZ.varZ));
+            V1.YZ.varY=zeros(size(V1.YZ.varY));
+            
+            V1.Siter(X0,iType);
+            V1.converge(X0,'displayLevel',displayLevel-2,'Dsort',false,'iType',iType,'PSYfixed',3);
+            V=V0.clone(); % now go back to original data
+            V.S=V1.S;
+            V.P=V1.P;
+            V.YZiter(data,iType);
+            V.Piter(data,iType);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
+            WlnL{r}{m}=V.lnL;
+            V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
+            if(V.lnL>W{r}.lnL)
+                W{r}=V;
+            end
+            WCtime{r}{m}=toc;
+            if(displayLevel>=2)
+                V.EMexit.init=V.comment;
+                disp(V.EMexit);
+                disp('----------')
+            end
+        end
             if(V.lnL>W{r}.lnL)
                 W{r}=V;
             end
@@ -231,39 +266,24 @@ elseif(restarts>0)
         end
         %% YZnbeInit: start w YZdata but with low error and blur
         m=m+1;tic;
-        initMethod{r}{m}='SPnbe';
+        initMethod{r}{m}='YZnbe';
         % first one conergence round with small errors in the data
         opt0=opt;
-        opt0.shutterMean=1e-2;
-        opt0.blurCoeff=1e-2/3;
+        opt0.trj.shutterMean=1e-2;
+        opt0.trj.blurCoeff=1e-2/3;
         V1=classFun(N0,opt0,X0);
+        V1.YZ.varZ=zeros(size(V1.YZ.varZ));
+        V1.YZ.varY=zeros(size(V1.YZ.varY));
+            
         V1.Siter(X0,iType);
-        V1.converge(X0,'displayLevel',displayLevel-2,'Dsort',false,'iType',iType);
+        % converge with fixed YZ model with no variances
+        V1.converge(X0,'displayLevel',displayLevel-2,'Dsort',false,'iType',iType,'PSYfixed',3)%,'PSYwarmup',25);
         V=V0.clone(); % now go back to original data
-        V.S=V1.S;
+        V.S=V1.S;     % but keep hidden states and parameters from V1
         V.P=V1.P;
         V.YZiter(data,iType);
         V.Piter(data,iType);
-        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[0 0 0],'iType',iType);
-        WlnL{r}{m}=V.lnL;
-        V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
-        if(V.lnL>W{r}.lnL)
-            W{r}=V;
-        end
-        WCtime{r}{m}=toc;
-        if(displayLevel>=2)
-            V.EMexit.init=V.comment;
-            disp(V.EMexit);
-            disp('----------')
-        end
-        %% YZnbeInit: start w YZdata but with low error and blur, reser params
-        m=m+1;tic;
-        initMethod{r}{m}='Snbe';
-        V=V0.clone();
-        V.S=V0.S;
-        V.YZiter(data,iType);
-        V.Piter(data,iType);
-        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[0 0 0],'iType',iType);
+        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
         WlnL{r}{m}=V.lnL;
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)

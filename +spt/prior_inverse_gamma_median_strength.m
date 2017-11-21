@@ -22,6 +22,7 @@ n=strength;
 % normalized median of gamma distribution
 um=gammaincinv(0.5,n,'upper');
 c=xMedian*um*ones(1,N);
+n=n*ones(1,N);
 
 if(false) % verify numerically
     rr=1./gamrnd(n,1/c*ones(1,1e6)); % 
