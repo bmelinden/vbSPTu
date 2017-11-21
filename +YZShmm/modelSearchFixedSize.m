@@ -123,8 +123,8 @@ if(restarts<=0)
     lnL=[];
     convTime=[];
 elseif(restarts>0)
-    %%%parfor r=1:restarts
-    for r=1:restarts
+    parfor r=1:restarts
+    %%%for r=1:restarts
         %%%for r=1:restarts
         V0=classFun(N0,opt,data); % model, data, and initial parameter guess
         initMethod{r}={};
