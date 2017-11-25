@@ -20,6 +20,7 @@ function H=crossValidate(W0,X,varargin)
 %         principled, but close to actual predictive practice, and avoids a
 %         possible cancellations between large training and full datya
 %         sets).
+%         We recommend 'vbQ' as a robust default choice.
 % numTrj/numPos/fracPos : size of validation data set. numTrj specifies the
 %         number of trajectories to include, numPos specifies the number of
 %         positions (including missing positions) to include, and numFrac
