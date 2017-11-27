@@ -40,7 +40,7 @@ switch lower(iType)
         B=rowNormalize(this.P.wB);
         P.A=diag(a(:,2))+diag(a(:,1))*B;
         lambda=this.P.c./(this.P.n-1);
-        P.Dmode=this.P.c./(this.P.n+1)/2/this.sample.timestep; % posterior mode        
+        P.Dmode=this.P.c./(this.P.n+1)/2/this.sample.timestep; % posterior mode 
         dwellSteps =reshape(1./a(:,1),1,this.numStates);
     otherwise
         error(['iType= ' iType ' not known. Use {mle,map,vb,none}.'] )
