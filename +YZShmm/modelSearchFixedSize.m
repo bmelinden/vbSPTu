@@ -1,5 +1,5 @@
-function [Wbest,YZmv,lnL,initMethod,convTime,initTime]=modelSearchFixedSize(varargin)
-% [Wbest,YZmv,lnL,initMethod,convTime,initTime]=modelSearchFixedSize('P1',P1,...)
+function [Wbest,YZmv,lnL,initMethod,convTime,initTime,Wall]=modelSearchFixedSize(varargin)
+% [Wbest,YZmv,lnL,initMethod,convTime,initTime,Wall]=modelSearchFixedSize('P1',P1,...)
 %
 % Input parameters are given as parameter-value pairs on the form
 % 'parameter',parameter (case sensitive). 
@@ -32,6 +32,9 @@ function [Wbest,YZmv,lnL,initMethod,convTime,initTime]=modelSearchFixedSize(vara
 % convTime  : convergence times of all initialization attempts.
 % initTime  : preprocessing time for the various initialization methods
 %             (only non-zero for moving average YZ models).
+% Wall      : all converged models considered in the fit. This is a memory
+%             intensive output, and not recommended if the number of
+%             restarts is large.
 
 %% parameters and default values
 % get options
@@ -67,6 +70,12 @@ clear W;
 % more parameters
 Pwarmup=opt.modelSearch.Pwarmup;
 dt=opt.trj.timestep;
+% Wall output requested or not?
+if(nargout>=7)
+    doWall=true;
+else
+    doWall=false;
+end
 %% start computing
 
 % small variance data
@@ -112,26 +121,31 @@ if(~isempty(qYZ0))
 else
     qYZ0={};
 end
-
-% independent restarts
+%% independent restarts
 W=cell(1,restarts);
 WlnL=cell(1,restarts);
 WCtime=cell(1,restarts);
+Wallrm=cell(1,restarts);
 initMethod={};
 if(restarts<=0)
     Wbest=struct;
     lnL=[];
     convTime=[];
+    if(doWall)
+        Wall={};
+    end
 elseif(restarts>0)
-    parfor r=1:restarts
-    %%%for r=1:restarts
-        %%%for r=1:restarts
+    %%%parfor r=1:restarts
+    for r=1:restarts
         V0=classFun(N0,opt,data); % model, data, and initial parameter guess
         initMethod{r}={};
         m=0;
         W{r}=struct('lnL',-inf);
         WlnL{r}={};
         WCtime{r}={};
+        if(doWall)
+            Wallrm{r}={};
+        end
         %% YZfilter
         for k=1:numel(YZww)
             m=m+1;tic;
@@ -144,6 +158,9 @@ elseif(restarts>0)
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
             if(V.lnL>W{r}.lnL)
                 W{r}=V;
+            end
+            if(doWall)
+                Wallrm{r}{m}=V.clone();
             end
             WCtime{r}{m}=toc;
             if(displayLevel>=2)
@@ -162,8 +179,12 @@ elseif(restarts>0)
             V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
+            if(doWall)
+                Wallrm{r}{m}=V.clone();
+            end
+        end
         %% YZnbe2: start w YZdata, no blur or error
-         if(false) % work in progress, buggy!!!
+        if(false) % work in progress, buggy!!!
             m=m+1;tic;
             initMethod{r}{m}='YZnbe2';
             % first one conergence round with small errors in the data
@@ -195,7 +216,7 @@ elseif(restarts>0)
                 disp(V.EMexit);
                 disp('----------')
             end
-        end
+            
             if(V.lnL>W{r}.lnL)
                 W{r}=V;
             end
@@ -218,6 +239,9 @@ elseif(restarts>0)
             if(V.lnL>W{r}.lnL)
                 W{r}=V;
             end
+            if(doWall)
+                Wallrm{r}{m}=V.clone();
+            end
             if(displayLevel>=2)
                 V.EMexit.init=V.comment;
                 disp(V.EMexit);
@@ -239,6 +263,9 @@ elseif(restarts>0)
         if(V.lnL>W{r}.lnL)
             W{r}=V;
         end
+        if(doWall)
+            Wallrm{r}{m}=V.clone();
+        end
         WCtime{r}{m}=toc;
         if(displayLevel>=2)
             V.EMexit.init=V.comment;
@@ -257,6 +284,9 @@ elseif(restarts>0)
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
             W{r}=V;
+        end
+        if(doWall)
+            Wallrm{r}{m}=V.clone();
         end
         WCtime{r}{m}=toc;
         if(displayLevel>=2)
@@ -288,6 +318,9 @@ elseif(restarts>0)
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
             W{r}=V;
+        end
+        if(doWall)
+            Wallrm{r}{m}=V.clone();
         end
         WCtime{r}{m}=toc;
         if(displayLevel>=2)
@@ -323,6 +356,15 @@ elseif(restarts>0)
     Wbest=Wbest.clone(); % sewer ties to earlier models
     if(displayLevel>0)
         fprintf('modelSearch done. Init %s, round %d.\n',initMethod{bestInit},bestIter);
+    end
+    if(doWall)
+        Wall={};
+        m=0;
+        for r=1:restarts
+           for m=1:numel(Wallrm{r})
+              Wall{end+1}=Wallrm{r}{m};
+           end
+        end
     end
 end
 % to do: save correlation btw method and lnL

@@ -143,7 +143,7 @@ classdef YZS0 < handle
                 elseif(isfield(opt,'init') && isfield(opt.init,'Trange') && ~isempty(opt.init.Trange))
                     n_init=(opt.init.Trange(1)+diff(opt.init.Trange)*rand(this.numStates,1))/opt.trj.timestep;
                     a_init=[1./n_init 1-1./n_init];
-                    B_init=ones(this.numStates)-eye(this.numStates);
+                    B_init=dirrnd(this.P0.wB);%ones(this.numStates)-eye(this.numStates);
                     A_init=diag(a_init(:,2))+diag(a_init(:,1))*B_init;
                 else % sample from the prior
                     a_init=dirrnd(this.P0.wa);  % <a> = a_init(:,1) = prob(s(t+1)~=s(t))
