@@ -5,6 +5,26 @@ R  =this.sample.blurCoeff;
 switch lower(iType)
     case 'mle'
         [wPi,wa,wB,n,c]=YZShmm.P0AD_sumStats(this.YZ,this.S,tau,R);
+        % gentle regularization of unoccupied t=0
+        if(~isempty(find(wPi==0, 1)))            
+            wPi=wPi+eps;
+        end
+        % gentle regularization of un-occupied states
+        wAemptyRows=find((sum(wa,2)==0))';
+        if(~isempty(wAemptyRows)) % regularization with no new transitions
+            wa(wAemptyRows,:)=eps;
+        end
+        wBemptyRows=find((sum(wB,2)==0))';
+        if(~isempty(wBemptyRows)) % regularization with no new transitions
+            wB(wBemptyRows,:)=eps;
+            wB=wB.*(1-eye(size(wB)));
+        end
+        % diffusion const. regularization: D(unoccupied) -> infty
+        wDempty=find(n==0)';
+        if(~isempty(wDempty))
+           n(wDempty)=10*eps; % eps is ~smallest double in matlab
+           c(wDempty)=1e100*eps;
+        end
         this.P.wPi=wPi;
         this.P.wa =wa;
         this.P.wB =wB;

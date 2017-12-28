@@ -1,18 +1,20 @@
-function [dlnLrel,sMaxP,sVit]=Siter(this,dat,iType)
-% [dlnLrel,sMaxP,sVit]=Siter(dat,iType)
+function [dlnLrel,dlnLterms,sMaxP,sVit]=Siter(this,dat,iType)
+% [dlnLrel,dlnLterms,sMaxP,sVit]=Siter(dat,iType)
 % update the variational hidden state distribution
 %
 % dat   : spt.preprocess data struct 
 % iType : type of iteration {'mle','map','vb'}
 %
 % dlnLrel : relative change in log likelihood/lower bound
+% dlnLterms: relative change in this.lnLterms, various contributions to
+%            this.lnL
 % sMaxP   : sequence of most likely states
 % sVit    : Viterbi path, most likely sequence of states. Note that the
 % 
 % sMaxP, sVit require some extra computing, and are therefore only computed
 % when asked for. 
 
-% ML 2017-09-01
+% ML 2017-12-27
 
 tau=this.sample.shutterMean;
 R  =this.sample.blurCoeff;
@@ -20,7 +22,10 @@ R  =this.sample.blurCoeff;
 % only in computing the parameter counts (i.e., adding
 % prior pseudocounts or not).
 lnL0=this.lnL;
-
+lnL0terms=this.lnLterms;
+if(isempty(lnL0terms))
+    lnL0terms=-inf(1,8);
+end
 switch lower(iType)
     case 'mle'
         lnp0=log(rowNormalize(this.P.wPi));
@@ -32,21 +37,21 @@ switch lower(iType)
         lnV=log(v);
         iV=1./v;
         % iType dependent contributions to lnL
-        lnL1=0;
+        lnLp=[];
     case 'map'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.MAPlogPar_P0AD(this.P.wPi,this.P.wa,this.P.wB,this.P.c,this.P.n);
         v=this.P.cv./(this.P.nv+1);
         lnV=log(v)*ones(1,this.numStates);
         iV=1./v*ones(1,this.numStates);        
         % iType dependent contributions to lnL: log-priors in case of MAP        
-        lnL1=this.P.lnP0.pi+sum(this.P.lnP0.a)+sum(this.P.lnP0.B)+sum(this.P.lnP0.lambda)+this.P.lnP0.v;
+        lnLp=[this.P.lnP0.pi sum(this.P.lnP0.a) sum(this.P.lnP0.B) sum(this.P.lnP0.lambda) this.P.lnP0.v];
     case 'vb'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
         % localization variances length variance takes the same variational
         % distribution as lambda, but with nv,cv statistics instead:
         [~,~,iV,lnV]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.nv,this.P.cv);
         % iType dependent contributions to lnL
-        lnL1=-sum(this.P.KL.a)-sum(this.P.KL.B)-sum(this.P.KL.pi)-sum(this.P.KL.lambda)-this.P.KL.v;
+        lnLp=[-sum(this.P.KL.pi) -sum(this.P.KL.a) -sum(this.P.KL.B) -sum(this.P.KL.lambda) -this.P.KL.v];
     case 'none'
         return
     otherwise
@@ -54,18 +59,27 @@ switch lower(iType)
 end
 % update the hidden state distribution and compute path estimates as needed
 switch nargout
-    case {0,1}
+    case {0,1,3}
         this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnV,iV);
-    case 2
+    case 4
         [this.S,sMaxP]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnV,iV);
-    case 3
+    case 5
         [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnV,iV);
 end
 % add S- and YZ-contributions to lnL: contribution <ln p(z|x,s,v)> is
 % included in lnZs when v is a parameter
-lnL1=lnL1+this.S.lnZ-this.YZ.mean_lnqyz;
+lnL1=this.S.lnZ-this.YZ.mean_lnqyz+sum(lnP);
 dlnLrel=(lnL1-lnL0)*2/abs(lnL1+lnL0);
 this.lnL=lnL1;
+
+this.lnLterms=[this.S.lnZ this.YZ.mean_lnpxz -this.YZ.mean_lnqyz lnLp];
+if(numel(this.lnLterms)==lnL0terms)
+    dlnLterms    =(this.lnLterms-lnL0terms)*2./abs(this.lnLterms+lnL0terms);
+else
+    dlnLterms=[];
+end
+
+
 %[this.S,sMaxP,sVit,funWS]=YZShmm.hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnVs,iVs);
 % dat   : preprocessed data struct (spt.preprocess)
 % YZ    : variational trajectory model struct

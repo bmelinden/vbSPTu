@@ -1,5 +1,5 @@
-function [dlnLrel,sMaxP,sVit]=Siter(this,dat,iType)
-% [dlnLrel,sMaxP,sVit]=Siter(dat,iType)
+function [dlnLrel,dlnLterms,sMaxP,sVit]=Siter(this,dat,iType)
+% [dlnLrel,dlnLterms,sMaxP,sVit]=Siter(dat,iType)
 % update the variational hidden state distribution
 %
 % dat   : spt.preprocess data struct 
@@ -20,6 +20,10 @@ R  =this.sample.blurCoeff;
 % only in computing the parameter counts (i.e., adding
 % prior pseudocounts or not).
 lnL0=this.lnL;
+lnL0terms=this.lnLterms;
+if(isempty(lnL0terms))
+    lnL0terms=-inf(1,7);
+end
 switch lower(iType)
     case 'mle'
         lnp0=log(rowNormalize(this.P.wPi));
@@ -27,13 +31,13 @@ switch lower(iType)
         Lambda = this.P.c./this.P.n;
         iLambda =1./Lambda;
         lnLambda=log(Lambda);
-        lnL1=0;
+        lnLp=[];
     case 'map'               
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.MAPlogPar_P0AD(this.P.wPi,this.P.wa,this.P.wB,this.P.c,this.P.n);
-        lnL1=this.P.lnP0.pi+sum(this.P.lnP0.a)+sum(this.P.lnP0.B)+sum(this.P.lnP0.lambda);
+        lnLp=[this.P.lnP0.pi      sum(this.P.lnP0.a) sum(this.P.lnP0.B) sum(this.P.lnP0.lambda)];
     case 'vb'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
-        lnL1=-sum(this.P.KL.a)-sum(this.P.KL.B)-sum(this.P.KL.pi)-sum(this.P.KL.lambda);
+        lnLp=[-sum(this.P.KL.pi) -sum(this.P.KL.a)  -sum(this.P.KL.B)  -sum(this.P.KL.lambda)];
     case 'none'
         return
     otherwise
@@ -41,16 +45,25 @@ switch lower(iType)
 end
         
 switch nargout
-    case {0,1}
+    case {0,1,3}
         this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-    case 2
+    case 4
         [this.S,sMaxP]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-    case 3
+    case 5
         [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
 end
-lnL1=lnL1+this.S.lnZ+this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
+lnL1=sum(lnLp)+this.S.lnZ+this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
 dlnLrel=(lnL1-lnL0)*2/abs(lnL1+lnL0);
 this.lnL=lnL1;
+
+this.lnLterms=[this.S.lnZ this.YZ.mean_lnpxz -this.YZ.mean_lnqyz lnLp];
+if(numel(this.lnLterms)==lnL0terms)
+    dlnLterms    =(this.lnLterms-lnL0terms)*2./abs(this.lnLterms+lnL0terms);
+else
+    dlnLterms=[];
+end
+
+
 
 %[this.S,sMaxP,sVit,funWS]=YZShmm.hiddenStateUpdate(dat,YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
 % dat   : preprocessed data struct (spt.preprocess)

@@ -6,14 +6,37 @@ R  =this.sample.blurCoeff;
 [nv,cv]=YZShmm.V_sumStats(this.YZ,this.S,dat);
 switch lower(iType)
     case 'mle'
+        % gentle regularization of unoccupied t=0
+        if(~isempty(find(wPi==0, 1)))            
+            wPi=wPi+eps;
+        end
+        % gentle regularization of un-occupied states
+        wAemptyRows=find((sum(wa,2)==0))';
+        if(~isempty(wAemptyRows)) % regularization with no new transitions
+            wa(wAemptyRows,:)=eps;
+        end
+        wBemptyRows=find((sum(wB,2)==0))';
+        if(~isempty(wBemptyRows)) % regularization with no new transitions
+            wB(wBemptyRows,:)=eps;
+            wB=wB.*(1-eye(size(wB)));
+        end
+        % diffusion const. regularization: D(unoccupied) -> infty
+        wDempty=find(n==0)';
+        if(~isempty(wDempty))
+           n(wDempty)=10*eps; % eps is ~smallest double in matlab
+           c(wDempty)=1e100*eps;
+        end        
+        
         this.P.wPi=wPi;
         this.P.wa =wa;
         this.P.wB =wB;
         this.P.n  =n;
         this.P.c  =c;
-        % lump stats for all dimensions and states
+        % lump stats for all dimensions and states, no regularization
+        % needed
         this.P.cv=sum(cv(:));
-        this.P.nv=sum(nv(:));        
+        this.P.nv=sum(nv(:));                        
+        
         % no KL terms in mle updates
         this.P.KL.pi=0;this.P.KL.a=0;this.P.KL.B=0;this.P.KL.lambda=0;this.P.KL.v=0;
         % no log-prior terms in mle updates

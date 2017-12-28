@@ -52,4 +52,5 @@ P.dwellTime=dwellSteps*this.sample.timestep;
 % put dwellSteps last
 P.dwellSteps=dwellSteps;
 P.iType=iType;
+P.comment=this.comment;
 end

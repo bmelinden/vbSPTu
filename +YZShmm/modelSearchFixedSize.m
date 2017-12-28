@@ -103,6 +103,7 @@ elseif(isreal(YZww)) % then compute moving average initializations
         else
             YZmv{k}=mleYZdXs.YZinitMovingAverage(data,YZww(k),3e-2,opt.trj.shutterMean,opt.trj.blurCoeff,dt);
         end
+        YZmv{k}.initMethod=['yzF(' int2str(YZww(k)) ')S'];
         initTime{k}=toc;
     end
     initTime=[initTime{:}];
@@ -148,19 +149,19 @@ elseif(restarts>0)
         end
         %% YZfilter
         for k=1:numel(YZww)
-            m=m+1;tic;
+            m=m+1;tic;            
             initMethod{r}{m}=['yzF(' int2str(YZww(k)) ')S'];
-            V=V0.clone();
+            V=V0.clone();            
             V.YZ=YZmv{k};
             V.Siter(data,iType);
-            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
             if(V.lnL>W{r}.lnL)
                 W{r}=V;
             end
             if(doWall)
-                Wallrm{r}{m}=V.clone();
+                Wallrm{r}{m}=V.clone();                
             end
             WCtime{r}{m}=toc;
             if(displayLevel>=2)
@@ -172,11 +173,15 @@ elseif(restarts>0)
         %% pre-computed YZ structs
         for k=1:numel(qYZ0)
             m=m+1;tic;
-            initMethod{r}{m}=['YZ0(' int2str(k) ')S'];
+            if(isfield(qYZ0{k},'initMethod'))
+                initMethod{r}{m}=qYZ0{k}.initMethod;
+            else
+                initMethod{r}{m}=['YZ0(' int2str(k) ')S'];
+            end
             V=V0.clone();
             V.YZ=qYZ0{k};
             V.Siter(data,iType);
-            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
             if(doWall)
@@ -198,13 +203,13 @@ elseif(restarts>0)
             V1.YZ.varY=zeros(size(V1.YZ.varY));
             
             V1.Siter(X0,iType);
-            V1.converge(X0,'displayLevel',displayLevel-2,'Dsort',false,'iType',iType,'PSYfixed',3);
+            V1.converge(X0,'displayLevel',displayLevel-2,'Dsort',false,'iType',iType,'PSYfixed',3,'Dsort',true);
             V=V0.clone(); % now go back to original data
             V.S=V1.S;
             V.P=V1.P;
             V.YZiter(data,iType);
             V.Piter(data,iType);
-            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
             if(V.lnL>W{r}.lnL)
@@ -233,7 +238,7 @@ elseif(restarts>0)
         V=V0.clone();
         V.YZiter(data,iType);
         try
-            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
             if(V.lnL>W{r}.lnL)
@@ -257,7 +262,7 @@ elseif(restarts>0)
         initMethod{r}{m}='YZdata';
         V=V0.clone();
         V.Siter(data,iType);
-        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
+        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
         WlnL{r}{m}=V.lnL;
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
@@ -272,27 +277,29 @@ elseif(restarts>0)
             disp(V.EMexit);
             disp('----------')
         end
-        %% YZne     : q(Y,Z) = data, low errors
-        m=m+1;tic;
-        initMethod{r}{m}='YZneS';
-        V1=classFun(N0,opt,X0);
-        V=V0.clone();
-        V.YZ=V1.YZ; % initial guess created from X0 data
-        V.Siter(data,iType);
-        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
-        WlnL{r}{m}=V.lnL;
-        V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
-        if(V.lnL>W{r}.lnL)
-            W{r}=V;
-        end
-        if(doWall)
-            Wallrm{r}{m}=V.clone();
-        end
-        WCtime{r}{m}=toc;
-        if(displayLevel>=2)
-            V.EMexit.init=V.comment;
-            disp(V.EMexit);
-            disp('----------')
+        %% YZne     : q(Y,Z) = data, low errors: inactivated, equal to YZdata above
+        if(false) % this turns out to be equivalent to YZdata about
+            m=m+1;tic;
+            initMethod{r}{m}='YZneS';
+            V1=classFun(N0,opt,X0);
+            V=V0.clone();
+            V.YZ=V1.YZ; % initial guess created from X0 data
+            V.Siter(data,iType);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+            WlnL{r}{m}=V.lnL;
+            V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
+            if(V.lnL>W{r}.lnL)
+                W{r}=V;
+            end
+            if(doWall)
+                Wallrm{r}{m}=V.clone();
+            end
+            WCtime{r}{m}=toc;
+            if(displayLevel>=2)
+                V.EMexit.init=V.comment;
+                disp(V.EMexit);
+                disp('----------')
+            end
         end
         %% YZnbeInit: start w YZdata but with low error and blur
         m=m+1;tic;
@@ -307,13 +314,13 @@ elseif(restarts>0)
             
         V1.Siter(X0,iType);
         % converge with fixed YZ model with no variances
-        V1.converge(X0,'displayLevel',displayLevel-2,'Dsort',false,'iType',iType,'PSYfixed',3)%,'PSYwarmup',25);
+        V1.converge(X0,'displayLevel',displayLevel-2,'Dsort',false,'iType',iType,'PSYfixed',3,'Dsort',true)%,'PSYwarmup',25);
         V=V0.clone(); % now go back to original data
         V.S=V1.S;     % but keep hidden states and parameters from V1
         V.P=V1.P;
         V.YZiter(data,iType);
         V.Piter(data,iType);
-        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType);
+        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
         WlnL{r}{m}=V.lnL;
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
         if(V.lnL>W{r}.lnL)
