@@ -4,26 +4,44 @@ R  =this.sample.blurCoeff;
 
 switch lower(iType)
     case 'mle'
+        MLEregularization={};
         [wPi,wa,wB,n,c]=YZShmm.P0AD_sumStats(this.YZ,this.S,tau,R);
         % gentle regularization of unoccupied t=0
         if(~isempty(find(wPi==0, 1)))            
             wPi=wPi+eps;
+            MLEregularization{end+1}= 'pInit=0';
         end
         % gentle regularization of un-occupied states
         wAemptyRows=find((sum(wa,2)==0))';
         if(~isempty(wAemptyRows)) % regularization with no new transitions
             wa(wAemptyRows,:)=eps;
+             MLEregularization{end+1}= 'wa=0';
         end
         wBemptyRows=find((sum(wB,2)==0))';
         if(~isempty(wBemptyRows)) % regularization with no new transitions
             wB(wBemptyRows,:)=eps;
             wB=wB.*(1-eye(size(wB)));
+            MLEregularization{end+1}= 'wB=0';
         end
-        % diffusion const. regularization: D(unoccupied) -> infty
+        % diffusion const. regularization 1: D(unoccupied) -> infty
         wDempty=find(n==0)';
         if(~isempty(wDempty))
            n(wDempty)=10*eps; % eps is ~smallest double in matlab
            c(wDempty)=1e100*eps;
+            MLEregularization{end+1}= 'n=0';
+        end
+        % diffusion const. regularizarion 2: D >= 10*eps
+        Dzero=find(c<n*10*eps);
+        if(~isempty(Dzero))
+            c(Dzero)=n(Dzero)*10*eps;
+            MLEregularization{end+1}= 'D=0';
+        end
+        if(~isempty(MLEregularization))
+           wStr=['MLE regularization : ' MLEregularization{1}];
+           for r=2:numel(MLEregularization)
+              wStr=[wStr ', '  MLEregularization{r}];
+           end
+           warning(wStr)
         end
         this.P.wPi=wPi;
         this.P.wa =wa;

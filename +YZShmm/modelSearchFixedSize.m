@@ -1,5 +1,9 @@
 function [Wbest,YZmv,lnL,initMethod,convTime,initTime,Wall]=modelSearchFixedSize(varargin)
 % [Wbest,YZmv,lnL,initMethod,convTime,initTime,Wall]=modelSearchFixedSize('P1',P1,...)
+% Simple model search for a fixed number of diffusive states: generates and
+% converges models with random initial parameters and a few different
+% initial guesses for q(S) and/or q/Y,Z). Mainly inteneded as a lower-level
+% part of YZShmm.modelSearch
 %
 % Input parameters are given as parameter-value pairs on the form
 % 'parameter',parameter (case sensitive). 

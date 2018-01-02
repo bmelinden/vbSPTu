@@ -3,6 +3,9 @@ function [W,rmStates]=removeOccupancyClones(this,data,opt,iType,dsMaxThreshold)
 % iteratively removes all states where the mutual maximum difference in
 % hidden state occupancy is below the threshold dsMaxThreshold. The reduced
 % model is returned as output, while the original model is unchanged.
+% Rationale: the most likely reason why two diffusive states are so similar
+% is that they are effectively unoccupied, but the occupancy may still be
+% non-zero due to prior distributions and missing data.
 %
 % W         : new model
 % rmStates  : states that were removed
@@ -27,6 +30,7 @@ W=this.clone();
 if(this.numStates==1)
    return 
 end
+warning('Need to implement dS convergence to control dSmax criterion.')
 
 % next, remove occupancy clones, which are assumed to be effectively
 % empty states: 

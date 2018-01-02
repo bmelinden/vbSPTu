@@ -178,7 +178,9 @@ for r=1:maxIter
     end
     if(r>=maxIter)
         EMexit.stopcondition='maxIter';
-        warning(['Maximum number of iterations reached ( ' int2str(maxIter) ' ). Consider increasing it.'])
+        warning(['Maximum number of iterations reached ( ' ...
+                 int2str(maxIter) ' ). Consider increasing it.'...
+                 ' dlnL = ' num2str(dlnLrel,4) ', dPar = ' num2str(dPmax,4) ])
     end
 end
 EMexit.time=toc(EMtimer);

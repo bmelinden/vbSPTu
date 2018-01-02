@@ -33,6 +33,9 @@ function [Wbest,WbestN,lnL,INlnL,P,YZmv]=VBmodelSearchVariableSize(varargin)
 %         encountered during the greedy search.
 % 
 % YZmv   : moving averages YZ structs (to make it possible to reuse them). 
+%
+% NOTE (2018-01-02) : THIS METHOD SEEMS TO BE SUBOPTIMAL, USE
+% YZShmm.modelSearch INSTEAD.
 
 %% parameters and defaults
 % get options first
