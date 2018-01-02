@@ -40,7 +40,7 @@ classdef YZS0 < handle
             'covYtYtp1',[],'covYtZt',[],'covYtp1Zt',[],...
             'mean_lnqyz',0,'mean_lnpxz',0);        
         sample=struct('dim',0,'timestep',0,'shutterMean',0,'blurCoeff',0);
-        conv=struct('maxIter',1e4,'lnLTol',1e-9,'parTol',1e-3,'saveErr',false);
+        conv=struct('maxIter',1e4,'lnLTol',1e-9,'parTol',1e-4,'dsTol',1e-6,'saveErr',false);
         numStates=0;
         lnL=0; % log likelohood (lower bound)  
         lnLterms=[]; % arbitrarily defined contributions to lnL; lnL=sum(lnLterms).
@@ -183,7 +183,7 @@ classdef YZS0 < handle
                 that.(prop{k})= this.(prop{k});
             end
         end
-        [dlnLrel,dPmax,dPmaxName]=modelDiff(this,that);
+        [dlnLrel,dPmax,dPmaxName,dsMax]=modelDiff(this,that);
         W=removeState(this,s,opt);
         ind=sortModel(this,ind);
         [sMaxP,sVit]=converge(this,dat,varargin);
@@ -193,10 +193,11 @@ classdef YZS0 < handle
         displayParameters(this,varargin);
         [Wii,Xii,W0,X0]=splitModelAndData(this,X,ii);
         [W,rmStates]=removeOccupancyClones(this,data,opt,iType,dsMaxThreshold)
+        [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=greedyReduce(this,dat,opt,displayLevel);
         [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel);
-        [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce2(this,dat,opt,displayLevel,iType);
-        [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce3(this,dat,opt,displayLevel,iType);
-        [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce4(this,dat,opt,displayLevel,iType);
+        %[Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce2(this,dat,opt,displayLevel,iType);
+        %[Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce3(this,dat,opt,displayLevel,iType);
+        %[Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce4(this,dat,opt,displayLevel,iType);
     end
     methods (Abstract, Access = public)
         [dlnLrel,dlnLterms,sMaxP,sVit]=Siter(this,dat,iType);

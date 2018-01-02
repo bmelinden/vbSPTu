@@ -31,6 +31,9 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 %             Default: object setting.
 % parTol    : convergence criteria for parameters lambda (relative), A, p0
 %             (absolute). Default: object setting.
+% dsTol     : convergence criterion on maximum absolute difference in
+%             hidden state occupancy, max|p(s(t)=j;n)-p(s(t)=j;n-1)|.
+%             Default: object setting
 % minIter   : minimum number of iterations. Default 5;
 % Dsort     : sort model in order of increasing diffusion constants.
 %             Default=false.
@@ -49,10 +52,12 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 maxIter=this.conv.maxIter;
 lnLTol=this.conv.lnLTol;
 parTol=this.conv.parTol;
+dsTol =1e-7;
+warning('add conv.dsTol to object properties')
 PSYwarmup=[0 0 0];
 PSYfixed=0;
 minIter=5;
-showConv_lnL=false;
+showConv=false;
 showExit=true;
 sortModel=false;
 iType='mle';
@@ -79,6 +84,8 @@ while(nv <= length(varargin))
            lnLTol=pval;
        case 'partol'
            parTol=pval;
+       case 'dstol'
+           dsTol=pval;
        case 'dsort'
            sortModel=pval;
        case 'itype'
@@ -88,7 +95,7 @@ while(nv <= length(varargin))
        case 'displaylevel'
            n=pval;
            showExit=(n>=1);
-           showConv_lnL=(n>=2);
+           showConv=(n>=2);
        otherwise
            error(['Unrecognized option ' pname ])
    end
@@ -107,6 +114,7 @@ EMtimer=tic;
 
 converged_lnL=0;
 converged_par=0;
+converged_s  =0;
 dPmax=inf;
 dlnLrel=inf;
 W1=this.clone();
@@ -151,7 +159,7 @@ for r=1:maxIter
     end
     
     % check convergence
-    [dlnLrel,dPmax,dPmaxName]=this.modelDiff(W1);
+    [dlnLrel,dPmax,dPmaxName,dsMax]=this.modelDiff(W1);
     if( (dPmax<parTol && PSYwarmup(1)<r) || PSYfixed==1 )
         converged_par=converged_par+1;
     else
@@ -162,17 +170,25 @@ for r=1:maxIter
     else
         converged_lnL=0;
     end
-    
-    if(showConv_lnL)
-        disp(['it ' int2str(r) ', dlnL = ' num2str(dlnLrel,4) ', dPar = ' num2str(dPmax,4) ])
+    if(dsMax<dsTol && PSYwarmup(2)<r || PSYfixed==2)
+        converged_s=converged_s+1;
+    else
+        converged_s=0;
+    end    
+    if(showConv)
+        disp(['it ' int2str(r) ', dlnL = ' num2str(dlnLrel,4) ', dPar = ' num2str(dPmax,4) ', ds = ' num2str(dsMax,4)])
     end
     
-    if(r>minIter && converged_lnL>2 && converged_par>2)
+    if(r>minIter && converged_lnL>2 && converged_par>2 && converged_s >2)
         % determine which converged last
-        if(converged_lnL>converged_par)
-            EMexit.stopcondition=dPmaxName;
-        else
-            EMexit.stopcondition='lnLTol';
+        [~,cc]=min([converged_lnL converged_par converged_s]);
+        switch cc
+            case 1
+                EMexit.stopcondition='lnLTol';
+            case 2
+                EMexit.stopcondition=dPmaxName;
+            case 3
+                EMexit.stopcondition='dsTol';
         end
         break 
     end
@@ -189,6 +205,7 @@ EMexit.numiter=r;
 EMexit.dlnLrel=dlnLrel;
 EMexit.dP=dPmax;
 EMexit.dPname=dPmaxName;
+EMexit.dsMax=dsMax;
 this.EMexit=EMexit;
 if(showExit)
     disp(this.EMexit)

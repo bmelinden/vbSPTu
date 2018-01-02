@@ -149,6 +149,13 @@ if( isfield(newOpt,'conv') && isfield(newOpt.conv,'parTol') )
     opt.conv.parTol=newOpt.conv.parTol;
     set(data.parTol_edit,'String',num2str(opt.conv.parTol));
 end
+% hidden state occupancy tolerance
+if( isfield(newOpt,'conv') && isfield(newOpt.conv,'dsTol') )
+    % input file given relative to the runinput file location
+    opt.conv.dsTol=newOpt.conv.dsTol;
+    %set(data.parTol_edit,'String',num2str(opt.conv.parTol));
+end
+warning('need dsTol field in the GUI')
 % save workspace in case of errors
 if( isfield(newOpt,'conv') && isfield(newOpt.conv,'saveErr') )
     % input file given relative to the runinput file location

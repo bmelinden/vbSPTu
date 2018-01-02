@@ -1,5 +1,5 @@
-function [dlnLrel,dPmax,dPmaxName]=modelDiff(this,that)
-% [dlnLrel,dPmax,dPmaxName]=W1.modelDiff(W2)
+function [dlnLrel,dPmax,dPmaxName,dsMax]=modelDiff(this,that)
+% [dlnLrel,dPmax,dPmaxName,dsMax]=W1.modelDiff(W2)
 %
 % Compute convergence characteristics by comparing two model W1 and W2:
 % Relative difference in log likelihood, and a largest parameter
@@ -14,8 +14,10 @@ function [dlnLrel,dPmax,dPmaxName]=modelDiff(this,that)
 % dPmax   : max parameter difference  |dP/P|, or just |dP| for variables
 %           that are alredy normalized to the interval [0,1].
 % dPmaxName : name of parameter reported by dPmax
+% dsMax   :   max|W1.S.pst(:)-W2.S.pst(:)| 
+%           = max(t,j)|W1.S.pst(t,j)-W2.S.pst(t,j)|
 
-[dlnLrel,dPmax,dPmaxName]=modelDiff@YZShmm.YZS0(this,that);
+[dlnLrel,dPmax,dPmaxName,dsMax]=modelDiff@YZShmm.YZS0(this,that);
 
 if(nargout>1)
     dnv=2*(this.P.nv-that.P.nv)./(this.P.nv+that.P.nv);

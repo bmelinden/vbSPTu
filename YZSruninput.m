@@ -66,7 +66,8 @@ init.Trange = [2 20]*trj.timestep;     % interval for mean dwell time initial gu
 %% convergence criteria (leave empty to use model defaults)
 conv.maxIter = 1e4;    % maximum number of VB iterations ([]: use default values).
 conv.lnLTol  = 1e-9;   % convergence criterion for relative change in likelihood bound.
-conv.parTol  = 1e-3;   % convergence criterion for M-step parameters (leave non-strict).
+conv.parTol  = 1e-4;   % convergence criterion for M-step parameters 
+conv.dsTol   = 1e-6;   % convergence criterion for <s(t,j> and tolerance for finding cloned states
 conv.saveErr = false;  % if true, some errors will will write a workspace dump to file, for debugging
 %% model search
 modelSearch.YZww      = 2:6; % range of smoothing windows for running average initialization

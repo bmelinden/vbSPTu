@@ -3,3 +3,6 @@ ML19_vbSPT2b.pdf
 getML19note.sh
 backupmarker.txt
 *.mat
+VBgreedyReduce2.m
+VBgreedyReduce3.m
+VBgreedyReduce4.m
