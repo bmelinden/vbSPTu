@@ -22,7 +22,7 @@ function varargout = usptGUI(varargin)
 
 % Edit the above text to modify the response to help usptGUI
 
-% Last Modified by GUIDE v2.5 20-Nov-2017 23:10:42
+% Last Modified by GUIDE v2.5 03-Jan-2018 00:40:19
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1214,17 +1214,16 @@ data=guidata(hObject);
 data.opt.bootstrap.modelSelection=num;
 updateGUIoptions(hObject,data.opt);
 
-% --- Executes on button press in saveErr_box.
-function saveErr_box_Callback(hObject, eventdata, handles)
-% hObject    handle to saveErr_box (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of saveErr_box
-num=get(hObject,'Value');
-data=guidata(hObject);
-data.opt.conv.saveErr=num;
-updateGUIoptions(hObject,data.opt);
+%%% % --- Executes on button press in saveErr_box.
+%%% function saveErr_box_Callback(hObject, eventdata, handles)
+%%% % hObject    handle to saveErr_box (see GCBO)
+%%% % eventdata  reserved - to be defined in a future version of MATLAB
+%%% % handles    structure with handles and user data (see GUIDATA)
+%%% % Hint: get(hObject,'Value') returns toggle state of saveErr_box
+%%% num=get(hObject,'Value');
+%%% data=guidata(hObject);
+%%% data.opt.conv.saveErr=num;
+%%% updateGUIoptions(hObject,data.opt);
 
 function parTol_edit_Callback(hObject, eventdata, handles)
 % hObject    handle to parTol_edit (see GCBO)
@@ -1680,3 +1679,36 @@ else
     helpdlg(H,opt.model.class);
 end
     
+
+
+
+function dsTol_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to dsTol_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of dsTol_edit as text
+%        str2double(get(hObject,'String')) returns contents of dsTol_edit as a double
+num=str2double(get(hObject,'String'));
+data=guidata(hObject);
+if(isfinite(num)) % only update if a real ...
+    if(num>0)     % ... and positive number is given    
+        data.opt.conv.dsTol=num;
+    else
+        errordlg('s tolerance must be positive.')
+    end
+end
+updateGUIoptions(hObject,data.opt);
+
+
+% --- Executes during object creation, after setting all properties.
+function dsTol_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to dsTol_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

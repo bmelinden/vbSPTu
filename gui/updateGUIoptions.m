@@ -153,14 +153,13 @@ end
 if( isfield(newOpt,'conv') && isfield(newOpt.conv,'dsTol') )
     % input file given relative to the runinput file location
     opt.conv.dsTol=newOpt.conv.dsTol;
-    %set(data.parTol_edit,'String',num2str(opt.conv.parTol));
+    set(data.dsTol_edit,'String',num2str(opt.conv.dsTol));
 end
-warning('need dsTol field in the GUI')
-% save workspace in case of errors
+% save workspace in case of errors : not visible in the GUI
 if( isfield(newOpt,'conv') && isfield(newOpt.conv,'saveErr') )
     % input file given relative to the runinput file location
     opt.conv.saveErr=newOpt.conv.saveErr;
-    set(data.saveErr_box,'Value',opt.conv.saveErr);
+    %%%set(data.saveErr_box,'Value',opt.conv.saveErr);
 end
 %% VB search parameters
 % number of fixed-parameter warmup iterations in model search
