@@ -93,14 +93,15 @@ for m=modelIndices%1:numel(W0)
     Pstd{m} =Piter{modelIndices(1)}{m};
     fn=fieldnames(Piter{modelIndices(1)}{m});
     for f=1:numel(fn)
-        V=zeros(size(Piter{modelIndices(1)}{m}.(fn{f}),1),size(Piter{modelIndices(1)}{m}.(fn{f}),2),Nbs);
-        for iter=1:Nbs
-            V(:,:,iter)=Piter{iter}{m}.(fn{f});
+        if(isnumeric(Piter{modelIndices(1)}{m}.(fn{f})))
+            V=zeros(size(Piter{modelIndices(1)}{m}.(fn{f}),1),size(Piter{modelIndices(1)}{m}.(fn{f}),2),Nbs);
+            for iter=1:Nbs
+                V(:,:,iter)=Piter{iter}{m}.(fn{f});
+            end
+            Pbs{m}.(fn{f})=V;
+            Pmean{m}.(fn{f})=mean(V,3);
+            Pstd{m}.(fn{f}) =std(V,[],3);
         end
-        
-        Pbs{m}.(fn{f})=V;
-        Pmean{m}.(fn{f})=mean(V,3);
-        Pstd{m}.(fn{f}) =std(V,[],3);
     end
     for iter=1:Nbs
         lnL(iter,m)=lnLiter{iter}(m);

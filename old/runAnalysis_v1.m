@@ -26,9 +26,9 @@ function R=runAnalysis(runinput)
 %   R.VB.model     : The best VB models of all sized encountered during the VB
 %                 model search, up to opt.modelSearch.maxHidden
 %   R.VB.lnL     : log evidence lower bounds of R.VB.model.
-%   R.VB.search.IINlnL    : Iteration, init guess number, model size, and lnL- value for each model
+%   R.VB.search.INlnL    : Iteration-, model size, and lnL- value for each model
 %                 encountered during the greedy search. 
-%   R.VB.search.param        : Model parameters for each entry in R.VB.search.IINlnL
+%   R.VB.search.param        : Model parameters for each entry in R.VB.search.INlnL
 % --- Pseudo-Bayes factor (PBF) results
 %   R.PBF.H       : raw PBF from cross-validation, rescaled to the whole data
 %                 set size. 
@@ -64,7 +64,8 @@ function R=runAnalysis(runinput)
 % ML 2017-10-16
 
 %% print copyright message
-uSPTlicense('runAnalysis')
+warning('need to print license information here!')
+
 tAnalysis=tic;
 %% get options and initiate results
 opt=spt.readRuninputFile(runinput);
@@ -80,7 +81,7 @@ clear W classFun;
 save(R.opt.output.outputFile,'-struct','R');
 %% VB model search
 R.VB=struct;
-[R.model,R.VB.model,R.VB.lnL,R.VB.search.IINlnL,R.VB.search.param]=YZShmm.modelSearch('opt',opt,'data',X,'displayLevel',2);
+[R.model,R.VB.model,R.VB.lnL,R.VB.search.INlnL,R.VB.search.param]=YZShmm.VBmodelSearchVariableSize('opt',opt,'data',X,'displayLevel',2);
 % note: by definition, R.VB.model{k}.numStates==k.
 % display result of VB model selection
 R.VB.dlnL=R.VB.lnL-max(R.VB.lnL);
@@ -115,7 +116,7 @@ save(R.opt.output.outputFile,'-struct','R');
 %% bootstrap model parameters in the best model
 if(R.opt.bootstrap.bestParam)
     if(R.opt.modelSearch.MLEparam)
-        [R.bootstrap.param,~,R.bootstrap.paramStdErr]=YZShmm.bootstrap(R.model,X,'mle',R.opt.bootstrap.bootstrapNum);
+        [R.bootstrap.param,R.bootstrap.paramMean,R.bootstrap.paramStdErr]=YZShmm.bootstrap(R.model,X,'mle',R.opt.bootstrap.bootstrapNum);
     elseif(R.opt.modelSearch.PBF)
         [R.bootstrap.param,~,R.bootstrap.paramStdErr]=YZShmm.bootstrap(R.model,X,'vb',R.opt.bootstrap.bootstrapNum);
     else

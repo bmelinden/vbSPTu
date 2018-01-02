@@ -110,9 +110,9 @@ WbestNiter  =cell(1,restarts); % best model of each size in each run
 Niter  =cell(1,restarts); % from all models generated in each run
 lnLiter=cell(1,restarts); % from all models generated in each run
 Piter  =cell(1,restarts); % from all models generated in each run
-%%% %%%parfor iter=1:restarts+(~isempty(Winit))
-warning('debugging without parfor')
-for iter=1:restarts+(~isempty(Winit))
+parfor iter=1:restarts+(~isempty(Winit))
+%%%warning('debugging without parfor')
+%%%for iter=1:restarts+(~isempty(Winit))
     % Greedy search strategy is probably more efficient than to start over
     % at each model size. We simply start with a large model, and
     % systematically remove the least occupied statate until things start

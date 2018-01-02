@@ -66,6 +66,7 @@ else
 end
 disp('------------------------------------------------------------')
 %% plot transition rates
+if(exist('digraph','builtin'))
 A0=R.param.A-diag(diag(R.param.A)); % transition matrix, off-diagonal part
 G=digraph(A0);
 LW=G.Edges.Weight;
@@ -104,6 +105,9 @@ for r=1:N
     end
 end
 axis off
+else
+    display('Missing digraph function, cannot produce transition plot.')
+end
 %% plot model selection
 NN=1:R.opt.modelSearch.maxHidden;
 leg={};
