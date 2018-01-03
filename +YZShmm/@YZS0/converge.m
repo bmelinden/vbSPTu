@@ -15,7 +15,7 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 % Input :
 % dat   : data struct, e.g., from spt.preprocess
 % optional arguments in the form 'name', value
-% iType     : kind of iterations {'mle','map','vb'}. Default: mle
+% iType     : kind of iterations {'mle','vb'}. Default: mle
 % PSYwarmup : omit a number of initial S/YZ/P iterations in order to burn
 %             in other variable. Default [0 0 5] (keeps parameters
 %             constant for the first 5 iterations). Note that convergence

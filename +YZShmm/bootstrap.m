@@ -8,7 +8,7 @@ function [Pbs,Pmean,Pstd,P0,lnL]=bootstrap(W0,X,iType,Nbs,varargin)
 %         YZShmm.VBmodelSearchVariableSize can be handled directly. 
 % 
 % X     : data corresponding to W0
-% iType : {'mle','map','vb'} sets the type of iterations
+% iType : {'mle','vb'} sets the type of iterations
 % Nbs   : number of bootstrap samples to evaluate.
 % optional parameters, given as 'par',value-pairs:
 % displayLevel : amount of computational details to write to the command

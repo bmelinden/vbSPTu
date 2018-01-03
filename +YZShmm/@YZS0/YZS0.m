@@ -87,12 +87,6 @@ classdef YZS0 < handle
             this.P.KL.a=zeros(this.numStates,1);
             this.P.KL.B=zeros(this.numStates,1);
             this.P.KL.lambda=zeros(1,this.numStates);
-            % MAP log prior terms
-            this.P.lnP0=struct;
-            this.P.lnP0.pi=0;
-            this.P.lnP0.a=zeros(this.numStates,1);
-            this.P.lnP0.B=zeros(this.numStates,1);
-            this.P.lnP0.lambda=zeros(1,this.numStates);
             %% sampling properties and prior parameters
             if(exist('opt','var'))
                 

@@ -3,7 +3,7 @@ function [dlnLrel,dlnLterms,sMaxP,sVit]=Siter(this,dat,iType)
 % update the variational hidden state distribution
 %
 % dat   : spt.preprocess data struct 
-% iType : type of iteration {'mle','map','vb'}
+% iType : type of iteration {'mle','vb'}
 %
 % dlnLrel : relative change in log likelihood/lower bound
 % dlnLterms: relative change in this.lnLterms, various contributions to
@@ -18,9 +18,6 @@ function [dlnLrel,dlnLterms,sMaxP,sVit]=Siter(this,dat,iType)
 
 tau=this.sample.shutterMean;
 R  =this.sample.blurCoeff;
-% for now, I assume that the difference btw MAP/MLE is
-% only in computing the parameter counts (i.e., adding
-% prior pseudocounts or not).
 lnL0=this.lnL;
 lnL0terms=this.lnLterms;
 if(isempty(lnL0terms))
@@ -38,13 +35,6 @@ switch lower(iType)
         iV=1./v;
         % iType dependent contributions to lnL
         lnLp=[];
-    case 'map'
-        [lnp0,lnQ,iLambda,lnLambda]=YZShmm.MAPlogPar_P0AD(this.P.wPi,this.P.wa,this.P.wB,this.P.c,this.P.n);
-        v=this.P.cv./(this.P.nv+1);
-        lnV=log(v)*ones(1,this.numStates);
-        iV=1./v*ones(1,this.numStates);        
-        % iType dependent contributions to lnL: log-priors in case of MAP        
-        lnLp=[this.P.lnP0.pi sum(this.P.lnP0.a) sum(this.P.lnP0.B) sum(this.P.lnP0.lambda) this.P.lnP0.v];
     case 'vb'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
         % localization variances length variance takes the same variational
@@ -52,10 +42,8 @@ switch lower(iType)
         [~,~,iV,lnV]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.nv,this.P.cv);
         % iType dependent contributions to lnL
         lnLp=[-sum(this.P.KL.pi) -sum(this.P.KL.a) -sum(this.P.KL.B) -sum(this.P.KL.lambda) -this.P.KL.v];
-    case 'none'
-        return
     otherwise
-        error(['iType= ' iType ' not known. Use {mle,map,vb,none}.'] )
+        error(['iType= ' iType ' not known. Use {mle,vb}.'] )
 end
 % update the hidden state distribution and compute path estimates as needed
 switch nargout

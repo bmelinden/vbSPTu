@@ -11,8 +11,8 @@ function H=LOOCV(W0,X,varargin)
 % W0    : YZShmm model or cell vector of models (converged)
 % X     : data
 % further parameter/value pairs:
-% iType : {'mle','map','vb','vbQ'} sets the type of iterations, as well as the
-%         predictive performance measure to estimate. {'mle','map'} gives
+% iType : {'mle','vb','vbQ'} sets the type of iterations, as well as the
+%         predictive performance measure to estimate. 'mle' gives
 %         point-estimate-based cross-validation, while 'vb' and 'vbQ' give
 %         estimated pseudo-Bayes factors. For 'vb', the bayes factor is
 %         estimated using the difference of lower bounds, while 'vbQ'
@@ -86,21 +86,6 @@ parfor iter=1:maxTrj
                     % converge validation set with fixed parameters
                     Wv.converge(Xv,'iType','mle','PSYfixed',1,'displayLevel',dispL);
                     Hiter{iter}(m)=(Tt+Tv)/Tv*Wv.lnL;
-                case 'map'
-                    % converge training set. Since q(S) and q(Y,Z) is
-                    % taken from the full model, start with parameter update
-                    Wt.converge(Xt,'iType','map','PSYwarmup',[-1 0 0],'displayLevel',dispL);
-                    % transfer training parameters
-                    Wv.P=Wt.P;
-                    % converge validation set with fixed parameters
-                    Wv.converge(Xv,'iType','map','PSYfixed',1,'displayLevel',dispL);
-                    % sum up log-prior terms
-                    lnP0=0;
-                    pn=fieldnames(Wv.P.lnP0);
-                    for k=1:numel(pn)
-                        lnP0=lnP0+sum(Wv.P.lnP0.(pn{k}));
-                    end
-                    Hiter{iter}(m)=(Tt+Tv)/Tv*(Wv.lnL-lnP0);
                 case 'vb'
                     % converge training and full set. Since q(S) and q(Y,Z) is
                     % taken from the full model, start with parameter update

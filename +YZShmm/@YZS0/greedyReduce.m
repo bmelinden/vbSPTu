@@ -6,15 +6,15 @@ function [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=greedyReduce(this,data,opt,dis
 % search on each model size. (I.e., for every model size N, the best model
 % of size N-1 is used as an input for the next round of pruning).
 % The search only involves comparisons of models of equal size, and hence
-% should work for VB, MLE, and MAP iterations. (However, the built-in
-% parsimony of VB iterations make them a lot faster).
+% should work for VB and MLE iterations. (However, VB iterations are both
+% faster and numerically more robust).
 %
 % dat   : preprocessed data struct. If empty, data is generated using
 %         information in the options struct opt.
 % opt	: options struct. This is used to 1) generate data if needed, and
 %         2) to generate priors in the new, smaller, models.
 % displayLevel : amount of logging information to display (default 1).
-% iType : type of iterations ('vb','mle', or 'map'). Default: 'vb'
+% iType : type of iterations ('vb' or 'mle'). Default: 'vb'
 %
 % Wbest     : best model found in the greedy search
 % WNbest    : best model of each size found in the greedy search

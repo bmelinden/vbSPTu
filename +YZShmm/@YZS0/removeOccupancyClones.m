@@ -11,7 +11,7 @@ function [W,rmStates]=removeOccupancyClones(this,data,opt,iType,dsMaxThreshold)
 % rmStates  : states that were removed
 % data      : preprocessed data struct
 % opt       : option struct
-% iType     : type of iterations to apply ('mle','map','vb')
+% iType     : type of iterations to apply ('mle','vb')
 % dsMaxThreshold : maximum state occpuance difference (for single time
 %                  points) that defines occupancy clones: States s1,s2 are
 %                  occupancy clones (to be removed) if

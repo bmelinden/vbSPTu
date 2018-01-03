@@ -11,7 +11,7 @@ function P=getParameters(this,dat,iType)
 %
 % input 
 % dat   : data struct, from spt.preprocess
-% iType : type of parameter estimate to use {'mle','map','vb'}.
+% iType : type of parameter estimate to use {'mle','vb'}.
 
 
 P=getParameters@YZShmm.YZS0(this,dat,iType);

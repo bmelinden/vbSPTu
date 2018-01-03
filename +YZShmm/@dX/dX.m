@@ -37,7 +37,6 @@ classdef dX < YZShmm.YZS0
             this.P.nv=this.P0.nv;
             this.P.cv=this.P0.cv;
             this.P.KL.v=0;
-            this.P.lnP0.v=0;
             %% set localization variance value
             this.P.nv=this.P0.nv;
             this.P.cv=this.P0.cv;

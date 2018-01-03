@@ -3,7 +3,7 @@ function [dlnLrel,dlnLterms,sMaxP,sVit]=Siter(this,dat,iType)
 % update the variational hidden state distribution
 %
 % dat   : spt.preprocess data struct 
-% iType : type of iteration {'mle','map','vb'}
+% iType : type of iteration {'mle','vb'}
 %
 % dlnLrel : relative change in log likelihood/lower bound
 % sMaxP   : sequence of most likely states
@@ -16,9 +16,6 @@ function [dlnLrel,dlnLterms,sMaxP,sVit]=Siter(this,dat,iType)
 
 tau=this.sample.shutterMean;
 R  =this.sample.blurCoeff;
-% for now, I assume that the difference btw MAP/MLE is
-% only in computing the parameter counts (i.e., adding
-% prior pseudocounts or not).
 lnL0=this.lnL;
 lnL0terms=this.lnLterms;
 if(isempty(lnL0terms))
@@ -32,16 +29,13 @@ switch lower(iType)
         iLambda =1./Lambda;
         lnLambda=log(Lambda);
         lnLp=[];
-    case 'map'               
-        [lnp0,lnQ,iLambda,lnLambda]=YZShmm.MAPlogPar_P0AD(this.P.wPi,this.P.wa,this.P.wB,this.P.c,this.P.n);
-        lnLp=[this.P.lnP0.pi      sum(this.P.lnP0.a) sum(this.P.lnP0.B) sum(this.P.lnP0.lambda)];
     case 'vb'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
         lnLp=[-sum(this.P.KL.pi) -sum(this.P.KL.a)  -sum(this.P.KL.B)  -sum(this.P.KL.lambda)];
     case 'none'
         return
     otherwise
-        error(['iType= ' iType ' not known. Use {mle,map,vb,none}.'] )
+        error(['iType= ' iType ' not known. Use {mle,vb}.'] )
 end
         
 switch nargout

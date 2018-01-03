@@ -2,25 +2,16 @@ function YZiter(this,dat,iType)
 % YZiter(dat,iType)
 % one update of the q(Y,Z) distribution, 
 % dat : preprocessed data
-% iType : type of learning, one of {'mle','map','vb','none'}. ('none' makes
-% the iterations do nothing).
+% iType : type of learning, one of {'mle','vb'}.
 
 switch lower(iType)
-    % for now, I assume that the difference btw MAP/MLE is
-    % in computing the parameter counts (i.e., adding
-    % prior pseudocounts or not in the P subfields).
     case 'mle'
         Lambda = this.P.c./this.P.n;
         iLambda =1./Lambda;
-    case 'map'
-        Lambda = this.P.c./(this.P.n+1);
-        iLambda =1./Lambda;
     case 'vb'
         [~,~,iLambda,~]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
-    case 'none'
-        return
     otherwise
-        error(['iType= ' iType ' not known. Use {mle,map,vb,none}.'] )
+        error(['iType= ' iType ' not known. Use {mle,vb}.'] )
 end
 tau=this.sample.shutterMean;
 Rcoeff  =this.sample.blurCoeff;

@@ -5,7 +5,7 @@ function multiConverge_Dcomm(W,X,iType,Dcomm)
 % 
 % W     : cell vector of YZShmm models
 % X     : cell vector of corresponding data sets
-% iType : type of iterations, {'mle','map','vb'}
+% iType : type of iterations, {'mle','vb'}
 % Dcomm : defining the set of common diffusion constants, with each row
 % defining the shared constants of each model. Example
 % Dcomm =[1 2; 2 3; 1 3] defines two D-const. common to three models. Group
@@ -51,13 +51,6 @@ for ii=1:maxIter
             case 'mle'
                 n(k,:)=W(k).P.n(Dcomm(k,:));
                 c(k,:)=W(k).P.c(Dcomm(k,:));
-            case 'map'
-                % only share counts from the data
-                n(k,:)=W(k).P.n(Dcomm(k,:))-W(k).P0.n(Dcomm(k,:));
-                c(k,:)=W(k).P.c(Dcomm(k,:))-W(k).P0.c(Dcomm(k,:));
-                if(k>1) % do not double-count log-prior terms
-                    W(k).P.lnP0.lambda(Dcomm)=0;
-                end                
             case 'vb'
                 % only share counts from the data
                 n(k,:)=W(k).P.n(Dcomm(k,:))-W(k).P0.n(Dcomm(k,:));
@@ -73,7 +66,7 @@ for ii=1:maxIter
            case 'mle'
                W(k).P.n(Dcomm(k,:))=sum(n,1);
                W(k).P.c(Dcomm(k,:))=sum(c,1);
-           case {'map','vb'}
+           case 'vb'
                W(k).P.n(Dcomm(k,:))=W(k).P0.n(Dcomm(k,:))+sum(n,1);%
                W(k).P.c(Dcomm(k,:))=W(k).P0.c(Dcomm(k,:))+sum(c,1);%;
        end

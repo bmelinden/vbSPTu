@@ -8,8 +8,8 @@ function [Wbest,YZmv,lnL,initMethod,convTime,initTime,Wall]=modelSearchFixedSize
 % Input parameters are given as parameter-value pairs on the form
 % 'parameter',parameter (case sensitive). 
 % N0    : Number of hidden states (model size) to search within.
-% iType : type of learning {'mle','map','vb'} (maximum likeihood, maximum
-%         aposteriori, variational Bayes). Default: N.A.
+% iType : type of learning {'mle','vb'} (maximum likeihood, variational
+%         Bayes). Default: N.A. 
 % opt   : options struct or name of runinput file.
 %
 % Further optional parameters, take precedence over the corresponding

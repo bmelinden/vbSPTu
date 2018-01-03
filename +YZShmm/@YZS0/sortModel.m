@@ -5,7 +5,7 @@ if(this.numStates==1)
     return
 end
 if(~exist('ind','var') || numel(ind)~=this.numStates)
-   [~,ind]=sort(this.P.c./(this.P.n+1));  % sort on MAP values
+   [~,ind]=sort(this.P.c./(this.P.n+1));  % sort on MAP D values
 end
 if(prod(ind==sort(ind))==0) % then ind makes a difference
     this.P0.wPi=this.P0.wPi(ind);
@@ -30,17 +30,6 @@ if(prod(ind==sort(ind))==0) % then ind makes a difference
         if(isfield(this.P.KL,'lambda') && numel(this.P.KL.lambda)==this.numStates)
             this.P.KL.lambda=this.P.KL.lambda(ind);
         end
-    end
-    if(isfield(this.P,'lnP0'))
-        if(isfield(this.P.lnP0,'a') && numel(this.P.lnP0.a)==this.numStates)
-            this.P.lnP0.a=this.P.lnP0.a(ind);
-        end
-        if(isfield(this.P.lnP0,'B') && numel(this.P.lnP0.B)==this.numStates)
-            this.P.lnP0.B=this.P.lnP0.B(ind);
-        end
-        if(isfield(this.P.lnP0,'lambda') && numel(this.P.lnP0.lambda)==this.numStates)
-            this.P.lnP0.lambda=this.P.lnP0.lambda(ind);
-        end        
     end
     this.S.wA=this.S.wA(ind,ind);
     this.S.pst=this.S.pst(:,ind);

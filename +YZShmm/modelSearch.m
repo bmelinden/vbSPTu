@@ -1,13 +1,13 @@
 function [Wbest,WbestN,lnL,IINlnL,P,qYZmv]=modelSearch(varargin)
 % [Wbest,WbestN,lnL,IINlnL,P,qYZmv]=YZShmm.modelSearch('P1',P1,...)
 % A greedy multi-size model search algorithm that 
-% 1) only compares models of equal size, and hence work for VB, MLE, and
-% MAP iterations (but most stable for VB).
+% 1) only compares models of equal size, and hence work for VB and MLE (but
+%    MLE may not be stable when over-fitting). 
 % 2) detects and discards 'clone states', i.e., diffusive states with
-% identical hidden state occupancy patterns, which is a sign of effectively
-% empty state
+%    identical hidden state occupancy patterns, which is a sign of
+%    effectively empty state.
 % 3) uses a width-first greedy search all the way down to N=1-state models,
-% as implemented in YZShm.YZS0.greedyReduce.m
+%    as implemented in YZShm.YZS0.greedyReduce.m
 %
 % Input parameters are given as parameter-value pairs on the form
 % 'parameter',parameter (case sensitive):
@@ -23,7 +23,7 @@ function [Wbest,WbestN,lnL,IINlnL,P,qYZmv]=modelSearch(varargin)
 % restarts : number of independent restarts. restarts=0 only computes
 %         moving average q(Y,Z) distributions.
 %         Default opt.modelSearch.restarts
-% iType : Type of iterations to use {'mle','map','vb'}. Default: vb.
+% iType : Type of iterations to use {'mle','vb'}. Default: vb.
 % qYZ0  : precomputed q(Y,Z) distribution(s) to include as initial guesses,
 %         either as a single YZ subfield, or as a cell vector of YZ
 %         subfields. Default {} (no pre-computed YZ distributions used).
