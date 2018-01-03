@@ -54,9 +54,6 @@ switch lower(iType)
             -this.P.nv.*(1-this.P0.cv./this.P.cv)...
             -gammaln(this.P.nv)+gammaln(this.P0.nv)...
             +(this.P.nv-this.P0.nv).*psi(this.P.nv);
-        
-    case 'none'
-        return
     otherwise
         error(['iType= ' iType ' not known. Use {mle,vb}.'] )
 end

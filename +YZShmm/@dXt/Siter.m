@@ -32,8 +32,6 @@ switch lower(iType)
     case 'vb'
         [lnp0,lnQ,iLambda,lnLambda]=YZShmm.VBmeanLogParam(this.P.wPi,this.P.wa,this.P.wB,this.P.n,this.P.c);
         lnLp=[-sum(this.P.KL.pi) -sum(this.P.KL.a)  -sum(this.P.KL.B)  -sum(this.P.KL.lambda)];
-    case 'none'
-        return
     otherwise
         error(['iType= ' iType ' not known. Use {mle,vb}.'] )
 end
