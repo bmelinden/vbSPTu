@@ -45,7 +45,7 @@
 %% start of actual code
 
 %% start of actual code
-function opt=getOptions(runinputfile)
+function opt=readRuninputFile(runinputfile)
 % if empty input, select file manually
 if(~exist('runinputfile','var') || isempty(runinputfile))
     [RIname, RIpath] = uigetfile({'*.m'},'select a runinput file');

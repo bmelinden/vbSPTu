@@ -25,7 +25,7 @@ if(~exist('dsMaxThreshold','var') || isempty(dsMaxThreshold))
     dsMaxThreshold=this.conv.dsTol;
 else
     this.conv.dsTol=min([dsMaxThreshold this.conv.dsTol opt.conv.dsTol]);
-    opt.conv.dsTol=this.conv.dsTol
+    opt.conv.dsTol=this.conv.dsTol;
     this.converge(data,'iType',iType);
 end
 
@@ -35,7 +35,6 @@ W=this.clone();
 if(this.numStates==1)
    return 
 end
-%%%warning('Need to implement dS convergence to control dSmax criterion.')
 
 % next, remove occupancy clones, which are assumed to be effectively
 % empty states: 

@@ -145,7 +145,7 @@ parfor iter=1:restarts+(~isempty(Winit))
     Piter{iter}={};
     for mm=1:numel(W0i)
         if(displayLevel>=2)
-            disp(['greedy redcution search: iter ' int2str(iter) ...
+            disp(['greedy reduction search: iter ' int2str(iter) ...
                 ', init ' int2str(mm) ' (' W0i{mm}.comment ').'])
         end
         % greedy searchfrom each initial model

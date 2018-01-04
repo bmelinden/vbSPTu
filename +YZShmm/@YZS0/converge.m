@@ -53,7 +53,6 @@ maxIter=this.conv.maxIter;
 lnLTol=this.conv.lnLTol;
 parTol=this.conv.parTol;
 dsTol =1e-7;
-warning('add conv.dsTol to object properties')
 PSYwarmup=[0 0 0];
 PSYfixed=0;
 minIter=5;

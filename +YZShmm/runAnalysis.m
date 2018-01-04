@@ -22,7 +22,7 @@ function R=runAnalysis(runinput)
 %                 (otherwise variational Bayes).
 %   N       : number of states in W.
 % 	P       : estimated parameters in W (VB or MLE).
-% --- VB model search results from YZShmm.VBmodelSearchVariableSize
+% --- VB model search results from YZShmm.modelSearch
 %   R.VB.model     : The best VB models of all sized encountered during the VB
 %                 model search, up to opt.modelSearch.maxHidden
 %   R.VB.lnL     : log evidence lower bounds of R.VB.model.
