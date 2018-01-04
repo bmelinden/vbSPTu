@@ -101,8 +101,8 @@ WbestNiter  =cell(1,restarts); % best model of each size in each run
 Niter  =cell(1,restarts); % from all models generated in each run
 lnLiter=cell(1,restarts); % from all models generated in each run
 Piter  =cell(1,restarts); % from all models generated in each run
-%%%parfor iter=1:restarts   
-for iter=1:restarts %%% debug without parfor
+parfor iter=1:restarts   
+%%%for iter=1:restarts %%% debug without parfor
     % Greedy search strategy is probably more efficient than to start over
     % at each model size. We simply start with a large model, and
     % systematically remove the least occupied statate until things start
@@ -159,8 +159,8 @@ if(~isempty(Winit))
             w=Winit{k};
             w.converge( data,'iType','vb','PSYwarmup',[-1 0 0 ],'displayLevel',displayLevel-1);
         catch me
-            if(this.conv.saveErr)
-                errFile=[class(this) '_Winit_err' int2str(ceil(1e9*rand)) '.mat'];
+            if(w.conv.saveErr)
+                errFile=[class(w) '_Winit_err' int2str(ceil(1e9*rand)) '.mat'];
                 save(errFile)
                 warning(['Error while converging initial model ' int2str(k) '. Skipping that model, but saving workspace to ' errFile])
             else
