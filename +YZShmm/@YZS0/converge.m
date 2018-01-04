@@ -45,14 +45,13 @@ function [sMaxP,sVit]=converge(this,dat,varargin)
 % in the transition matrix, and from there to the whole model.
 % 2017-06-27: started modifying to fit in the YZShmm package instead. Very
 % small differences
-
 %% start of actual code
 
 % default parameter values
-maxIter=this.conv.maxIter;
-lnLTol=this.conv.lnLTol;
-parTol=this.conv.parTol;
-dsTol =1e-7;
+maxIter= this.conv.maxIter;
+lnLTol = this.conv.lnLTol;
+parTol = this.conv.parTol;
+dsTol  = this.conv.dsTol;
 PSYwarmup=[0 0 0];
 PSYfixed=0;
 minIter=5;
@@ -177,7 +176,7 @@ for r=1:maxIter
     if(showConv)
         disp(['it ' int2str(r) ', dlnL = ' num2str(dlnLrel,4) ', dPar = ' num2str(dPmax,4) ', ds = ' num2str(dsMax,4)])
     end
-    
+    % stop when all convergence criteria are met
     if(r>minIter && converged_lnL>2 && converged_par>2 && converged_s >2)
         % determine which converged last
         [~,cc]=min([converged_lnL converged_par converged_s]);
