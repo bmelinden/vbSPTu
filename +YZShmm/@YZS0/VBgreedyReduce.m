@@ -12,7 +12,9 @@ function [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,data,opt,d
 % lnLsearch : lnL for each model in the search (including suboptimal ones)
 % Nsearch   : size of each model in the search 
 % Psearch   : Parameter estimate struct for each nmodel in the search
-
+%
+% NOTE (ML 2018-01-05) : This greedy algorithm has proven less than
+% optimal. Use greedyReduce instead.
 if(~exist('displayLevel','var'))
     displayLevel=1;
 end
