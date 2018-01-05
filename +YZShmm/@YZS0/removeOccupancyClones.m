@@ -23,7 +23,7 @@ function [W,rmStates]=removeOccupancyClones(this,data,opt,iType,dsMaxThreshold,p
 %             visualization).
 
 % ML 2017-12-28
-
+rmStates=[];
 if(~exist('dsMaxThreshold','var') || isempty(dsMaxThreshold))
     dsMaxThreshold=this.conv.dsTol;
 else
@@ -76,6 +76,7 @@ while(W.numStates>1)
         i0=-sort(-i0); 
         for ii=1:numel(i0)
             W=W.removeState(i0(ii),opt);
+            rmStates(end+1)=i0(ii);
         end
         % reconverge and start over
         W.converge(data,'iType',iType,'displayLevel',0,'PSYwarmup',[-1 -2 0]);
