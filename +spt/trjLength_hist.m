@@ -30,7 +30,8 @@ if(isfield(opt,'trj') && isfield(opt.trj,'inputfile') ...
         figH=figure;
     end
     clf
-    [a,b]=hist(X.T,ceil(numel(X.T)/5));
+    Tbin=2.5;
+    [a,b]=hist(X.T,opt.trj.Tmin+Tbin/2:Tbin:(Tbin+max(X.T)));%min(50,ceil(numel(X.T)/5)));%ceil(numel(X.T)/5));
     
     bar(b,a/sum(a)/mean(diff(b)),1,'facecolor','k','edgecol','none')
     xlabel('trj. length / \Deltat')
