@@ -123,7 +123,9 @@ elseif(isreal(YZww)) % then compute moving average initializations
         disp(['YZfilters [ ' int2str(YZww) ' ] computed in [ ' num2str(initTime,3) ' ] s.']);
     end
 end
-initTime=[initTime zeros(1,5)];
+if(allInit) % allInit adds 5 extra initializations
+    initTime=[initTime zeros(1,5)];
+end
 
 % precomputed YZ structs
 if(~isempty(qYZ0))
@@ -140,7 +142,8 @@ WlnL=cell(1,restarts);
 WCtime=cell(1,restarts);
 Wallrm=cell(1,restarts);
 initMethod={};
-if(restarts<=0)
+if(restarts<=0 || (isempty(YZww) && isempty(qYZ0) && ~allInit) )
+    % nothing to be computed
     Wbest=struct;
     lnL=[];
     convTime=[];
@@ -148,7 +151,8 @@ if(restarts<=0)
         Wall={};
     end
 elseif(restarts>0)
-    %%%parfor r=1:restarts
+    %%% %%% parfor r=1:restarts
+    warning('modelSearchFixedSize without parfor')
     for r=1:restarts
         V0=classFun(N0,opt,data); % model, data, and initial parameter guess
         initMethod{r}={};
@@ -198,6 +202,16 @@ elseif(restarts>0)
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
             if(doWall)
                 Wallrm{r}{m}=V.clone();
+            end
+            WCtime{r}{m}=toc;
+            if(displayLevel>=2)
+                try
+                V.EMexit.init=V.comment;
+                disp(V.EMexit);
+                disp('----------')
+                catch me
+                    warning('Cannot display EMexit/comment with pre-computed models.')
+                end
             end
         end
         %% less efficient initializations
@@ -310,7 +324,11 @@ elseif(restarts>0)
         this_lnL=[ WlnL{r}{:}];
         [this_lnLmax,b]=max(this_lnL);
         lnL_sort=-sort(-this_lnL);
-        dlnLrel=(this_lnLmax-lnL_sort(2))*2/abs(this_lnLmax+lnL_sort(2));
+        if(numel(lnL_sort)>1)
+            dlnLrel=(this_lnLmax-lnL_sort(2))*2/abs(this_lnLmax+lnL_sort(2));
+        else
+            dlnLrel=nan;
+        end
         if(displayLevel>1)
             fprintf('Round %d winner: %s dlnLrel = %0.1e.\n',r,initMethod{r}{b},dlnLrel);
         end        
