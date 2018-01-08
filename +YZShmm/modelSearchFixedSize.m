@@ -46,8 +46,7 @@ function [Wbest,YZmv,lnL,initMethod,convTime,initTime,Wall]=modelSearchFixedSize
 %             restarts is large.
 
 %% parameters and default values
-
-allInit=true; % if false, exclude all but running averages (YZww) and precomputed YZ model (qYZ0).
+allInit=false; % if false, exclude all but running averages (YZww) and precomputed YZ model (qYZ0).
 
 % get options
 kOpt=2*find(strcmp('opt',varargin(1:2:end)),1);
@@ -108,7 +107,7 @@ elseif(isreal(YZww)) % then compute moving average initializations
     YZmv=cell(size(YZww));
     initTime={};
     parfor k=1:numel(YZww)
-    %for k=1:numel(YZww)
+        %for k=1:numel(YZww)
         tic
         if(isfield(data,'v'))
             YZmv{k}=mleYZdXt.YZinitMovingAverage(data,YZww(k),3e-2,opt.trj.shutterMean,opt.trj.blurCoeff,dt);
@@ -137,10 +136,10 @@ else
     qYZ0={};
 end
 %% independent restarts
-W=cell(1,restarts);
-WlnL=cell(1,restarts);
-WCtime=cell(1,restarts);
-Wallrm=cell(1,restarts);
+W=cell(1,restarts);         % best model from every restart
+WlnL=cell(1,restarts);      % cell vectors of lnL values
+WCtime=cell(1,restarts);    % convergence times
+Wallrm=cell(1,restarts);    % all encountered models
 initMethod={};
 if(restarts<=0 || (isempty(YZww) && isempty(qYZ0) && ~allInit) )
     % nothing to be computed
@@ -151,9 +150,9 @@ if(restarts<=0 || (isempty(YZww) && isempty(qYZ0) && ~allInit) )
         Wall={};
     end
 elseif(restarts>0)
-    %%% %%% parfor r=1:restarts
-    warning('modelSearchFixedSize without parfor')
-    for r=1:restarts
+    parfor r=1:restarts
+        %%% warning('modelSearchFixedSize without parfor')
+        %%% for r=1:restarts
         V0=classFun(N0,opt,data); % model, data, and initial parameter guess
         initMethod{r}={};
         m=0;
@@ -165,9 +164,9 @@ elseif(restarts>0)
         end
         %% YZfilter
         for k=1:numel(YZww)
-            m=m+1;tic;            
+            m=m+1;tic;
             initMethod{r}{m}=['yzF(' int2str(YZww(k)) ')S'];
-            V=V0.clone();            
+            V=V0.clone();
             V.YZ=YZmv{k};
             V.Siter(data,iType);
             V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
@@ -177,7 +176,7 @@ elseif(restarts>0)
                 W{r}=V;
             end
             if(doWall)
-                Wallrm{r}{m}=V.clone();                
+                Wallrm{r}{m}=V.clone();
             end
             WCtime{r}{m}=toc;
             if(displayLevel>=2)
@@ -200,15 +199,18 @@ elseif(restarts>0)
             V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
+            if(V.lnL>W{r}.lnL)
+                W{r}=V;
+            end
             if(doWall)
                 Wallrm{r}{m}=V.clone();
             end
             WCtime{r}{m}=toc;
             if(displayLevel>=2)
                 try
-                V.EMexit.init=V.comment;
-                disp(V.EMexit);
-                disp('----------')
+                    V.EMexit.init=V.comment;
+                    disp(V.EMexit);
+                    disp('----------')
                 catch me
                     warning('Cannot display EMexit/comment with pre-computed models.')
                 end
@@ -261,30 +263,6 @@ elseif(restarts>0)
                 disp(V.EMexit);
                 disp('----------')
             end
-            %% YZne     : q(Y,Z) = data, low errors: inactivated, equal to YZdata above
-            if(false) % this turns out to be equivalent to YZdata about
-                m=m+1;tic;
-                initMethod{r}{m}='YZneS';
-                V1=classFun(N0,opt,X0);
-                V=V0.clone();
-                V.YZ=V1.YZ; % initial guess created from X0 data
-                V.Siter(data,iType);
-                V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
-                WlnL{r}{m}=V.lnL;
-                V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
-                if(V.lnL>W{r}.lnL)
-                    W{r}=V;
-                end
-                if(doWall)
-                    Wallrm{r}{m}=V.clone();
-                end
-                WCtime{r}{m}=toc;
-                if(displayLevel>=2)
-                    V.EMexit.init=V.comment;
-                    disp(V.EMexit);
-                    disp('----------')
-                end
-            end
             %% YZnbeInit: start w YZdata but with low error and blur
             m=m+1;tic;
             initMethod{r}{m}='YZnbe';
@@ -331,8 +309,8 @@ elseif(restarts>0)
         end
         if(displayLevel>1)
             fprintf('Round %d winner: %s dlnLrel = %0.1e.\n',r,initMethod{r}{b},dlnLrel);
-        end        
         end
+    end
     lnL=[WlnL{1}{:}];
     convTime=[WCtime{1}{:}];
     initMethod=initMethod{1};
@@ -345,7 +323,7 @@ elseif(restarts>0)
         if(W{r}.lnL>Wbest.lnL)
             Wbest=W{r};
             bestIter=r;
-            [~,bestInit]=max(lnL(r,:));    
+            [~,bestInit]=max(lnL(r,:));
         end
     end
     Wbest.sortModel();
@@ -357,9 +335,9 @@ elseif(restarts>0)
         Wall={};
         m=0;
         for r=1:restarts
-           for m=1:numel(Wallrm{r})
-              Wall{end+1}=Wallrm{r}{m};
-           end
+            for m=1:numel(Wallrm{r})
+                Wall{end+1}=Wallrm{r}{m};
+            end
         end
     end
 end
