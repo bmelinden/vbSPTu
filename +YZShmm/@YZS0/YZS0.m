@@ -187,7 +187,7 @@ classdef YZS0 < handle
         displayParameters(this,varargin);
         [Wii,Xii,W0,X0]=splitModelAndData(this,X,ii);
         [W,rmStates]=removeOccupancyClones(this,data,opt,iType,dsMaxThreshold,plotFig)
-        [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=greedyReduce(this,dat,opt,displayLevel);
+        [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=greedyReduce(this,dat,opt,displayLevel,iType);
         [Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce(this,dat,opt,displayLevel);
         %[Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce2(this,dat,opt,displayLevel,iType);
         %[Wbest,WNbest,lnLsearch,Nsearch,Psearch]=VBgreedyReduce3(this,dat,opt,displayLevel,iType);
