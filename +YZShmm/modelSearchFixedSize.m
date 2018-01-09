@@ -47,6 +47,7 @@ function [Wbest,YZmv,lnL,initMethod,convTime,initTime,Wall]=modelSearchFixedSize
 
 %% parameters and default values
 
+warning('modelSearchFixedSize with default allInit=true')
 allInit=true; % if false, exclude all but running averages (YZww) and precomputed YZ model (qYZ0).
 
 % get options
