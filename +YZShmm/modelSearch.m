@@ -111,15 +111,15 @@ Niter  =cell(1,restarts); % from all models generated in each run
 lnLiter=cell(1,restarts); % from all models generated in each run
 Piter  =cell(1,restarts); % from all models generated in each run
 parfor iter=1:restarts+(~isempty(Winit))
-%%%warning('debugging without parfor')
-%%%for iter=1:restarts+(~isempty(Winit))
-    % Greedy search strategy is probably more efficient than to start over
-    % at each model size. We simply start with a large model, and
-    % systematically remove the least occupied statate until things start
-    % to get worse.
+%%% warning('debugging without parfor')
+%%% for iter=1:restarts+(~isempty(Winit))
+    % Greedy search strategy is probably more efficient than independent
+    % searches at each model size. We simply start with a large model, and 
+    % systematically remove states looking for the best model of every
+    % size. 
     % 2017-12-28 : numerical experiments suggest the best many-state model
-    % is not reduced to the best low-state model. So, all high-state
-    % initial models should be reduced.
+    % (say N=30) is not always reduced to the best low-state model. So, all
+    % high-state initial models should be used for greedy search.
     titer=tic;
     if(iter==1 && ~isempty(Winit))
         % first iteration based on supplied models, if available
