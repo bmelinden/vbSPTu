@@ -218,7 +218,7 @@ elseif(restarts>0)
                 end
             end
         end
-        %% less efficient initializations
+        %% initializations not based on running averages
         if(allInit)
             %% Suniform : q(S) = uniform
             m=m+1;tic;
@@ -313,6 +313,7 @@ elseif(restarts>0)
             fprintf('Round %d winner: %s dlnLrel = %0.1e.\n',r,initMethod{r}{b},dlnLrel);
         end
     end
+    %% collect search results and best models
     lnL=[WlnL{1}{:}];
     convTime=[WCtime{1}{:}];
     initMethod=initMethod{1};
