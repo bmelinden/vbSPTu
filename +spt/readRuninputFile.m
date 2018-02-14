@@ -11,7 +11,7 @@
 % If a struct object is passed, it is simply returned. This is a convenient
 % way to make it possible to use opt structures as alternative input in all
 % sorts of SM simulation files without having to perform string-tests etc
-% each time, but does not perform the above path tests.
+% each time. However, this does not perform the above path operations.
 %
 % M.L. 2014-01-24
 

@@ -8,11 +8,10 @@ function R=runAnalysis(runinput)
 %             comments in the example runinput file YZSruninput.m for a
 %             description of the various options.
 %
-% res       : a struct with the results of the analysis, which is also
+% R       : a struct with the results of the analysis, which is also
 %             saved to the file specified in opt.output.outputFile. Fields:
 % 
-%  	runinput    : the runinput input 
-% 	opt         : the options struct produced by runinput
+% 	opt         : the options struct produced from runinput
 %   X           : preprocessed data
 % --- selected model 
 %   W       : selected model, by the variational Bayes (VB) or

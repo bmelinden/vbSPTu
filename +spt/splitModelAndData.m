@@ -2,6 +2,7 @@ function [Wii,Xii,W0,X0]=splitModelAndData(W,X,ii)
 % [Wii,Xii,W0,X0]=spt.splitModelAndData(W,X,ii)
 % split model W and data X into two parts, with Wi,Xi containing
 % trajectories with index ii, and W0,X0 containing the remaining parts.
+% applies to mleYZdXt-type model structs
 
 % indices to complementary data set
 i0=setdiff(1:numel(X.i0),ii);
