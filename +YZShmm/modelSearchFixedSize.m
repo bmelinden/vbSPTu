@@ -154,9 +154,18 @@ elseif(restarts>0)
     parfor r=1:restarts
     %%%warning('modelSearchFixedSize without parfor')
     %%%for r=1:restarts
-        preConvMaxIter=Pwarmup;   % max number of iterations with fixed parameters
-        Vtrj0=V0.clone();         % select best trjs after fizxed-parameter warmup
-        Vtrj1=V0.clone();         % also look for good trajectories after converging
+    %% initialize new set of model parameters and search variables
+    V0=classFun(N0,opt,data); % model, data, and initial parameter guess
+    initMethod{r}={};
+    m=0;
+    W{r}=struct('lnL',-inf);
+    WlnL{r}={};
+    WCtime{r}={};
+    if(doWall)
+        Wallrm{r}={};
+    end
+    Vtrj0=V0.clone();         % select best trjs after fizxed-parameter warmup
+    Vtrj1=V0.clone();         % also look for good trajectories after converging
         %% using YZfilter computed in this function call
         % (probably more efficient to pre-compute those and supply qYZ0)
         for k=1:numel(YZww)
@@ -166,7 +175,7 @@ elseif(restarts>0)
             V.YZ=YZmv{k};
             V.Siter(data,iType);
             % warmup and look for good YZ-trajectories
-            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',preConvMaxIter);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
             Vtrj0.trjImproveYZS(data,V,iType);
             Vtrj1.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
@@ -198,7 +207,7 @@ elseif(restarts>0)
             V.YZ=qYZ0{k};
             V.Siter(data,iType);
             % warmup and look for good YZ-trajectories
-            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',preConvMaxIter);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
             Vtrj0.trjImproveYZS(data,V,iType);
             Vtrj1.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
@@ -230,7 +239,7 @@ elseif(restarts>0)
             V=V0.clone();
             V.YZiter(data,iType);
             % warmup and look for good YZ-trajectories
-            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',preConvMaxIter);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
             Vtrj0.trjImproveYZS(data,V,iType);
             Vtrj1.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
@@ -255,7 +264,7 @@ elseif(restarts>0)
             V=V0.clone();
             V.Siter(data,iType);
             % warmup and look for good YZ-trajectories
-            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',preConvMaxIter);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
             Vtrj0.trjImproveYZS(data,V,iType);
             Vtrj1.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
@@ -294,7 +303,7 @@ elseif(restarts>0)
             V.YZiter(data,iType);
             V.Piter(data,iType);
             % warmup and look for good YZ-trajectories
-            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',preConvMaxIter);
+            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
             Vtrj0.trjImproveYZS(data,V,iType);
             Vtrj1.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
