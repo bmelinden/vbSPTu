@@ -3,13 +3,13 @@ function [Wbest,YZmv,lnL,initMethod,convTime,initTime,Wall]=modelSearchFixedSize
 % Simple model search for a fixed number of diffusive states: generates and
 % converges models with random initial parameters and a few different
 % initial guesses for q(S) and/or q(Y,Z). Mainly inteneded as a lower-level
-% part of YZShmm.modelSearch. 
+% part of YZShmm.modelSearch.
 %
 % Input parameters are given as parameter-value pairs on the form
-% 'parameter',parameter (case sensitive). 
+% 'parameter',parameter (case sensitive).
 % N0    : Number of hidden states (model size) to search within.
 % iType : type of learning {'mle','vb'} (maximum likeihood, variational
-%         Bayes). Default: N.A. 
+%         Bayes). Default: N.A.
 % opt   : options struct or name of runinput file.
 %
 % Further optional parameters, take precedence over the corresponding
@@ -46,7 +46,6 @@ function [Wbest,YZmv,lnL,initMethod,convTime,initTime,Wall]=modelSearchFixedSize
 %             restarts is large.
 
 %% parameters and default values
-
 warning('modelSearchFixedSize with default allInit=true')
 allInit=true; % if false, exclude all but running averages (YZww) and precomputed YZ model (qYZ0).
 
@@ -153,27 +152,27 @@ if(restarts<=0 || (isempty(YZww) && isempty(qYZ0) && ~allInit) )
     end
 elseif(restarts>0)
     parfor r=1:restarts
-        %%% warning('modelSearchFixedSize without parfor')
-        %%% for r=1:restarts
-        V0=classFun(N0,opt,data); % model, data, and initial parameter guess
-        initMethod{r}={};
-        m=0;
-        W{r}=struct('lnL',-inf);
-        WlnL{r}={};
-        WCtime{r}={};
-        if(doWall)
-            Wallrm{r}={};
-        end
-        %% YZfilter
+    %%%warning('modelSearchFixedSize without parfor')
+    %%%for r=1:restarts
+        preConvMaxIter=Pwarmup;   % max number of iterations with fixed parameters
+        Vtrj0=V0.clone();         % select best trjs after fizxed-parameter warmup
+        Vtrj1=V0.clone();         % also look for good trajectories after converging
+        %% using YZfilter computed in this function call
+        % (probably more efficient to pre-compute those and supply qYZ0)
         for k=1:numel(YZww)
             m=m+1;tic;
             initMethod{r}{m}=['yzF(' int2str(YZww(k)) ')S'];
             V=V0.clone();
             V.YZ=YZmv{k};
             V.Siter(data,iType);
-            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+            % warmup and look for good YZ-trajectories
+            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',preConvMaxIter);
+            Vtrj0.trjImproveYZS(data,V,iType);
+            Vtrj1.trjImproveYZS(data,V,iType);
+            V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+            Vtrj1.trjImproveYZS(data,V,iType);
             WlnL{r}{m}=V.lnL;
-            V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
+            V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
             if(V.lnL>W{r}.lnL)
                 W{r}=V;
             end
@@ -191,16 +190,21 @@ elseif(restarts>0)
         for k=1:numel(qYZ0)
             m=m+1;tic;
             if(isfield(qYZ0{k},'initMethod'))
-                initMethod{r}{m}=qYZ0{k}.initMethod;
+                initMethod{r}{m}=[qYZ0{k}.initMethod ];
             else
                 initMethod{r}{m}=['YZ0(' int2str(k) ')S'];
             end
             V=V0.clone();
             V.YZ=qYZ0{k};
             V.Siter(data,iType);
-            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+            % warmup and look for good YZ-trajectories
+            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',preConvMaxIter);
+            Vtrj0.trjImproveYZS(data,V,iType);
+            Vtrj1.trjImproveYZS(data,V,iType);
+            V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+            Vtrj1.trjImproveYZS(data,V,iType);
             WlnL{r}{m}=V.lnL;
-            V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
+            V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
             if(V.lnL>W{r}.lnL)
                 W{r}=V;
             end
@@ -225,24 +229,24 @@ elseif(restarts>0)
             initMethod{r}{m}='uniformS';
             V=V0.clone();
             V.YZiter(data,iType);
-            try
-                V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
-                WlnL{r}{m}=V.lnL;
-                V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
-                if(V.lnL>W{r}.lnL)
-                    W{r}=V;
-                end
-                if(doWall)
-                    Wallrm{r}{m}=V.clone();
-                end
-                if(displayLevel>=2)
-                    V.EMexit.init=V.comment;
-                    disp(V.EMexit);
-                    disp('----------')
-                end
-            catch me
-                me
-                WlnL{r}{m}=nan;
+            % warmup and look for good YZ-trajectories
+            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',preConvMaxIter);
+            Vtrj0.trjImproveYZS(data,V,iType);
+            Vtrj1.trjImproveYZS(data,V,iType);
+            V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+            Vtrj1.trjImproveYZS(data,V,iType);
+            WlnL{r}{m}=V.lnL;
+            V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
+            if(V.lnL>W{r}.lnL)
+                W{r}=V;
+            end
+            if(doWall)
+                Wallrm{r}{m}=V.clone();
+            end
+            if(displayLevel>=2)
+                V.EMexit.init=V.comment;
+                disp(V.EMexit);
+                disp('----------')
             end
             WCtime{r}{m}=toc;
             %% YZdata   : q(Y,Z) = data
@@ -250,9 +254,14 @@ elseif(restarts>0)
             initMethod{r}{m}='YZdata';
             V=V0.clone();
             V.Siter(data,iType);
-            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+            % warmup and look for good YZ-trajectories
+            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',preConvMaxIter);
+            Vtrj0.trjImproveYZS(data,V,iType);
+            Vtrj1.trjImproveYZS(data,V,iType);
+            V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+            Vtrj1.trjImproveYZS(data,V,iType);
             WlnL{r}{m}=V.lnL;
-            V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
+            V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
             if(V.lnL>W{r}.lnL)
                 W{r}=V;
             end
@@ -280,13 +289,18 @@ elseif(restarts>0)
             % converge with fixed YZ model with no variances
             V1.converge(X0,'displayLevel',displayLevel-2,'Dsort',false,'iType',iType,'PSYfixed',3,'Dsort',true)%,'PSYwarmup',25);
             V=V0.clone(); % now go back to original data
-            V.S=V1.S;     % but keep hidden states and parameters from V1
-            V.P=V1.P;
+            V.S=V1.S;     % but keep hidden states
+            V.P=V1.P;     % 'translate' parameters to the new YZ model
             V.YZiter(data,iType);
             V.Piter(data,iType);
-            V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+            % warmup and look for good YZ-trajectories
+            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',preConvMaxIter);
+            Vtrj0.trjImproveYZS(data,V,iType);
+            Vtrj1.trjImproveYZS(data,V,iType);
+            V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+            Vtrj1.trjImproveYZS(data,V,iType);
             WlnL{r}{m}=V.lnL;
-            V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m}];
+            V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
             if(V.lnL>W{r}.lnL)
                 W{r}=V;
             end
@@ -300,6 +314,35 @@ elseif(restarts>0)
                 disp('----------')
             end
         end
+        %% insert Vtrj0,1 among other model candidates and converge them
+        % search trj before preconvergence
+        m=m+1;tic;
+        initMethod{r}{m}='trj0';
+        V=Vtrj0;
+        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+        WlnL{r}{m}=V.lnL;
+        V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
+        if(V.lnL>W{r}.lnL)
+            W{r}=V;
+        end
+        if(doWall)
+            Wallrm{r}{m}=V.clone();
+        end
+        WCtime{r}{m}=toc;
+        % search trj before and after preconvergence
+        m=m+1;tic;
+        initMethod{r}{m}='trj1';
+        V=Vtrj1;
+        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+        WlnL{r}{m}=V.lnL;
+        V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
+        if(V.lnL>W{r}.lnL)
+            W{r}=V;
+        end
+        if(doWall)
+            Wallrm{r}{m}=V.clone();
+        end
+        WCtime{r}{m}=toc;
         %% look for winner for this particular initial condition
         this_lnL=[ WlnL{r}{:}];
         [this_lnLmax,b]=max(this_lnL);
@@ -344,6 +387,4 @@ elseif(restarts>0)
         end
     end
 end
-% to do: save correlation btw method and lnL
-
 
