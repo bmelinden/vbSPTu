@@ -283,44 +283,46 @@ elseif(restarts>0)
                 disp(V.EMexit);
                 disp('----------')
             end
-            %% YZnbeInit: start w YZdata but with low error and blur
-            m=m+1;tic;
-            initMethod{r}{m}='YZnbe';
-            % first one conergence round with small errors in the data
-            opt0=opt;
-            opt0.trj.shutterMean=1e-2;
-            opt0.trj.blurCoeff=1e-2/3;
-            V1=classFun(N0,opt0,X0);
-            V1.YZ.varZ=zeros(size(V1.YZ.varZ));
-            V1.YZ.varY=zeros(size(V1.YZ.varY));
-            
-            V1.Siter(X0,iType);
-            % converge with fixed YZ model with no variances
-            V1.converge(X0,'displayLevel',displayLevel-2,'Dsort',false,'iType',iType,'PSYfixed',3,'Dsort',true)%,'PSYwarmup',25);
-            V=V0.clone(); % now go back to original data
-            V.S=V1.S;     % but keep hidden states
-            V.P=V1.P;     % 'translate' parameters to the new YZ model
-            V.YZiter(data,iType);
-            V.Piter(data,iType);
-            % warmup and look for good YZ-trajectories
-            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
-            Vtrj0.trjImproveYZS(data,V,iType);
-            Vtrj1.trjImproveYZS(data,V,iType);
-            V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
-            Vtrj1.trjImproveYZS(data,V,iType);
-            WlnL{r}{m}=V.lnL;
-            V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
-            if(V.lnL>W{r}.lnL)
-                W{r}=V;
-            end
-            if(doWall)
-                Wallrm{r}{m}=V.clone();
-            end
-            WCtime{r}{m}=toc;
-            if(displayLevel>=2)
-                V.EMexit.init=V.comment;
-                disp(V.EMexit);
-                disp('----------')
+            %% YZnbeInit: start w YZdata but with low error and blur: deactivated
+            if(false)
+                m=m+1;tic;
+                initMethod{r}{m}='YZnbe';
+                % first one conergence round with small errors in the data
+                opt0=opt;
+                opt0.trj.shutterMean=1e-2;
+                opt0.trj.blurCoeff=1e-2/3;
+                V1=classFun(N0,opt0,X0);
+                V1.YZ.varZ=zeros(size(V1.YZ.varZ));
+                V1.YZ.varY=zeros(size(V1.YZ.varY));
+                
+                V1.Siter(X0,iType);
+                % converge with fixed YZ model with no variances
+                V1.converge(X0,'displayLevel',displayLevel-2,'Dsort',false,'iType',iType,'PSYfixed',3,'Dsort',true)%,'PSYwarmup',25);
+                V=V0.clone(); % now go back to original data
+                V.S=V1.S;     % but keep hidden states
+                V.P=V1.P;     % 'translate' parameters to the new YZ model
+                V.YZiter(data,iType);
+                V.Piter(data,iType);
+                % warmup and look for good YZ-trajectories
+                V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
+                Vtrj0.trjImproveYZS(data,V,iType);
+                Vtrj1.trjImproveYZS(data,V,iType);
+                V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
+                Vtrj1.trjImproveYZS(data,V,iType);
+                WlnL{r}{m}=V.lnL;
+                V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
+                if(V.lnL>W{r}.lnL)
+                    W{r}=V;
+                end
+                if(doWall)
+                    Wallrm{r}{m}=V.clone();
+                end
+                WCtime{r}{m}=toc;
+                if(displayLevel>=2)
+                    V.EMexit.init=V.comment;
+                    disp(V.EMexit);
+                    disp('----------')
+                end
             end
         end
         %% insert Vtrj0,1 among other model candidates and converge them
