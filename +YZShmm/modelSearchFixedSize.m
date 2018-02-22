@@ -164,8 +164,7 @@ elseif(restarts>0)
     if(doWall)
         Wallrm{r}={};
     end
-    Vtrj0=V0.clone();         % select best trjs after fizxed-parameter warmup
-    Vtrj1=V0.clone();         % also look for good trajectories after converging
+    VtrjOpt=V0.clone();         % also look for good trajectories after converging
         %% using YZfilter computed in this function call
         % (probably more efficient to pre-compute those and supply qYZ0)
         for k=1:numel(YZww)
@@ -176,10 +175,9 @@ elseif(restarts>0)
             V.Siter(data,iType);
             % warmup and look for good YZ-trajectories
             V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
-            Vtrj0.trjImproveYZS(data,V,iType);
-            Vtrj1.trjImproveYZS(data,V,iType);
+            VtrjOpt.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
-            Vtrj1.trjImproveYZS(data,V,iType);
+            VtrjOpt.trjImproveYZS(data,V,iType);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
             if(V.lnL>W{r}.lnL)
@@ -208,10 +206,9 @@ elseif(restarts>0)
             V.Siter(data,iType);
             % warmup and look for good YZ-trajectories
             V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
-            Vtrj0.trjImproveYZS(data,V,iType);
-            Vtrj1.trjImproveYZS(data,V,iType);
+            VtrjOpt.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
-            Vtrj1.trjImproveYZS(data,V,iType);
+            VtrjOpt.trjImproveYZS(data,V,iType);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
             if(V.lnL>W{r}.lnL)
@@ -240,10 +237,9 @@ elseif(restarts>0)
             V.YZiter(data,iType);
             % warmup and look for good YZ-trajectories
             V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
-            Vtrj0.trjImproveYZS(data,V,iType);
-            Vtrj1.trjImproveYZS(data,V,iType);
+            VtrjOpt.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
-            Vtrj1.trjImproveYZS(data,V,iType);
+            VtrjOpt.trjImproveYZS(data,V,iType);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
             if(V.lnL>W{r}.lnL)
@@ -265,10 +261,9 @@ elseif(restarts>0)
             V.Siter(data,iType);
             % warmup and look for good YZ-trajectories
             V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
-            Vtrj0.trjImproveYZS(data,V,iType);
-            Vtrj1.trjImproveYZS(data,V,iType);
+            VtrjOpt.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
-            Vtrj1.trjImproveYZS(data,V,iType);
+            VtrjOpt.trjImproveYZS(data,V,iType);
             WlnL{r}{m}=V.lnL;
             V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
             if(V.lnL>W{r}.lnL)
@@ -305,10 +300,9 @@ elseif(restarts>0)
                 V.Piter(data,iType);
                 % warmup and look for good YZ-trajectories
                 V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
-                Vtrj0.trjImproveYZS(data,V,iType);
-                Vtrj1.trjImproveYZS(data,V,iType);
+                VtrjOpt.trjImproveYZS(data,V,iType);
                 V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
-                Vtrj1.trjImproveYZS(data,V,iType);
+                VtrjOpt.trjImproveYZS(data,V,iType);
                 WlnL{r}{m}=V.lnL;
                 V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
                 if(V.lnL>W{r}.lnL)
@@ -325,25 +319,11 @@ elseif(restarts>0)
                 end
             end
         end
-        %% insert Vtrj0,1 among other model candidates and converge them
-        % search trj before preconvergence
-        m=m+1;tic;
-        initMethod{r}{m}='trj0';
-        V=Vtrj0;
-        V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
-        WlnL{r}{m}=V.lnL;
-        V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
-        if(V.lnL>W{r}.lnL)
-            W{r}=V;
-        end
-        if(doWall)
-            Wallrm{r}{m}=V.clone();
-        end
-        WCtime{r}{m}=toc;
+        %% insert VtrjOpt among other model candidates and converge them
         % search trj before and after preconvergence
         m=m+1;tic;
-        initMethod{r}{m}='trj1';
-        V=Vtrj1;
+        initMethod{r}{m}='trjOpt';
+        V=VtrjOpt;
         V.converge(data,'displayLevel',displayLevel-2,'PSYwarmup',[Pwarmup 0 0],'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
         WlnL{r}{m}=V.lnL;
         V.comment=['init N=' int2str(V.numStates) ' ' initMethod{r}{m} ];
