@@ -158,17 +158,17 @@ for r=1:maxIter
     
     % check convergence
     [dlnLrel,dPmax,dPmaxName,dsMax]=this.modelDiff(W1);
-    if( (dPmax<parTol && PSYwarmup(1)<r) || PSYfixed==1 )
+    if( (dPmax<parTol   && PSYwarmup(1)<r) || PSYfixed==1 )
         converged_par=converged_par+1;
     else
         converged_par=0;
     end
-    if(dlnLrel<lnLTol && PSYwarmup(2)<r || PSYfixed==2)
+    if( (dlnLrel<lnLTol && PSYwarmup(2)<r) || PSYfixed==2)
         converged_lnL=converged_lnL+1;
     else
         converged_lnL=0;
     end
-    if(dsMax<dsTol && PSYwarmup(2)<r || PSYfixed==2)
+    if( (dsMax<dsTol    && PSYwarmup(2)<r) || PSYfixed==2)
         converged_s=converged_s+1;
     else
         converged_s=0;
