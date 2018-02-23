@@ -46,7 +46,6 @@ function [Wbest,YZmv,lnL,initMethod,convTime,initTime,Wall]=modelSearchFixedSize
 %             restarts is large.
 
 %% parameters and default values
-warning('modelSearchFixedSize with default allInit=true')
 allInit=true; % if false, exclude all but running averages (YZww) and precomputed YZ model (qYZ0).
 
 % get options
@@ -174,7 +173,12 @@ elseif(restarts>0)
             V.YZ=YZmv{k};
             V.Siter(data,iType);
             % warmup and look for good YZ-trajectories
-            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
+            for ii=1:Pwarmup
+                V.YZiter(data,iType);
+                V.Siter(data,iType);
+            end
+            %V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
+            
             VtrjOpt.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
             VtrjOpt.trjImproveYZS(data,V,iType);
@@ -205,7 +209,11 @@ elseif(restarts>0)
             V.YZ=qYZ0{k};
             V.Siter(data,iType);
             % warmup and look for good YZ-trajectories
-            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
+            for ii=1:Pwarmup
+                V.YZiter(data,iType);
+                V.Siter(data,iType);
+            end
+            %V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
             VtrjOpt.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
             VtrjOpt.trjImproveYZS(data,V,iType);
@@ -236,7 +244,11 @@ elseif(restarts>0)
             V=V0.clone();
             V.YZiter(data,iType);
             % warmup and look for good YZ-trajectories
-            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
+            for ii=1:Pwarmup
+                V.YZiter(data,iType);
+                V.Siter(data,iType);
+            end
+            %V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
             VtrjOpt.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
             VtrjOpt.trjImproveYZS(data,V,iType);
@@ -260,7 +272,11 @@ elseif(restarts>0)
             V=V0.clone();
             V.Siter(data,iType);
             % warmup and look for good YZ-trajectories
-            V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
+            for ii=1:Pwarmup
+                V.YZiter(data,iType);
+                V.Siter(data,iType);
+            end
+            %V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
             VtrjOpt.trjImproveYZS(data,V,iType);
             V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
             VtrjOpt.trjImproveYZS(data,V,iType);
@@ -299,7 +315,11 @@ elseif(restarts>0)
                 V.YZiter(data,iType);
                 V.Piter(data,iType);
                 % warmup and look for good YZ-trajectories
-                V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
+                for ii=1:Pwarmup
+                    V.YZiter(data,iType);
+                    V.Siter(data,iType);
+                end
+                %V.converge(data,'displayLevel',displayLevel-2,'PSYfixed',1,'minIter',3,'iType',iType,'Dsort',true,'maxIter',Pwarmup);
                 VtrjOpt.trjImproveYZS(data,V,iType);
                 V.converge(data,'displayLevel',displayLevel-2,'minIter',Pwarmup+2,'iType',iType,'Dsort',true);
                 VtrjOpt.trjImproveYZS(data,V,iType);

@@ -117,8 +117,9 @@ clf
 leg{1}='VB';
 
 if(R.opt.bootstrap.modelSelection)
+    ii=isfinite(R.VB.dlnL);
     subplot(2,1,1)
-    h(1)=errorbar(NN,R.VB.dlnL,R.VB.bootstrap.dlnLstdErr,'-k.');
+    h(1)=errorbar(NN(ii),R.VB.dlnL(ii),R.VB.bootstrap.dlnLstdErr(ii),'-k.');
 else
     h(1)=plot(NN,R.VB.dlnL,'.k-');
 end
@@ -148,5 +149,40 @@ if(R.opt.bootstrap.modelSelection)
     title('bootstrapped #states')
     box on
 end
+%% search history and initialization performance
+% best lnL curve for each initial condition
+edgecol='krbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrb';
+markcol='krbmwwwwwkrbmwwwwwkrbmwwwwwkrbmwwwwwkrbmwwwwwkrbmwwwwwkrbmwwwww';
+mar='s^><odps^><odp.s^><odps^><odps^><odp.s^><odps^><odps^><odp.s^><odps';
+IINlnL=R.VB.search.IINlnL;
+figure(201)
+clf
+hold on
+h=[];
+leg={};
+lnLinit=[];
+for ii=1:max(IINlnL(:,2))
+    for nn=1:10
+        ind=find(IINlnL(:,2)==ii & IINlnL(:,3)==nn ); % initial guess and model 
+        if(numel(ind)>0)
+            leg{ii}=R.VB.search.param(ind(1)).comment;
+            lnLind=IINlnL(ind,4);
+            lnLinit(ii,nn)=max(lnLind);
+        else
+            lnLinit(ii,nn)=nan;
+        end
+    end
+    h(ii)=plot(lnLinit(ii,:)-max(R.VB.lnL),'-k.',...
+        'color',edgecol(ii),'marker',mar(ii),'markerface',markcol(ii));
+end
+title('Model search by q(S)q(Y,Z) initializations')
+box on
+xlabel('N')
+ylabel('\DeltalnL')
+[~,ind]=sort(-max(lnLinit,[],2));
+ind=1:numel(h);
+axis([0.5 max(NN)+0.5 -120 10])
+legend(h(ind),leg(ind),'location','northeast')
+
 end
 

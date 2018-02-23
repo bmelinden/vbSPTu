@@ -7,6 +7,8 @@ opt.modelSearch.Pwarmup=10;
 trj.Tmin = 5;
 trj.maxRMSE=inf;
 
+model.class='YZShmm.dXt';
+
 prior.diffusionCoeff.type    = 'median_strength';
 prior.diffusionCoeff.strength= 1;
 
@@ -23,20 +25,20 @@ conv.parTol  = 1e-4;   % convergence criterion for M-step parameters (leave non-
 conv.dsTol   = 1e-4;   % convergence criterion for <s(t,j> and tolerance for finding cloned states
 conv.saveErr = false;  % if true, some errors will will write a workspace dump to file, for debugging
 
-modelSearch.YZww        = [2 4 8];
+modelSearch.YZww        = [3 6 10 15];
 modelSearch.restarts    = 100;
 modelSearch.Pwarmup     = 10; 
 modelSearch.maxHidden   = 10; 
 modelSearch.VBinitHidden= 30;
 
-modelSearch.PBF=false;
+modelSearch.PBF=true;
 modelSearch.PBFfracPos=0.1;
 modelSearch.PBFrestarts=300;
 
-opt.modelSearch.MLEparam=true;
+modelSearch.MLEparam=true;
 
-opt.bootstrap.bestParam=false;
-opt.bootstrap.modelSelection=false;
+bootstrap.bestParam=true;
+bootstrap.modelSelection=false;
 bootstrap.bootstrapNum=300;
 
 
