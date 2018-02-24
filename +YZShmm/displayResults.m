@@ -33,6 +33,9 @@ opt=spt.readRuninputFile(runinput);
 % read analysis results
 R=YZShmm.readResult(opt);
 
+% some display parameters
+AijMin=1e-8; % smallest transition probability to include
+
 %% read data
 dat=spt.preprocess(runinput);
 
@@ -48,7 +51,6 @@ end
 disp(['runinput : ' opt.runinputfile ' in ' opt.runinputroot])
 disp(['results  : ' opt.output.outputFile ' in ' opt.runinputroot])
 disp('------------------------------------------------------------')
-
 %% display model parameters
 if(opt.modelSearch.MLEparam)
     disp('MLE parameters : ')
@@ -66,8 +68,9 @@ else
 end
 disp('------------------------------------------------------------')
 %% plot transition rates
-if(exist('digraph','builtin'))
+if(exist('digraph'))
 A0=R.param.A-diag(diag(R.param.A)); % transition matrix, off-diagonal part
+A0(A0<AijMin)=0;
 G=digraph(A0);
 LW=G.Edges.Weight;
 
@@ -133,6 +136,7 @@ ylabel('lnL-lnL_{best}')
 legend(leg)
 grid on
 title('model selection score')
+ylim([-110 5])
 
 if(R.opt.bootstrap.modelSelection)
     subplot(2,1,2)
@@ -155,7 +159,7 @@ edgecol='krbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrbmkrb';
 markcol='krbmwwwwwkrbmwwwwwkrbmwwwwwkrbmwwwwwkrbmwwwwwkrbmwwwwwkrbmwwwww';
 mar='s^><odps^><odp.s^><odps^><odps^><odp.s^><odps^><odps^><odp.s^><odps';
 IINlnL=R.VB.search.IINlnL;
-figure(201)
+figure(202)
 clf
 hold on
 h=[];
@@ -181,8 +185,8 @@ xlabel('N')
 ylabel('\DeltalnL')
 [~,ind]=sort(-max(lnLinit,[],2));
 ind=1:numel(h);
-axis([0.5 max(NN)+0.5 -120 10])
+%axis([0.5 max(NN)+0.5 -110 10])
+ylim([-110 5])
 legend(h(ind),leg(ind),'location','northeast')
-
 end
 

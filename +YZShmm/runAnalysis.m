@@ -14,13 +14,12 @@ function R=runAnalysis(runinput)
 % 	opt         : the options struct produced from runinput
 %   X           : preprocessed data
 % --- selected model 
-%   W       : selected model, by the variational Bayes (VB) or
-%                 pseudo-Bayes factor (PBF) criterion, depending on
-%                 opt.modelSearch.PBF. If opt.modelSearch.MLEparam=true,
-%                 W is a converged maximum likelihood estimate
-%                 (otherwise variational Bayes).
-%   N       : number of states in W.
-% 	P       : estimated parameters in W (VB or MLE).
+%   model   : selected model, by the variational Bayes (VB) or pseudo-Bayes
+%             factor (PBF) criterion, depending on opt.modelSearch.PBF. If
+%             opt.modelSearch.MLEparam=true, R.model is a converged maximum
+%             likelihood estimate (otherwise variational Bayes).
+%   N       : number of states in R.model.
+% 	P       : estimated parameters in R.model (VB or MLE).
 % --- VB model search results from YZShmm.modelSearch
 %   R.VB.model     : The best VB models of all sized encountered during the VB
 %                 model search, up to opt.modelSearch.maxHidden
@@ -61,7 +60,6 @@ function R=runAnalysis(runinput)
 % statistical uncertainty in the model selection.
 %
 % ML 2017-10-16
-
 %% print copyright message
 uSPTlicense('runAnalysis')
 tAnalysis=tic;
@@ -93,7 +91,8 @@ R.numStates=R.model.numStates;
 save(R.opt.output.outputFile,'-struct','R');
 %% pseudo-Bayes factor model selection
 if(R.opt.modelSearch.PBF)
-    R.PBF=struct; %%% need to be followed up
+    % compute pseudo-Bayes factors
+    R.PBF=struct; 
     disp('starting pseudo-Bayes factor cross-validation.')
     %R.PBF.H=YZShmm.LOOCV(R.VB.model,X,'iType','vbq','displayLevel',1);
     %R.PBF.H=YZShmm.crossValidate(R.VB.model,X,'iType','vbq','numPos',R.opt.modelSearch.PBFnumPos,'restarts',R.opt.modelSearch.PBFrestarts,'displayLevel',1);
@@ -101,12 +100,13 @@ if(R.opt.modelSearch.PBF)
     [~,R.PBF.numStates]=max(mean(R.PBF.H,1));
     R.PBF.dlnL=mean(R.PBF.H-R.PBF.H(:,R.PBF.numStates)*ones(1,size(R.PBF.H,2)),1);
     R.PBF.dlnLstdErr=std(R.PBF.H-R.PBF.H(:,R.PBF.numStates)*ones(1,size(R.PBF.H,2)),[],1)/sqrt(size(R.PBF.H,1));
-    W=R.VB.model{R.PBF.numStates}.clone();
+    % transfer PBF model selection to main model
+    R.model=R.VB.model{R.PBF.numStates}.clone();
     R.param=R.model.getParameters(X,'vb');
     R.numStates=R.model.numStates;
     save(R.opt.output.outputFile,'-struct','R');
 end
-%% (MLE parameters for best model
+%% MLE parameters for best model
 if(R.opt.modelSearch.MLEparam)
     disp('converging maximum likelihood estimates')
     R.model.converge(X,'iType','mle');
@@ -118,8 +118,6 @@ save(R.opt.output.outputFile,'-struct','R');
 if(R.opt.bootstrap.bestParam)
     if(R.opt.modelSearch.MLEparam)
         [R.bootstrap.param,~,R.bootstrap.paramStdErr]=YZShmm.bootstrap(R.model,X,'mle',R.opt.bootstrap.bootstrapNum);
-    elseif(R.opt.modelSearch.PBF)
-        [R.bootstrap.param,~,R.bootstrap.paramStdErr]=YZShmm.bootstrap(R.model,X,'vb',R.opt.bootstrap.bootstrapNum);
     else
         [R.bootstrap.param,~,R.bootstrap.paramStdErr]=YZShmm.bootstrap(R.model,X,'vb',R.opt.bootstrap.bootstrapNum);
     end
