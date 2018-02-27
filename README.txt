@@ -1,4 +1,4 @@
-uSPT : a suite of tools learning diffusive HMMs with motion blur and
+A suite of tools learning diffusive HMMs with motion blur and 
 localization errors.
 
 Basic model:
