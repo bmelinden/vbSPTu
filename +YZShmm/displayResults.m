@@ -71,6 +71,8 @@ disp('------------------------------------------------------------')
 if(exist('digraph'))
 A0=R.param.A-diag(diag(R.param.A)); % transition matrix, off-diagonal part
 A0(A0<AijMin)=0;
+
+
 G=digraph(A0);
 LW=G.Edges.Weight;
 
