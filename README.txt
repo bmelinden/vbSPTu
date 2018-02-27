@@ -41,7 +41,6 @@ running average initial guesses for q(Y,Z).
 
 ---------------------------------------------------------------------
 
-
 Different model/algorithm combinations
 +mleYZdXs
 +mleYZdXs_old
@@ -56,27 +55,3 @@ mle/vb : maximum likelihood estimate or variational Bayes.
  dXs : state-dependent position uncertainty part of the model
  Ds    : include state-dependent detachment7death rate in the model
 
----
-to do:
-- get rid of VBinitHidden?
-- create an abstract superclass to list all common core methods and
-  syntax in one place?
-- GUI fill out '-' for missing opt struct fields
-- unknown prior types to updateGUIoptions: load them and write empty
-  GUI text fields?
-- make sure to update prior.XXX.type when editing priors in GUI
-- add and print license texts
-- rename YZShmm.runAnalysis ?
-- initial W.P from priors: check P.wB?
-- a new class with aggregate diffusion constants and possibly
-  forbitten transitions (wBstruct, or interpreting wB=0 as forbidden
-  entries?)
-- write simple test scripts, that systematically tests and
-  demonstrates all functionality of all model classes
-- check that N=1 is handle correctly, in terms of priors and KL-terms
-- separate state estimates from Siter
-- make the data a static part of the model objects, using a handle
-  class if nothing lse works...
-- change Tmin (used now) two trjLmin (as in vbSPT)?
-- consistently use W.P.aggregate-type fields for diffusion constant
-  and deatch rates
