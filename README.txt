@@ -10,6 +10,14 @@ can be supplied as an input variable, in which case v(t,i) is the
 variance of x(t,i), or as a single model parameter (same for all
 dimensions) v, or as a state-dependent parameter v(s).
 ---------------------------------------------------------------------
+quick-start:
+
+1) run uSPThmm_setup to set up matlab paths
+2) usptGUI to lauch the graphical user interface
+
+A small test data set can be found in testdata/ML1_trj10.mat
+
+---------------------------------------------------------------------
 contents
 ---------------------------------------------------------------------
 +spt/ : set of functions to handle data, runinput files, and prior
