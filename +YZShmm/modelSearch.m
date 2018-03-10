@@ -123,6 +123,9 @@ parfor iter=1:restarts+(~isempty(Winit))
     titer=tic;
     if(iter==1 && ~isempty(Winit))
         % first iteration based on supplied models, if available
+        if(~iscell(Winit))
+            Winit={Winit};
+        end
         W0i=cell(size(Winit));
         for k=1:numel(Winit)
             %w=eval([opt.model.class '(' int2str(Winit{k}.numStates) ',opt)']);
