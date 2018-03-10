@@ -110,6 +110,9 @@ WbestNiter  =cell(1,restarts); % best model of each size in each run
 Niter  =cell(1,restarts); % from all models generated in each run
 lnLiter=cell(1,restarts); % from all models generated in each run
 Piter  =cell(1,restarts); % from all models generated in each run
+if(~isempty(Winit) && ~iscell(Winit))
+    Winit={Winit};
+end
 parfor iter=1:restarts+(~isempty(Winit))
 %%% warning('debugging without parfor')
 %%% for iter=1:restarts+(~isempty(Winit))
@@ -123,9 +126,6 @@ parfor iter=1:restarts+(~isempty(Winit))
     titer=tic;
     if(iter==1 && ~isempty(Winit))
         % first iteration based on supplied models, if available
-        if(~iscell(Winit))
-            Winit={Winit};
-        end
         W0i=cell(size(Winit));
         for k=1:numel(Winit)
             %w=eval([opt.model.class '(' int2str(Winit{k}.numStates) ',opt)']);
