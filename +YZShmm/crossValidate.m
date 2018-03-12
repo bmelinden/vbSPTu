@@ -60,7 +60,7 @@ elseif( ~exist('numTrj','var') && exist('numPos','var') && ~exist('fracPos','var
     doNumTrj=false;
     numTrj=[];numPos=numPos;fracPos=[];
     if( numPos <1 || numPos > sum(X.T)-max(X.T))
-       error('Need 1 <= numPos <= total number of positions < max(trjLength).') 
+       error('Need 1 <= numPos <= total number of positions - max(trjLength).') 
     end
     elseif( ~exist('numTrj','var') && ~exist('numPos','var') && exist('fracPos','var'))
     doNumTrj=false;
