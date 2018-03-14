@@ -47,12 +47,12 @@ switch lower(iType)
 end
 % update the hidden state distribution and compute path estimates as needed
 switch nargout
-    case {0,1,3}
-        this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnV,iV);
-    case 4
+    case 3
         [this.S,sMaxP]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnV,iV);
-    case 5
+    case 4
         [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnV,iV);
+    otherwise
+        this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ,lnV,iV);
 end
 % add S- and YZ-contributions to lnL: contribution <ln p(z|x,s,v)> is
 % included in lnZs when v is a parameter

@@ -37,12 +37,12 @@ switch lower(iType)
 end
         
 switch nargout
-    case {0,1,3}
-        this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-    case 4
+    case 3
         [this.S,sMaxP]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
-    case 5
+    case 4
         [this.S,sMaxP,sVit]=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
+    otherwise
+        this.S=YZShmm.hiddenStateUpdate(dat,this.YZ,tau,R,iLambda,lnLambda,lnp0,lnQ);
 end
 lnL1=sum(lnLp)+this.S.lnZ+this.YZ.mean_lnpxz-this.YZ.mean_lnqyz;
 dlnLrel=(lnL1-lnL0)*2/abs(lnL1+lnL0);

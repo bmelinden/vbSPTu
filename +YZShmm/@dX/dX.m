@@ -65,7 +65,7 @@ classdef dX < YZShmm.YZS0
         end
         P=getParameters(this,dat,iType);
         setParamMLE(this,varargin);
-        [dlnLrel,sMaxP,sVit]=Siter(this,dat,iType);
+        [dlnLrel,dlnLterms,sMaxP,sVit]=Siter(this,dat,iType);
         YZiter(this,dat,iType);
         Piter(this,dat,iType);
         [dlnLrel,dPmax,dPmaxName]=modelDiff(this,that);
