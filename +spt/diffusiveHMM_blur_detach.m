@@ -27,7 +27,7 @@ function [x,v,s,y,z]=diffusiveHMM_blur_detach(p0,A,pE,Ddt,tE,RMSmean,RMSstd,dim,
 % RMSmean, RMSstd : parameterization of static localization errors.
 %      Static localization errors in each coordinate component are
 %      independent Gaussians with zero mean and standard devitions St. St
-%      are gamma-distributed, with mean RMSmean and standard deviation
+%      are independent gamma-distributed, with mean RMSmean and standard deviation
 %      RMsstd. RMSmean and RMSstd can be scalars or N-vectors (gives
 %      state-dependent RMS errors). RMSstd=[] or RMSstd(j)=0 leads to
 %      uniform (possibly state-dependent) errors.

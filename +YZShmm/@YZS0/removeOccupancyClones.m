@@ -29,7 +29,7 @@ if(~exist('dsMaxThreshold','var') || isempty(dsMaxThreshold))
 else
     this.conv.dsTol=min([dsMaxThreshold this.conv.dsTol opt.conv.dsTol]);
     opt.conv.dsTol=this.conv.dsTol;
-    this.converge(data,'iType',iType);
+    this.converge(data,'iType',iType,'displayLevel',0);
 end
 if(~exist('display','var'))
     plotFig=0;
