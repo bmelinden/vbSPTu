@@ -110,6 +110,9 @@ WbestNiter  =cell(1,restarts); % best model of each size in each run
 Niter  =cell(1,restarts); % from all models generated in each run
 lnLiter=cell(1,restarts); % from all models generated in each run
 Piter  =cell(1,restarts); % from all models generated in each run
+if(~isempty(Winit) && ~iscell(Winit))
+    Winit={Winit};
+end
 parfor iter=1:restarts+(~isempty(Winit))
 %%% warning('debugging without parfor')
 %%% for iter=1:restarts+(~isempty(Winit))

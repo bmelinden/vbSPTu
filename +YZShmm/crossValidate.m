@@ -33,10 +33,14 @@ function H=crossValidate(W0,X,varargin)
 %             number of trajectories.
 % displayLevel : amount of computational details to write to the command
 %                line. 0: none (default). >0: increasingly more
+% dsTol  : convergence criterion on q(s), the hidden state distribution,
+%          which is set low (default 1e-2) to save computing time.
+%          
 
 tStart=tic;
 displayLevel=0;
 restarts=numel(X.i0);
+dsTol=1e-2; 
 
 % additional input parameters
 parNames={'iType','numTrj','numPos','fracPos','displayLevel','restarts'};
@@ -56,7 +60,7 @@ elseif( ~exist('numTrj','var') && exist('numPos','var') && ~exist('fracPos','var
     doNumTrj=false;
     numTrj=[];numPos=numPos;fracPos=[];
     if( numPos <1 || numPos > sum(X.T)-max(X.T))
-       error('Need 1 <= numPos <= total number of positions < max(trjLength).') 
+       error('Need 1 <= numPos <= total number of positions - max(trjLength).') 
     end
     elseif( ~exist('numTrj','var') && ~exist('numPos','var') && exist('fracPos','var'))
     doNumTrj=false;
@@ -119,25 +123,25 @@ parfor iter=1:restarts
                 case 'mle'
                     % converge training set. Since q(S) and q(Y,Z) is
                     % taken from the full model, start with parameter update
-                    Wt.converge(Xt,'iType','mle','PSYwarmup',[-1 0 0],'displayLevel',dispL);
+                    Wt.converge(Xt,'iType','mle','PSYwarmup',[-1 0 0],'displayLevel',dispL,'dsTol',dsTol);
                     % transfer training parameters
                     Wv.P=Wt.P;
                     % converge validation set with fixed parameters
-                    Wv.converge(Xv,'iType','mle','PSYfixed',1,'displayLevel',dispL);
+                    Wv.converge(Xv,'iType','mle','PSYfixed',1,'displayLevel',dispL,'dsTol',dsTol);
                     Hiter{iter}(m)=(Tt+Tv)/Tv*Wv.lnL;
                 case 'vb'
                     % converge training and full set. Since q(S) and q(Y,Z) is
                     % taken from the full model, start with parameter update
-                    Wt.converge(Xt,'iType','vb','PSYwarmup',[-1 0 0],'displayLevel',dispL);
-                    W0{m}.converge(X,'iType','vb','PSYwarmup',[0 0 0],'displayLevel',dispL,'miniter',2);
+                    Wt.converge(Xt,'iType','vb','PSYwarmup',[-1 0 0],'displayLevel',dispL,'dsTol',dsTol);
+                    W0{m}.converge(X,'iType','vb','PSYwarmup',[0 0 0],'displayLevel',dispL,'miniter',2,'dsTol',dsTol);
                     % validation score as lower bound difference
                     Hiter{iter}(m)=(Tt+Tv)/Tv*(W0{m}.lnL-Wt.lnL);
                 case 'vbq'
                     % converge training set
-                    Wt.converge(Xt,'iType','vb','PSYwarmup',[-1 0 0],'displayLevel',dispL);
+                    Wt.converge(Xt,'iType','vb','PSYwarmup',[-1 0 0],'displayLevel',dispL,'dsTol',dsTol);
                     % parameter posterior -> validation prior
                     Wv.P0=Wt.P;
-                    Wv.converge(Xv,'iType','vb','PSYwarmup',[-1 0 0 ],'displayLevel',dispL);
+                    Wv.converge(Xv,'iType','vb','PSYwarmup',[-1 0 0 ],'displayLevel',dispL,'dsTol',dsTol);
                     % validation score as lower bound difference
                     Hiter{iter}(m)=(Tt+Tv)/Tv*Wv.lnL;
             end
