@@ -45,7 +45,7 @@ RMSstd =[4 5 6];
 
 Ttrj=25; % average raw trajectory length
 Tmin=5;  % minimum traj length cut-off
-Ntrj=100;
+Ntrj=75;
 dim=2;
 T=Tmin+round(-Ttrj*log(rand(1,Ntrj))); % exp-distributed trajectory lengths >= 5
 
