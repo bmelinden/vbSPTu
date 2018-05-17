@@ -74,7 +74,7 @@ classFun=eval(['@' R.opt.model.class]);
 W=classFun(2,opt,X);
 W.Siter(X,'vb');
 clear W classFun;
-[a,b,c]=fileparts(R.opt.output.outputFile)
+[a,b,c]=fileparts(R.opt.output.outputFile);
 R.diaryFile=fullfile(a,[b '.log']);
 diary(R.diaryFile)
 save(R.opt.output.outputFile,'-struct','R');
