@@ -1326,8 +1326,8 @@ if(isfield(opt,'trj') && isfield(opt.trj,'timestep') ...
     answer=inputdlg('Enter exposure time (<timestep):','exposure time');
     tE=str2double(answer{1});
     if(~isempty(tE) )
-        if(tE>=dt)
-            errordlg('Exposure time must be smaller than the timestep.','');
+        if(tE>dt)
+            errordlg('Exposure time cannot be larger than the timestep.','');
         else
            opt.trj.shutterMean=tE/dt/2;
            opt.trj.blurCoeff  = tE/dt/6;
