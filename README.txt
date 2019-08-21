@@ -9,6 +9,13 @@ Position uncertainty in the form of uncorrelated position variances
 can be supplied as an input variable, in which case v(t,i) is the
 variance of x(t,i), or as a single model parameter (same for all
 dimensions) v, or as a state-dependent parameter v(s).
+
+If you use this code, please cite our work:
+Martin Lindén and Johan Elf, 
+Variational Algorithms for Analyzing Noisy Multistate Diffusion Trajectories
+Biophys J. 2018 Jul 17;115(2):276-282. doi: 10.1016/j.bpj.2018.05.027.
+https://doi.org/10.1016/j.bpj.2018.05.027
+https://www.ncbi.nlm.nih.gov/pubmed/29937205
 ---------------------------------------------------------------------
 quick-start:
 
